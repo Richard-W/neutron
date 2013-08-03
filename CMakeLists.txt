@@ -20,6 +20,7 @@ include_directories(${GIO_INCLUDE_DIRS})
 link_directories(${GIO_LIBRARY_DIRS})
 
 vala_precompile(C_SOURCES
+		src/webcon-errors.vala
 	PACKAGES
 		gio-2.0
 	GENERATE_VAPI
