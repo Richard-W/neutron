@@ -19,11 +19,17 @@ pkg_check_modules(GIO gio-2.0 REQUIRED)
 include_directories(${GIO_INCLUDE_DIRS})
 link_directories(${GIO_LIBRARY_DIRS})
 
+pkg_check_modules(GEE gee-0.8 REQUIRED)
+include_directories(${GEE_INCLUDE_DIRS})
+link_directories(${GEE_LIBRARY_DIRS})
+
 vala_precompile(C_SOURCES
 		src/webcon-errors.vala
 		src/webcon-configuration.vala
+		src/webcon-session.vala
 	PACKAGES
 		gio-2.0
+		gee-0.8
 	GENERATE_VAPI
 		webcon
 	OPTIONS
@@ -35,4 +41,5 @@ target_link_libraries(webcon
 	${GLIB_LIBRARIES}
 	${GOBJECT_LIBRARIES}
 	${GIO_LIBRARIES}
+	${GEE_LIBRARIES}
 )
