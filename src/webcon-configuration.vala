@@ -27,6 +27,12 @@ namespace Webcon {
 			set { }
 		}
 
+		private bool _general_daemon;
+		public bool general_daemon {
+			get { return _general_daemon; }
+			set { }
+		}
+
 		/* Security */
 
 		private bool _security_use_tls;
@@ -76,6 +82,7 @@ namespace Webcon {
 			kf.load_from_file(_internal_config_file, KeyFileFlags.NONE);
 
 			parse_port(kf, out _general_http_port, "General", "http_port", true, 0);
+			parse_bool(kf, out _general_daemon, "General", "daemon", false, false);
 			parse_bool(kf, out _security_use_tls, "Security", "use_tls", false, false);
 			parse_certificate(kf, out _security_tls_certificate, "Security", "tls_cert_file", "Security", "tls_key_file", _security_use_tls);
 		}
