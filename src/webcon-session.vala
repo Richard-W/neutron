@@ -22,19 +22,10 @@ using Gee;
 namespace Webcon {
 	/** This class represents a unique client-session which can store data between requests */
 	public class Session : Object {
-		private static HashMap<string,Session>? stored_sessions = null;
-
 		private string sessid;
-
-		public static Session? get_session_by_id(string sessid) {
-			if(stored_sessions == null) return null;
-			if(!stored_sessions.has_key(sessid)) return null;
-			return stored_sessions.get(sessid);
-		}
 
 		public Session() {
 			sessid = generate_session_id();
-			stored_sessions.set(sessid, this);
 		}
 
 		private string generate_session_id() {
