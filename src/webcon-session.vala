@@ -17,8 +17,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-using Gee;
-
 namespace Webcon {
 	/** This class represents a unique client-session which can store data between requests */
 	public class Session : Object {
@@ -26,6 +24,10 @@ namespace Webcon {
 
 		public Session() {
 			sessid = generate_session_id();
+		}
+
+		public string get_session_id() {
+			return sessid;
 		}
 
 		private string generate_session_id() {
