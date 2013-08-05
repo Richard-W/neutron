@@ -23,12 +23,12 @@ namespace Webcon {
 		public string path;
 
 		/** Get string from POST-body */
-		public abstract string get_post_var(string key);
+		public abstract string? get_post_var(string key);
 		/** Get string from Request (e.g. /index.html?foo=bar) */
-		public abstract string get_request_var(string key);
+		public abstract string? get_request_var(string key);
 		/** Get string from Cookie */
-		public abstract string get_cookie_var(string key);
+		public abstract string? get_cookie_var(string key);
 		/** Get string from Session */
-		public abstract string get_session_var(string key);
+		public abstract string? get_session_var(string key);
 	}
 }
