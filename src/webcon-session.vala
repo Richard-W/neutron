@@ -19,11 +19,13 @@
 
 namespace Webcon {
 	/** This class represents a unique client-session which can store data between requests */
-	public class Session : Object {
+	private class Session : Object {
 		private string sessid;
+		private Gee.HashMap<string,string> vars;
 
 		public Session() {
 			sessid = generate_session_id();
+			vars = new Gee.HashMap<string,string>();
 		}
 
 		public string get_session_id() {
@@ -40,6 +42,15 @@ namespace Webcon {
 				strbuilder.append_c((char) chr);
 			}
 			return strbuilder.str;
+		}
+
+		public void set_var(string key, string val) {
+			vars.set(key, val);
+		}
+
+		public string? get_var(string key) {
+			if(!vars.has_key(key)) return null;
+			else return vars.get(key);
 		}
 	}
 
