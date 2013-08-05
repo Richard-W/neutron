@@ -29,6 +29,7 @@ vala_precompile(C_SOURCES
 		src/webcon-session.vala
 		src/webcon-request.vala
 		src/webcon-response.vala
+		src/webcon-requestimpl.vala
 	PACKAGES
 		gio-2.0
 		gee-0.8
