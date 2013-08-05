@@ -19,6 +19,9 @@
 
 namespace Webcon {
 	public abstract class Request : Object {
+		/** The requested path */
+		public string path;
+
 		/** Get string from POST-body */
 		public abstract string get_post_var(string key);
 		/** Get string from Request (e.g. /index.html?foo=bar) */
