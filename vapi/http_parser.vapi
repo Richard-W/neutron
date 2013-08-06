@@ -32,29 +32,23 @@ namespace Native.HttpParser {
 
 	[CCode(cname="http_parser_settings")]
 	public struct http_parser_settings {
-		public http_cb on_message_begin;
-		public http_data_cb on_url;
-		public http_cb on_status_complete;
-		public http_data_cb on_header_field;
-		public http_data_cb on_header_value;
-		public http_cb on_headers_complete;
-		public http_data_cb on_body;
-		public http_cb on_message_complete;
+		public void *on_message_begin;
+		public void *on_url;
+		public void *on_status_complete;
+		public void *on_header_field;
+		public void *on_header_value;
+		public void *on_headers_complete;
+		public void *on_body;
+		public void *on_message_complete;
 	}	
 
-	[CCode(cname="http_parser_type")]
+	[CCode(cname="http_parser_type",cprefix="")]
 	public enum http_parser_type {
 		HTTP_REQUEST,
 		HTTP_RESPONSE,
 		HTTP_BOTH
 	}
 	
-	[CCode(cname="http_data_db")]
-	public delegate int http_data_cb(http_parser *parser, char *at, size_t length);
-
-	[CCode(cname="http_cb")]
-	public delegate int http_cb(http_parser *parser);
-
 	[CCode(cname="http_parser_init")]
 	public void http_parser_init(http_parser *parser, http_parser_type type);
 
