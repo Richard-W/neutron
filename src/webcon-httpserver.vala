@@ -40,6 +40,14 @@ namespace Webcon {
 			listener.incoming.connect(on_incoming);
 		}
 
+		public void start() {
+			listener.start();
+		}
+
+		public void stop() {
+			listener.stop();
+		}
+
 		private bool on_incoming(SocketConnection conn, Object? source_object) {
 			handle_connection.begin((IOStream) conn);
 			return true;
