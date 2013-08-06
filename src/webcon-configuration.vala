@@ -61,7 +61,7 @@ namespace Webcon {
 		}
 
 		/** Should be given the argv-array, to determine the location of the config-file. */
-		public Configuration(string[] args) throws Error {
+		public Configuration.from_argv(string[] argv) throws Error {
 			string? config_file = null;
 			OptionEntry[] options = new OptionEntry[1];
 			options[0] = { "config", 'c', 0, OptionArg.FILENAME, ref config_file, "Configuration-file", "CONFIG" };
@@ -69,7 +69,7 @@ namespace Webcon {
 			var opt_context = new OptionContext("");
 			opt_context.set_help_enabled(true);
 			opt_context.add_main_entries(options, null);
-			opt_context.parse(ref args);
+			opt_context.parse(ref argv);
 
 			if(config_file == null) {
 				throw new ConfigurationError.NO_CONFIGURATION("No configuration given");
@@ -77,6 +77,11 @@ namespace Webcon {
 
 			_internal_config_file = config_file;
 
+			reload();
+		}
+
+		public Configuration.from_file(string filename) throws Error {
+			_internal_config_file = filename;
 			reload();
 		}
 
