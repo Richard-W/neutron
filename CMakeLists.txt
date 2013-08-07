@@ -36,6 +36,7 @@ vala_precompile(C_SOURCES
 	PACKAGES
 		gio-2.0
 		gee-0.8
+		posix
 	GENERATE_VAPI
 		webcon
 	CUSTOM_VAPIS

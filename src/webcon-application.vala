@@ -42,6 +42,12 @@ namespace Webcon {
 		}
 
 		public int run() {
+			if(config.general_daemon) {
+				var pid = Posix.fork();
+				if(pid != 0) Posix.exit(0);
+				Posix.setsid();
+			}
+
 			http_server.start();
 			mainloop.run();
 			return 0;
