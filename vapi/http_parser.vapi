@@ -25,7 +25,7 @@ namespace Native.HttpParser {
 		public short http_minor;
 		public short status_code;
 		public char method;
-		public char http_errn;
+		public char http_errno;
 		public char upgrade;
 		public void *data;
 	}
