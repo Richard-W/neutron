@@ -69,7 +69,45 @@ namespace Webcon {
 
 			while((req = yield parser.run()) != null) {
 				try {
-					yield conn.output_stream.write_async((uint8[]) "Got Request\n".to_utf8());
+					var contentb = new StringBuilder();
+					var respb = new StringBuilder();
+					contentb.append("""
+					<!DOCTYPE html>
+					<html>
+						<head>
+							<title>Testsite</title>
+							<meta charset="utf-8" />
+						</head>
+						<body>
+							<h3>Request-vars</h3>
+					""");
+					foreach(string key in req.get_request_vars()) {
+						contentb.append("%s: %s<br />".printf(key, req.get_request_var(key)));
+					}
+					contentb.append("<h3>Headers</h3>");
+					foreach(string key in req.get_header_vars()) {
+						contentb.append("%s: %s<br />".printf(key, req.get_header_var(key)));
+					}
+					contentb.append("<h3>Post</h3>");
+					foreach(string key in req.get_post_vars()) {
+						contentb.append("%s: %s<br />".printf(key, req.get_post_var(key)));
+					}
+					contentb.append("""
+					<h3>Form</h3>
+					<form method="POST" action = "#">
+					<input type="text" name="field1">
+					<input type="text" name="field2">
+					<input type="submit" value="submit">
+					</form>
+					</body>
+					</html>
+					""");
+					respb.append("HTTP/1.1 200 OK\r\n");
+					respb.append("Content-Length: %ld\r\n".printf(contentb.str.length));
+					respb.append("Connection: close\r\n");
+					respb.append("\r\n");
+					respb.append(contentb.str);
+					yield conn.output_stream.write_async((uint8[]) respb.str.to_utf8());
 				} catch(Error e) { }
 			}
 
