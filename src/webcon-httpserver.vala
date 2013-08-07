@@ -64,6 +64,15 @@ namespace Webcon {
 				}
 			}
 
+			var parser = new HttpParser(conn);
+			Request req;
+
+			while((req = yield parser.run()) != null) {
+				try {
+					yield conn.output_stream.write_async((uint8[]) "Got Request\n".to_utf8());
+				} catch(Error e) { }
+			}
+
 			try {
 				yield conn.close_async();
 			} catch(Error e) {
