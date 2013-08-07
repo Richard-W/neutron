@@ -128,7 +128,7 @@ namespace Webcon {
 			if(header_field == null) return 1;
 			header_value = ((string) data).substring(0, (long) length);
 
-			headers.set(header_field, header_value);
+			headers.set(header_field.down(), header_value);
 			header_field = null;
 			header_value = null;
 			return 0;
