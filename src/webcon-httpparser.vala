@@ -30,6 +30,7 @@ namespace Webcon {
 		private string? header_field = null;
 		private string? header_value = null;
 		private string? url = null;
+		private string? path = null;
 		private bool message_complete = false;
 
 		private IOStream stream;
@@ -93,6 +94,7 @@ namespace Webcon {
 			cookies = new HashMap<string,string>();
 
 			url = null;
+			path = null;
 			header_field = null;
 			header_value = null;
 			return 0;
@@ -100,6 +102,12 @@ namespace Webcon {
 
 		public int on_url(http_parser *parser, char *data, size_t length) {
 			url = ((string) data).substring(0, (long) length);
+			var urlarr = url.split("?",2);
+			path = urlarr[0];
+			if(urlarr.length == 1) return 0;
+
+			parse_varstring(gets, urlarr[1]);
+
 			return 0;
 		}
 
@@ -131,12 +139,26 @@ namespace Webcon {
 		}
 
 		public int on_body(http_parser *parser, char *data, size_t length) {
+			var bodystr = ((string) data).substring(0, (long) length);
+			parse_varstring(body, bodystr);
 			return 0;
 		}
 
 		public int on_message_complete(http_parser *parser) {
 			message_complete = true;
 			return 0;
+		}
+
+		private void parse_varstring(HashMap<string, string> map, string varstring) {
+			var reqarr = varstring.split("&");
+			foreach(string reqpair in reqarr) {
+				var reqparr = reqpair.split("=", 2);
+				string key = reqparr[0];
+				string val;
+				if(reqparr.length == 1) val = "";
+				else val = reqparr[1];
+				map.set(key, val);
+			}
 		}
 	}
 
