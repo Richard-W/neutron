@@ -23,5 +23,8 @@ namespace Webcon {
 		public abstract void set_cookie_var(string key, string val, int lifetime);
 		/** Set session-variable */
 		public abstract void set_session_var(string key, string val);
+
+		/** Send response */
+		public abstract void send();
 	}
 }
