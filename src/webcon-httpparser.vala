@@ -157,7 +157,11 @@ namespace Webcon {
 				string val;
 				if(reqparr.length == 1) val = "";
 				else val = reqparr[1];
-				map.set(key, val);
+				var ue_key = Uri.unescape_string(key);
+				var ue_val = Uri.unescape_string(val);
+				if(ue_key == null) return;
+				if(ue_val == null) ue_val = "";
+				map.set(ue_key, ue_val);
 			}
 		}
 	}
