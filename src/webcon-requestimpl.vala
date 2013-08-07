@@ -45,11 +45,11 @@ namespace Webcon {
 		}
 
 		public override string? get_post_var(string key) {
-			return get_var(gets, key);
+			return get_var(posts, key);
 		}
 
 		public override string? get_cookie_var(string key) {
-			return get_var(gets, key);
+			return get_var(cookies, key);
 		}
 
 		public override string? get_header_var(string key) {
@@ -59,6 +59,27 @@ namespace Webcon {
 		public override string? get_session_var(string key) {
 			if(session != null) return session.get_var(key);
 			else return null;
+		}
+
+		public override string[] get_post_vars() {
+			return posts.keys.to_array();
+		}
+
+		public override string[] get_cookie_vars() {
+			return cookies.keys.to_array();
+		}
+
+		public override string[] get_request_vars() {
+			return gets.keys.to_array();
+		}
+
+		public override string[] get_header_vars() {
+			return headers.keys.to_array();
+		}
+
+		public override string[] get_session_vars() {
+			//TODO: Implement function
+			return new string[1];
 		}
 	}
 }
