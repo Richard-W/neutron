@@ -59,7 +59,7 @@ namespace Webcon {
 			parser_settings.on_message_complete = (void*) on_message_complete_cb;
 		}
 
-		public async Request? run() {
+		public async RequestImpl? run() {
 			uint8[] buffer = new uint8[80*1024];
 			ssize_t recved = 0;
 			
@@ -84,7 +84,7 @@ namespace Webcon {
 
 			message_complete = false;
 			//TODO: Session
-			return new RequestImpl(gets, body, cookies, headers, null);
+			return new RequestImpl(gets, body, cookies, headers);
 		}
 
 		public int on_message_begin(http_parser *parser) {

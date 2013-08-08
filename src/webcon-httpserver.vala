@@ -65,7 +65,7 @@ namespace Webcon {
 			}
 
 			var parser = new HttpParser(conn);
-			Request req;
+			RequestImpl req;
 
 			while((req = yield parser.run()) != null) {
 				try {
