@@ -24,10 +24,10 @@ namespace Webcon {
 		private HashMap<string,string>? gets;
 		private HashMap<string,string>? posts;
 		private HashMap<string,string>? cookies;
-		private HashMap<string,string>? headers;
+		private HashMap<string,HashSet<string>>? headers;
 		private Session? session;
 
-		public RequestImpl(HashMap<string,string>? gets, HashMap<string,string>? posts, HashMap<string,string>? cookies, HashMap<string,string> headers, Session? session) {
+		public RequestImpl(HashMap<string,string>? gets, HashMap<string,string>? posts, HashMap<string,string>? cookies, HashMap<string,HashSet<string>> headers, Session? session) {
 			this.gets = gets;
 			this.posts = posts;
 			this.cookies = cookies;
@@ -52,8 +52,9 @@ namespace Webcon {
 			return get_var(cookies, key);
 		}
 
-		public override string? get_header_var(string key) {
-			return get_var(headers, key);
+		public override string[]? get_header_var(string key) {
+			if(headers.has_key(key)) return headers.get(key).to_array();
+			else return null;
 		}
 
 		public override string? get_session_var(string key) {

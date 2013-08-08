@@ -29,7 +29,7 @@ namespace Webcon {
 		/** Get string from Cookie */
 		public abstract string? get_cookie_var(string key);
 		/** Get string from header */
-		public abstract string? get_header_var(string key);
+		public abstract string[]? get_header_var(string key);
 		/** Get string from Session */
 		public abstract string? get_session_var(string key);
 

@@ -22,7 +22,7 @@ using Gee;
 
 namespace Webcon {
 	private class HttpParser : Object {
-		private HashMap<string, string> headers;
+		private HashMap<string, HashSet<string>> headers;
 		private HashMap<string, string> body;
 		private HashMap<string, string> gets;
 		private HashMap<string, string> cookies;
@@ -88,7 +88,7 @@ namespace Webcon {
 		}
 
 		public int on_message_begin(http_parser *parser) {
-			headers = new HashMap<string,string>();
+			headers = new HashMap<string,HashSet<string>>();
 			body = new HashMap<string,string>();
 			gets = new HashMap<string,string>();
 			cookies = new HashMap<string,string>();
@@ -117,7 +117,7 @@ namespace Webcon {
 
 		public int on_header_field(http_parser *parser, char *data, size_t length) {
 			if(header_field != null) {
-				headers.set(header_field, "");
+				header_set(header_field, "");
 			}
 
 			header_field = ((string) data).substring(0, (long) length);
@@ -128,10 +128,16 @@ namespace Webcon {
 			if(header_field == null) return 1;
 			header_value = ((string) data).substring(0, (long) length);
 
-			headers.set(header_field.down(), header_value);
+			header_set(header_field, header_value);
 			header_field = null;
 			header_value = null;
 			return 0;
+		}
+
+		private void header_set(string key, string val) {
+			var dkey = key.down();
+			if(!headers.has_key(dkey)) headers.set(dkey,new HashSet<string>());
+			headers.get(dkey).add(val);
 		}
 
 		public int on_headers_complete(http_parser *parser) {

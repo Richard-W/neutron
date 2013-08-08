@@ -86,7 +86,9 @@ namespace Webcon {
 					}
 					contentb.append("<h3>Headers</h3>");
 					foreach(string key in req.get_header_vars()) {
-						contentb.append("%s: %s<br />".printf(key, req.get_header_var(key)));
+						foreach(string val in req.get_header_var(key)) {
+							contentb.append("%s: %s<br />".printf(key, val));
+						}
 					}
 					contentb.append("<h3>Post</h3>");
 					foreach(string key in req.get_post_vars()) {
