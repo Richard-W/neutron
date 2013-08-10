@@ -52,5 +52,10 @@ namespace Webcon {
 			if(!vars.has_key(key)) return null;
 			else return vars.get(key);
 		}
+
+		public string[]? get_vars() {
+			if(vars.size == 0) return null;
+			return vars.keys.to_array();
+		}
 	}
 }

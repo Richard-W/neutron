@@ -34,14 +34,14 @@ namespace Webcon {
 		public abstract string? get_session_var(string key);
 
 		/** Return all set keys */
-		public abstract string[] get_post_vars();
+		public abstract string[]? get_post_vars();
 		/** Return all set keys */
-		public abstract string[] get_request_vars();
+		public abstract string[]? get_request_vars();
 		/** Return all set keys */
-		public abstract string[] get_cookie_vars();
+		public abstract string[]? get_cookie_vars();
 		/** Return all set keys */
-		public abstract string[] get_header_vars();
+		public abstract string[]? get_header_vars();
 		/** Return all set keys */
-		public abstract string[] get_session_vars();
+		public abstract string[]? get_session_vars();
 	}
 }

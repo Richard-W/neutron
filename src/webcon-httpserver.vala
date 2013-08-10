@@ -85,11 +85,13 @@ namespace Webcon {
 						session = new Session();
 						session_id = session.get_session_id();
 						stored_sessions.set(session_id, session);
+						session.set_var("testkey", "testval");
 					}
 					else if(!stored_sessions.has_key(session_id)) {
 						session = new Session();
 						session_id = session.get_session_id();
 						stored_sessions.set(session_id, session);
+						session.set_var("testkey", "testval");
 					}
 					/* if(session_id == null || stored_sessions.has_key(session_id)
 					 * would have been better practice, but triggers a bug in valac.
@@ -98,6 +100,7 @@ namespace Webcon {
 					else {
 						session = stored_sessions.get(session_id);
 					}
+					req.set_session(session);
 					respb.append("Set-Cookie: webcon_session_id=%s; max-age: 3600\r\n".printf(session_id));
 
 					/* Test-code */
@@ -128,6 +131,10 @@ namespace Webcon {
 					contentb.append("<h3>Cookies</h3>");
 					foreach(string key in req.get_cookie_vars()) {
 						contentb.append("%s: %s<br />".printf(key, req.get_cookie_var(key)));
+					}
+					contentb.append("<h3>Session</h3>");
+					foreach(string key in req.get_session_vars()) {
+						contentb.append("%s: %s<br />".printf(key, req.get_session_var(key)));
 					}
 					contentb.append("""
 					<h3>Form</h3>

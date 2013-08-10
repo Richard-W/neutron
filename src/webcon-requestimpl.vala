@@ -65,25 +65,33 @@ namespace Webcon {
 			else return null;
 		}
 
-		public override string[] get_post_vars() {
+		public override string[]? get_post_vars() {
+			if(posts == null) return null;
+			if(posts.size == 0) return null;
 			return posts.keys.to_array();
 		}
 
-		public override string[] get_cookie_vars() {
+		public override string[]? get_cookie_vars() {
+			if(cookies == null) return null;
+			if(cookies.size == 0) return null;
 			return cookies.keys.to_array();
 		}
 
-		public override string[] get_request_vars() {
+		public override string[]? get_request_vars() {
+			if(gets == null) return null;
+			if(gets.size == 0) return null;
 			return gets.keys.to_array();
 		}
 
-		public override string[] get_header_vars() {
+		public override string[]? get_header_vars() {
+			if(headers == null) return null;
+			if(headers.size == 0) return null;
 			return headers.keys.to_array();
 		}
 
-		public override string[] get_session_vars() {
-			//TODO: Implement function
-			return new string[1];
+		public override string[]? get_session_vars() {
+			if(session == null) return null;
+			return session.get_vars();
 		}
 	}
 }
