@@ -152,6 +152,19 @@ namespace Webcon {
 
 		public int on_message_complete(http_parser *parser) {
 			message_complete = true;
+
+			/* Parse cookies */
+			if(headers.has_key("cookie")) {
+				var cookieset = headers.get("cookie");
+				foreach(string cookiestring in cookieset) {
+					var cookiearr = cookiestring.split(";");
+					foreach(string cookie in cookiearr) {
+						var cookiesplit = cookie.split("=", 2);
+						if(cookiesplit.length != 2) continue;
+						else cookies.set(cookiesplit[0].strip(), cookiesplit[1].strip());
+					}
+				}
+			}
 			return 0;
 		}
 

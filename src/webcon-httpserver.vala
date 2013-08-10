@@ -94,6 +94,10 @@ namespace Webcon {
 					foreach(string key in req.get_post_vars()) {
 						contentb.append("%s: %s<br />".printf(key, req.get_post_var(key)));
 					}
+					contentb.append("<h3>Cookies</h3>");
+					foreach(string key in req.get_cookie_vars()) {
+						contentb.append("%s: %s<br />".printf(key, req.get_cookie_var(key)));
+					}
 					contentb.append("""
 					<h3>Form</h3>
 					<form method="POST" action = "#">
