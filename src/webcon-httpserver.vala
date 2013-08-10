@@ -17,6 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+using Gee;
+
 namespace Webcon {
 	private class HttpServer : Object {
 		private uint16 _port;
@@ -28,6 +30,8 @@ namespace Webcon {
 		private TlsCertificate? tls_cert;
 		private SocketService listener;
 
+		private HashMap<string, Session> stored_sessions;
+
 		public HttpServer(uint16 port, bool use_tls, TlsCertificate? tls_cert = null) throws Error {
 			assert(port != 0);
 
@@ -38,6 +42,8 @@ namespace Webcon {
 			listener = new SocketService();
 			listener.add_inet_port(port, null);
 			listener.incoming.connect(on_incoming);
+
+			stored_sessions = new HashMap<string, Session>();
 		}
 
 		public void start() {
@@ -69,8 +75,33 @@ namespace Webcon {
 
 			while((req = yield parser.run()) != null) {
 				try {
-					var contentb = new StringBuilder();
 					var respb = new StringBuilder();
+					respb.append("HTTP/1.1 200 OK\r\n");
+					respb.append("Connection: keep-alive\r\n");
+
+					string? session_id = req.get_cookie_var("webcon_session_id");
+					Session? session = null;
+					if(session_id == null) {
+						session = new Session();
+						session_id = session.get_session_id();
+						stored_sessions.set(session_id, session);
+					}
+					else if(!stored_sessions.has_key(session_id)) {
+						session = new Session();
+						session_id = session.get_session_id();
+						stored_sessions.set(session_id, session);
+					}
+					/* if(session_id == null || stored_sessions.has_key(session_id)
+					 * would have been better practice, but triggers a bug in valac.
+					 * https://bugzilla.gnome.org/show_bug.cgi?id=703666
+					 */
+					else {
+						session = stored_sessions.get(session_id);
+					}
+					respb.append("Set-Cookie: webcon_session_id=%s; max-age: 3600\r\n".printf(session_id));
+
+					/* Test-code */
+					var contentb = new StringBuilder();
 					contentb.append("""
 					<!DOCTYPE html>
 					<html>
@@ -108,9 +139,9 @@ namespace Webcon {
 					</body>
 					</html>
 					""");
-					respb.append("HTTP/1.1 200 OK\r\n");
+					/* End test-code */
+
 					respb.append("Content-Length: %ld\r\n".printf(contentb.str.length));
-					respb.append("Connection: close\r\n");
 					respb.append("\r\n");
 					respb.append(contentb.str);
 					yield conn.output_stream.write_async((uint8[]) respb.str.to_utf8());
