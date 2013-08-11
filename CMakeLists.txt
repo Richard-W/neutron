@@ -28,7 +28,6 @@ vala_precompile(C_SOURCES
 		src/webcon-configuration.vala
 		src/webcon-session.vala
 		src/webcon-request.vala
-		src/webcon-response.vala
 		src/webcon-requestimpl.vala
 		src/webcon-httpserver.vala
 		src/webcon-application.vala
