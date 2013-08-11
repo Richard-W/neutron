@@ -99,7 +99,13 @@ namespace Webcon {
 						session = stored_sessions.get(session_id);
 					}
 					req.set_session(session);
-					respb.append("Set-Cookie: webcon_session_id=%s; Max-Age=3600; HttpOnly\r\n".printf(session_id));
+
+					var cookieb = new StringBuilder();
+					cookieb.append("; Max-Age=%d".printf(3600));
+					cookieb.append("; Path=%s".printf("/"));
+					cookieb.append("; HttpOnly");
+					if(use_tls) cookieb.append("; Secure");
+					respb.append("Set-Cookie: webcon_session_id=%s%s\r\n".printf(session_id,cookieb.str));
 
 					/* Test-code */
 					var contentb = new StringBuilder();
