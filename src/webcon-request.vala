@@ -48,6 +48,6 @@ namespace Webcon {
 		public abstract void set_session_var(string key, string val);
 		public abstract void set_response_body(string body);
 		public abstract void set_response_http_status(int status);
-		public abstract void respond();
+		public abstract void add_header_line(string header_line);
 	}
 }
