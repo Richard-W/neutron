@@ -27,6 +27,10 @@ namespace Webcon {
 		private HashMap<string,HashSet<string>>? headers;
 		private Session? session;
 		private string _path;
+
+		public string? response_body=null;
+		public int response_http_status = 200;
+		public HashSet<string> response_headers;
 		
 		public new string path { get { return _path; } set { } }
 
@@ -36,6 +40,8 @@ namespace Webcon {
 			this.cookies = cookies;
 			this.headers = headers;
 			this._path = path;
+
+			response_headers = new HashSet<string>();
 		}
 
 		public void set_session(Session session) {
@@ -96,6 +102,35 @@ namespace Webcon {
 		public override string[]? get_session_vars() {
 			if(session == null) return null;
 			return session.get_vars();
+		}
+
+		public override void set_cookie(string key, string val, int lifetime, string path="/", bool http_only=false, bool secure=false) {
+			var cookie = new StringBuilder();
+
+			cookie.append("Set-Cookie: %s=%s");
+			cookie.append("; Max-Age=%d".printf(lifetime));
+			cookie.append("; Path=%s".printf(path));
+
+			if(http_only) cookie.append("; HttpOnly");
+			if(secure) cookie.append("; Secure");
+
+			this.add_header_line(cookie.str);
+		}
+
+		public override void add_header_line(string header_line) {
+			response_headers.add(header_line);
+		}
+		
+		public override void set_response_body(string body) {
+			response_body = body;
+		}
+
+		public override void set_response_http_status(int status) {
+			response_http_status = status;
+		}
+
+		public override void set_session_var(string key, string val) {
+			session.set_var(key, val);
 		}
 	}
 }

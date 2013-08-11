@@ -44,7 +44,7 @@ namespace Webcon {
 		/** Return all set keys */
 		public abstract string[]? get_session_vars();
 
-		public abstract void set_cookie(string key, string val, int lifetime, string path="/");
+		public abstract void set_cookie(string key, string val, int lifetime, string path="/", bool http_only=false, bool secure=false);
 		public abstract void set_session_var(string key, string val);
 		public abstract void set_response_body(string body);
 		public abstract void set_response_http_status(int status);
