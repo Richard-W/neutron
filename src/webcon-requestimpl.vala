@@ -26,12 +26,16 @@ namespace Webcon {
 		private HashMap<string,string>? cookies;
 		private HashMap<string,HashSet<string>>? headers;
 		private Session? session;
+		private string _path;
+		
+		public new string path { get { return _path; } set { } }
 
-		public RequestImpl(HashMap<string,string>? gets, HashMap<string,string>? posts, HashMap<string,string>? cookies, HashMap<string,HashSet<string>> headers) {
+		public RequestImpl(string path, HashMap<string,string>? gets, HashMap<string,string>? posts, HashMap<string,string>? cookies, HashMap<string,HashSet<string>> headers) {
 			this.gets = gets;
 			this.posts = posts;
 			this.cookies = cookies;
 			this.headers = headers;
+			this._path = path;
 		}
 
 		public void set_session(Session session) {

@@ -140,6 +140,8 @@ namespace Webcon {
 					foreach(string key in req.get_session_vars()) {
 						contentb.append("%s: %s<br />".printf(key, req.get_session_var(key)));
 					}
+					contentb.append("<h3>Path</h3>");
+					contentb.append("%s<br />".printf(req.path));
 					contentb.append("""
 					<h3>Form</h3>
 					<form method="POST" action = "#">
