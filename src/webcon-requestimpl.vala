@@ -107,7 +107,7 @@ namespace Webcon {
 		public override void set_cookie(string key, string val, int lifetime, string path="/", bool http_only=false, bool secure=false) {
 			var cookie = new StringBuilder();
 
-			cookie.append("Set-Cookie: %s=%s");
+			cookie.append("Set-Cookie: %s=%s".printf(key, val));
 			cookie.append("; Max-Age=%d".printf(lifetime));
 			cookie.append("; Path=%s".printf(path));
 
