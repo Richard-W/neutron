@@ -75,10 +75,6 @@ namespace Webcon {
 
 			while((req = yield parser.run()) != null) {
 				try {
-					var respb = new StringBuilder();
-					respb.append("HTTP/1.1 200 OK\r\n");
-					respb.append("Connection: keep-alive\r\n");
-
 					string? session_id = req.get_cookie_var("webcon_session_id");
 					Session? session = null;
 					if(session_id == null) {
@@ -99,15 +95,13 @@ namespace Webcon {
 						session = stored_sessions.get(session_id);
 					}
 					req.set_session(session);
-
-					var cookieb = new StringBuilder();
-					cookieb.append("; Max-Age=%d".printf(3600));
-					cookieb.append("; Path=%s".printf("/"));
-					cookieb.append("; HttpOnly");
-					if(use_tls) cookieb.append("; Secure");
-					respb.append("Set-Cookie: webcon_session_id=%s%s\r\n".printf(session_id,cookieb.str));
+					req.set_cookie("webcon_session_id", session_id, 3600, "/", true, use_tls);
 
 					/* Test-code */
+					req.set_cookie("testcookie", "testvalue", 3600);
+					if(req.get_session_vars() == null) {
+						req.set_session_var("testkey", "testval");
+					}
 					var contentb = new StringBuilder();
 					contentb.append("""
 					<!DOCTYPE html>
@@ -152,11 +146,20 @@ namespace Webcon {
 					</body>
 					</html>
 					""");
+					req.set_response_body(contentb.str);
 					/* End test-code */
 
-					respb.append("Content-Length: %ld\r\n".printf(contentb.str.length));
+					var respb = new StringBuilder();
+					respb.append("HTTP/1.1 200 OK\r\n");
+					respb.append("Connection: keep-alive\r\n");
+
+					foreach(string header_line in req.response_headers) {
+						respb.append("%s\r\n".printf(header_line));
+					}
+
+					respb.append("Content-Length: %ld\r\n".printf(req.response_body.length));
 					respb.append("\r\n");
-					respb.append(contentb.str);
+					respb.append(req.response_body);
 					yield conn.output_stream.write_async((uint8[]) respb.str.to_utf8());
 				} catch(Error e) { }
 			}
