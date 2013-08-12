@@ -21,7 +21,7 @@ using Native.HttpParser;
 using Gee;
 
 namespace Webcon.Http {
-	private class HttpParser : Object {
+	private class Parser : Object {
 		private HashMap<string, HashSet<string>> headers;
 		private HashMap<string, string> body;
 		private HashMap<string, string> gets;
@@ -38,10 +38,10 @@ namespace Webcon.Http {
 		private http_parser parser;
 		private http_parser_settings parser_settings;
 
-		public signal void closed(HttpParser parser);
+		public signal void closed(Parser parser);
 		public signal void request(Request request);
 
-		public HttpParser(IOStream stream) {
+		public Parser(IOStream stream) {
 			parser = http_parser();
 			http_parser_init(&parser, http_parser_type.HTTP_REQUEST);
 			parser.data = (void*) this;
@@ -187,35 +187,35 @@ namespace Webcon.Http {
 
 
 	private int on_message_begin_cb(http_parser *parser) {
-		var parser_obj = (HttpParser) parser->data;
+		var parser_obj = (Parser) parser->data;
 		return parser_obj.on_message_begin(parser);
 	}
 	private int on_status_complete_cb(http_parser *parser) {
-		var parser_obj = (HttpParser) parser->data;
+		var parser_obj = (Parser) parser->data;
 		return parser_obj.on_status_complete(parser);
 	}
 	private int on_headers_complete_cb(http_parser *parser) {
-		var parser_obj = (HttpParser) parser->data;
+		var parser_obj = (Parser) parser->data;
 		return parser_obj.on_headers_complete(parser);
 	}
 	private int on_message_complete_cb(http_parser *parser) {
-		var parser_obj = (HttpParser) parser->data;
+		var parser_obj = (Parser) parser->data;
 		return parser_obj.on_message_complete(parser);
 	}
 	private int on_url_cb(http_parser *parser, char *data, size_t length) {
-		var parser_obj = (HttpParser) parser->data;
+		var parser_obj = (Parser) parser->data;
 		return parser_obj.on_url(parser, data, length);
 	}
 	private int on_header_field_cb(http_parser *parser, char *data, size_t length) {
-		var parser_obj = (HttpParser) parser->data;
+		var parser_obj = (Parser) parser->data;
 		return parser_obj.on_header_field(parser, data, length);
 	}
 	private int on_header_value_cb(http_parser *parser, char *data, size_t length) {
-		var parser_obj = (HttpParser) parser->data;
+		var parser_obj = (Parser) parser->data;
 		return parser_obj.on_header_value(parser, data, length);
 	}
 	private int on_body_cb(http_parser *parser, char *data, size_t length) {
-		var parser_obj = (HttpParser) parser->data;
+		var parser_obj = (Parser) parser->data;
 		return parser_obj.on_body(parser, data, length);
 	}
 }

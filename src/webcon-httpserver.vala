@@ -86,7 +86,7 @@ namespace Webcon.Http {
 
 			/* Parser takes an IOStream-Object, so it does not care whether connection
 			 * is encrypted or not */
-			var parser = new HttpParser(conn);
+			var parser = new Parser(conn);
 			RequestImpl req;
 
 			while((req = yield parser.run()) != null) {
