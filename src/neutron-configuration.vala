@@ -123,6 +123,7 @@ namespace Neutron {
 		private void parse_certificate(KeyFile kf, out TlsCertificate cert, string cert_group, string cert_key, string key_group, string key_key, bool required) throws Error {
 			if((!check_option(kf, cert_group, cert_key, required)) || (!check_option(kf, key_group, key_key, required))) {
 				cert = null;
+				return;
 			}
 
 			string cert_file = kf.get_string(cert_group, cert_key);
@@ -133,7 +134,7 @@ namespace Neutron {
 
 		/** Checks if option is set in the config-file. Throws an error if it is not set, but required */
 		private bool check_option(KeyFile kf, string group, string key, bool required) throws Error {
-			if(!kf.has_key(group, key)) {
+			if(!kf.has_group(group) || !kf.has_key(group, key)) {
 				if(required)
 					throw new ConfigurationError.REQUIRED_OPTION_MISSING("Required option missing");
 				return false;
