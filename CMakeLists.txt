@@ -24,14 +24,14 @@ include_directories(${GEE_INCLUDE_DIRS})
 link_directories(${GEE_LIBRARY_DIRS})
 
 vala_precompile(C_SOURCES
-		src/webcon-application.vala
-		src/webcon-configuration.vala
-		src/webcon-errors.vala
-		src/webcon-http-server.vala
-		src/webcon-http-parser.vala
-		src/webcon-http-session.vala
-		src/webcon-http-request.vala
-		src/webcon-http-requestimpl.vala
+		src/neutron-application.vala
+		src/neutron-configuration.vala
+		src/neutron-errors.vala
+		src/neutron-http-server.vala
+		src/neutron-http-parser.vala
+		src/neutron-http-session.vala
+		src/neutron-http-request.vala
+		src/neutron-http-requestimpl.vala
 	PACKAGES
 		gio-2.0
 		gee-0.8
