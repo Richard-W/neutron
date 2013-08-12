@@ -37,6 +37,7 @@ int main(string[] argv) {
 
 void request_handler(Webcon.Http.Request req) {
 	req.set_cookie("testcookie", "testvalue", 3600);
+	req.set_cookie("ütf-8-test", "testvalüe", 3600);
 	if(req.get_session_vars() == null) {
 		req.set_session_var("testkey", "testval");
 	}
