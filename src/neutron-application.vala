@@ -25,16 +25,7 @@ namespace Neutron {
 
 		public Application(string[] argv, string? configfile = null) throws Error {
 			var config_from_argv = true;
-			try {
-				config = new Configuration.from_argv(argv);
-			} catch(ConfigurationError.NO_CONFIGURATION e) { 
-				config_from_argv = false;
-			}
-
-			if(!config_from_argv) {
-				if(configfile == null) throw new ConfigurationError.NO_CONFIGURATION("Hardcoded configuration-file is null and no arguments given to select another");
-				config = new Configuration.from_file(configfile);
-			}
+			config = new Configuration(argv, configfile);
 
 			mainloop = new MainLoop();
 		}

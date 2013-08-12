@@ -61,7 +61,7 @@ namespace Neutron {
 		}
 
 		/** Should be given the argv-array, to determine the location of the config-file. */
-		public Configuration.from_argv(string[] argv) throws Error {
+		public Configuration(string[] argv, string? alternative = null) throws Error {
 			string? config_file = null;
 			OptionEntry[] options = new OptionEntry[1];
 			options[0] = { "config", 'c', 0, OptionArg.FILENAME, ref config_file, "Configuration-file", "CONFIG" };
@@ -71,23 +71,19 @@ namespace Neutron {
 			opt_context.add_main_entries(options, null);
 			opt_context.parse(ref argv);
 
-			if(config_file == null) {
-				throw new ConfigurationError.NO_CONFIGURATION("No configuration given");
-			}
-
+			if(config_file == null) config_file = alternative;
 			_internal_config_file = config_file;
 
-			reload();
-		}
-
-		public Configuration.from_file(string filename) throws Error {
-			_internal_config_file = filename;
 			reload();
 		}
 
 		/** Parses the config-file again. You can also specify a new config-file */
 		public void reload(string? new_config = null) throws Error {
 			if(new_config != null) _internal_config_file = new_config;
+			if(_internal_config_file == null) {
+				set_defaults();
+				return;
+			}
 
 			var kf = new KeyFile();
 			kf.set_list_separator(',');
@@ -97,6 +93,13 @@ namespace Neutron {
 			parse_port(kf, out _http_port, "Http", "port", false, 80);
 			parse_bool(kf, out _http_use_tls, "Http", "use_tls", false, false);
 			parse_certificate(kf, out _http_tls_certificate, "Http", "tls_cert_file", "Http", "tls_key_file", _http_use_tls);
+		}
+
+		/** Set the default values */
+		public void set_defaults() {
+			_general_daemon = false;
+			_http_port = 80;
+			_http_use_tls = false;
 		}
 
 		/** This basically just parses a uint16 */

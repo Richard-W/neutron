@@ -19,7 +19,6 @@
 
 namespace Neutron {
 	public errordomain ConfigurationError {
-		NO_CONFIGURATION,
 		REQUIRED_OPTION_MISSING,
 		INVALID_OPTION
 	}
