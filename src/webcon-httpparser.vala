@@ -20,7 +20,7 @@
 using Native.HttpParser;
 using Gee;
 
-namespace Webcon {
+namespace Webcon.Http {
 	private class HttpParser : Object {
 		private HashMap<string, HashSet<string>> headers;
 		private HashMap<string, string> body;

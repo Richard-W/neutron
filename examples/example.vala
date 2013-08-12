@@ -19,7 +19,7 @@
 
 int main(string[] argv) {
 	Webcon.Application app;
-	Webcon.HttpServer http;
+	Webcon.Http.HttpServer http;
 
 	try {
 		app = new Webcon.Application(argv);
@@ -35,7 +35,7 @@ int main(string[] argv) {
 	return app.run();
 }
 
-void request_handler(Webcon.Request req) {
+void request_handler(Webcon.Http.Request req) {
 	req.set_cookie("testcookie", "testvalue", 3600);
 	if(req.get_session_vars() == null) {
 		req.set_session_var("testkey", "testval");

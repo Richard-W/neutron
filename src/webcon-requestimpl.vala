@@ -19,7 +19,7 @@
 
 using Gee;
 
-namespace Webcon {
+namespace Webcon.Http {
 	private class RequestImpl : Request {
 		private HashMap<string,string>? gets;
 		private HashMap<string,string>? posts;

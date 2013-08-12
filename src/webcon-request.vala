@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-namespace Webcon {
+namespace Webcon.Http {
 	public abstract class Request : Object {
 		/** The requested path */
 		public string path;

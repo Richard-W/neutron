@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-namespace Webcon {
+namespace Webcon.Http {
 	/** This class represents a unique client-session which can store data between requests */
 	private class Session : Object {
 		private string sessid;
