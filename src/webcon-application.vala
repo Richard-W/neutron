@@ -1,5 +1,5 @@
 /*
- * This file is part of the webcon project.
+ * This file is part of the neutron project.
  * 
  * Copyright 2013 Richard Wiedenhöft <richard.wiedenhoeft@gmail.com>
  *
@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-namespace Webcon {
+namespace Neutron {
 	public class Application : Object {
 		/* General */
 		private Configuration config;

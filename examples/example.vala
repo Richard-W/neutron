@@ -18,11 +18,11 @@
  */
 
 int main(string[] argv) {
-	Webcon.Application app;
-	Webcon.Http.Server http;
+	Neutron.Application app;
+	Neutron.Http.Server http;
 
 	try {
-		app = new Webcon.Application(argv);
+		app = new Neutron.Application(argv);
 		app.enable_http();
 
 		http = app.get_http_server();
@@ -35,7 +35,7 @@ int main(string[] argv) {
 	return app.run();
 }
 
-void request_handler(Webcon.Http.Request req) {
+void request_handler(Neutron.Http.Request req) {
 	req.set_cookie("testcookie", "testvalue", 3600);
 	req.set_cookie("ütf-8-test", "testvalüe", 3600);
 	if(req.get_session_vars() == null) {

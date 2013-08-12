@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.6)
-project(webcon)
+project(neutron)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 find_package(Vala REQUIRED)
@@ -37,7 +37,7 @@ vala_precompile(C_SOURCES
 		gee-0.8
 		posix
 	GENERATE_VAPI
-		webcon
+		neutron
 	CUSTOM_VAPIS
 		vapi/http_parser.vapi
 	OPTIONS
@@ -47,8 +47,8 @@ vala_precompile(C_SOURCES
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/http_parser)
 list(APPEND C_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/external/http_parser/http_parser.c)
 
-add_library(webcon SHARED ${C_SOURCES})
-target_link_libraries(webcon
+add_library(neutron SHARED ${C_SOURCES})
+target_link_libraries(neutron
 	${GLIB_LIBRARIES}
 	${GOBJECT_LIBRARIES}
 	${GIO_LIBRARIES}

@@ -1,5 +1,5 @@
 /*
- * This file is part of the webcon project.
+ * This file is part of the neutron project.
  * 
  * Copyright 2013 Richard Wiedenhöft <richard.wiedenhoeft@gmail.com>
  *
@@ -19,7 +19,7 @@
 
 using Gee;
 
-namespace Webcon.Http {
+namespace Neutron.Http {
 	private class RequestImpl : Request {
 		private HashMap<string,string>? gets;
 		private HashMap<string,string>? posts;

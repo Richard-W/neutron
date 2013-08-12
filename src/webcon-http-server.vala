@@ -1,5 +1,5 @@
 /*
- * This file is part of the webcon project.
+ * This file is part of the neutron project.
  * 
  * Copyright 2013 Richard Wiedenhöft <richard.wiedenhoeft@gmail.com>
  *
@@ -19,7 +19,7 @@
 
 using Gee;
 
-namespace Webcon.Http {
+namespace Neutron.Http {
 	public class Server : Object {
 		private uint16 _port;
 		public uint16 port { get { return _port; } set { } }
@@ -92,7 +92,7 @@ namespace Webcon.Http {
 			while((req = yield parser.run()) != null) {
 				try {
 					/* Get session_id */
-					string? session_id = req.get_cookie_var("webcon_session_id");
+					string? session_id = req.get_cookie_var("neutron_session_id");
 					Session? session = null;
 
 					/* If session_id is not set or invalid create new session */
@@ -119,7 +119,7 @@ namespace Webcon.Http {
 					req.set_session(session);
 
 					/* Refresh or set session-cookie */
-					req.set_cookie("webcon_session_id", session_id, 3600, "/", true, use_tls);
+					req.set_cookie("neutron_session_id", session_id, 3600, "/", true, use_tls);
 
 					/* Check if a handler is registered for the requested path */
 					if(request_handlers.has_key(req.path)) {

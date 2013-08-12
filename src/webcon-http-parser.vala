@@ -1,5 +1,5 @@
 /*
- * This file is part of the webcon project.
+ * This file is part of the neutron project.
  * 
  * Copyright 2013 Richard Wiedenhöft <richard.wiedenhoeft@gmail.com>
  *
@@ -20,7 +20,7 @@
 using Native.HttpParser;
 using Gee;
 
-namespace Webcon.Http {
+namespace Neutron.Http {
 	private class Parser : Object {
 		private HashMap<string, HashSet<string>> headers;
 		private HashMap<string, string> body;
