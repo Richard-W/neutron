@@ -26,20 +26,17 @@ namespace Webcon {
 		private HashMap<string,string>? cookies;
 		private HashMap<string,HashSet<string>>? headers;
 		private Session? session;
-		private string _path;
 
 		public string? response_body=null;
 		public int response_http_status = 200;
 		public HashSet<string> response_headers;
 		
-		public new string path { get { return _path; } set { } }
-
 		public RequestImpl(string path, HashMap<string,string>? gets, HashMap<string,string>? posts, HashMap<string,string>? cookies, HashMap<string,HashSet<string>> headers) {
 			this.gets = gets;
 			this.posts = posts;
 			this.cookies = cookies;
 			this.headers = headers;
-			this._path = path;
+			this.path = path;
 
 			response_headers = new HashSet<string>();
 		}
