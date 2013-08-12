@@ -41,6 +41,10 @@ namespace Webcon {
 			mainloop = new MainLoop();
 		}
 
+		public void set_handler(string path, RequestHandlerFunc handler) {
+			http_server.set_handler(path, handler);
+		}
+
 		public int run() {
 			if(config.general_daemon) {
 				var pid = Posix.fork();

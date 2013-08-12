@@ -31,6 +31,7 @@ namespace Webcon {
 		private SocketService listener;
 
 		private HashMap<string, Session> stored_sessions;
+		private HashMap<string, RequestHandlerWrapper> request_handlers;
 
 		public HttpServer(uint16 port, bool use_tls, TlsCertificate? tls_cert = null) throws Error {
 			assert(port != 0);
@@ -44,6 +45,11 @@ namespace Webcon {
 			listener.incoming.connect(on_incoming);
 
 			stored_sessions = new HashMap<string, Session>();
+			request_handlers = new HashMap<string, RequestHandlerWrapper>();
+		}
+
+		public void set_handler(string path, RequestHandlerFunc handler) {
+			request_handlers.set(path, new RequestHandlerWrapper(handler));
 		}
 
 		public void start() {
@@ -97,60 +103,16 @@ namespace Webcon {
 					req.set_session(session);
 					req.set_cookie("webcon_session_id", session_id, 3600, "/", true, use_tls);
 
-					/* Test-code */
-					req.set_cookie("testcookie", "testvalue", 3600);
-					if(req.get_session_vars() == null) {
-						req.set_session_var("testkey", "testval");
+					if(request_handlers.has_key(req.path)) {
+						var wrapper = request_handlers.get(req.path);
+						wrapper.handler(req);
+					} else {
+						req.set_response_http_status(404);
+						req.set_response_body("<!DOCTYPE html><html><head><meta charset=\"utf-8\" /><title>404 - Page not found</title></head><body><h1>404 - Page not found</h1></body></html>");
 					}
-					var contentb = new StringBuilder();
-					contentb.append("""
-					<!DOCTYPE html>
-					<html>
-						<head>
-							<title>Testsite</title>
-							<meta charset="utf-8" />
-						</head>
-						<body>
-							<h3>Request-vars</h3>
-					""");
-					foreach(string key in req.get_request_vars()) {
-						contentb.append("%s: %s<br />".printf(key, req.get_request_var(key)));
-					}
-					contentb.append("<h3>Headers</h3>");
-					foreach(string key in req.get_header_vars()) {
-						foreach(string val in req.get_header_var(key)) {
-							contentb.append("%s: %s<br />".printf(key, val));
-						}
-					}
-					contentb.append("<h3>Post</h3>");
-					foreach(string key in req.get_post_vars()) {
-						contentb.append("%s: %s<br />".printf(key, req.get_post_var(key)));
-					}
-					contentb.append("<h3>Cookies</h3>");
-					foreach(string key in req.get_cookie_vars()) {
-						contentb.append("%s: %s<br />".printf(key, req.get_cookie_var(key)));
-					}
-					contentb.append("<h3>Session</h3>");
-					foreach(string key in req.get_session_vars()) {
-						contentb.append("%s: %s<br />".printf(key, req.get_session_var(key)));
-					}
-					contentb.append("<h3>Path</h3>");
-					contentb.append("%s<br />".printf(req.path));
-					contentb.append("""
-					<h3>Form</h3>
-					<form method="POST" action = "#">
-					<input type="text" name="field1">
-					<input type="text" name="field2">
-					<input type="submit" value="submit">
-					</form>
-					</body>
-					</html>
-					""");
-					req.set_response_body(contentb.str);
-					/* End test-code */
 
 					var respb = new StringBuilder();
-					respb.append("HTTP/1.1 200 OK\r\n");
+					respb.append("HTTP/1.1 %d\r\n".printf(req.response_http_status));
 					respb.append("Connection: keep-alive\r\n");
 
 					foreach(string header_line in req.response_headers) {
@@ -171,4 +133,14 @@ namespace Webcon {
 			}
 		}
 	}
+
+	private class RequestHandlerWrapper : Object {
+		public RequestHandlerFunc handler;
+
+		public RequestHandlerWrapper(RequestHandlerFunc handler) {
+			this.handler = handler;
+		}
+	}
+
+	public delegate void RequestHandlerFunc(Request request);
 }
