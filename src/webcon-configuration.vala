@@ -18,15 +18,8 @@
  */
 
 namespace Webcon {
-	private class Configuration {
+	private class Configuration : Object {
 		/* General */
-
-		private uint16 _general_http_port;
-		/** The port the http-server will bind to */
-		public uint16 general_http_port {
-			get { return _general_http_port; }
-			set { }
-		}
 
 		private bool _general_daemon;
 		/** Fork and detach from tty */
@@ -35,19 +28,26 @@ namespace Webcon {
 			set { }
 		}
 
-		/* Security */
+		/* Http */
 
-		private bool _security_use_tls;
-		/** Makes the http-server use https */
-		public bool security_use_tls {
-			get { return _security_use_tls; }
+		private uint16 _http_port;
+		/** The port the http-server will bind to */
+		public uint16 http_port {
+			get { return _http_port; }
 			set { }
 		}
 
-		private TlsCertificate? _security_tls_certificate;
+		private bool _http_use_tls;
+		/** Makes the http-server use https */
+		public bool http_use_tls {
+			get { return _http_use_tls; }
+			set { }
+		}
+
+		private TlsCertificate? _http_tls_certificate;
 		/** The certificate and private key used for https */
-		public TlsCertificate? security_tls_certificate {
-			get { return _security_tls_certificate; }
+		public TlsCertificate? http_tls_certificate {
+			get { return _http_tls_certificate; }
 			set { }
 		}
 
@@ -93,10 +93,10 @@ namespace Webcon {
 			kf.set_list_separator(',');
 			kf.load_from_file(_internal_config_file, KeyFileFlags.NONE);
 
-			parse_port(kf, out _general_http_port, "General", "http_port", true, 0);
 			parse_bool(kf, out _general_daemon, "General", "daemon", false, false);
-			parse_bool(kf, out _security_use_tls, "Security", "use_tls", false, false);
-			parse_certificate(kf, out _security_tls_certificate, "Security", "tls_cert_file", "Security", "tls_key_file", _security_use_tls);
+			parse_port(kf, out _http_port, "Http", "port", true, 0);
+			parse_bool(kf, out _http_use_tls, "Http", "use_tls", false, false);
+			parse_certificate(kf, out _http_tls_certificate, "Http", "tls_cert_file", "Http", "tls_key_file", _http_use_tls);
 		}
 
 		/** This basically just parses a uint16 */

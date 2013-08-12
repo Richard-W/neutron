@@ -36,7 +36,7 @@ namespace Webcon {
 				config = new Configuration.from_file(configfile);
 			}
 
-			http_server = new HttpServer(config.general_http_port, config.security_use_tls, config.security_tls_certificate);
+			http_server = new HttpServer(config.http_port, config.http_use_tls, config.http_tls_certificate);
 
 			mainloop = new MainLoop();
 		}
