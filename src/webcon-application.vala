@@ -19,8 +19,8 @@
 
 namespace Webcon {
 	public class Application : Object {
+		/* General */
 		private Configuration config;
-		private HttpServer http_server;
 		private MainLoop mainloop;
 
 		public Application(string[] argv, string? configfile = null) throws Error {
@@ -36,13 +36,7 @@ namespace Webcon {
 				config = new Configuration.from_file(configfile);
 			}
 
-			http_server = new HttpServer(config.http_port, config.http_use_tls, config.http_tls_certificate);
-
 			mainloop = new MainLoop();
-		}
-
-		public void set_handler(string path, RequestHandlerFunc handler) {
-			http_server.set_handler(path, handler);
 		}
 
 		public int run() {
@@ -52,9 +46,23 @@ namespace Webcon {
 				Posix.setsid();
 			}
 
-			http_server.start();
+			if(http_enabled) http_server.start();
 			mainloop.run();
 			return 0;
+		}
+
+		/* Http */
+		private HttpServer? http_server;
+		private bool http_enabled = false;
+
+		public void enable_http() throws Error {
+			http_enabled = true;
+			http_server = new HttpServer(config.http_port, config.http_use_tls, config.http_tls_certificate);
+		}
+
+		public HttpServer? get_http_server() {
+			if(http_enabled) return http_server;
+			else return null;
 		}
 	}
 }

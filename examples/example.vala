@@ -18,8 +18,20 @@
  */
 
 int main(string[] argv) {
-	var app = new Webcon.Application(argv);
-	app.set_handler("/example", request_handler);
+	Webcon.Application app;
+	Webcon.HttpServer http;
+
+	try {
+		app = new Webcon.Application(argv);
+		app.enable_http();
+
+		http = app.get_http_server();
+		http.set_handler("/example", request_handler);
+	} catch(Error e) {
+		stderr.printf("Error: %s\n", e.message);
+		return 1;
+	}
+
 	return app.run();
 }
 

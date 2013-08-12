@@ -20,7 +20,7 @@
 using Gee;
 
 namespace Webcon {
-	private class HttpServer : Object {
+	public class HttpServer : Object {
 		private uint16 _port;
 		public uint16 port { get { return _port; } set { } }
 

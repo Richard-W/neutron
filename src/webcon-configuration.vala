@@ -94,7 +94,7 @@ namespace Webcon {
 			kf.load_from_file(_internal_config_file, KeyFileFlags.NONE);
 
 			parse_bool(kf, out _general_daemon, "General", "daemon", false, false);
-			parse_port(kf, out _http_port, "Http", "port", true, 0);
+			parse_port(kf, out _http_port, "Http", "port", false, 80);
 			parse_bool(kf, out _http_use_tls, "Http", "use_tls", false, false);
 			parse_certificate(kf, out _http_tls_certificate, "Http", "tls_cert_file", "Http", "tls_key_file", _http_use_tls);
 		}
