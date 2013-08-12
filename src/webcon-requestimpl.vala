@@ -30,6 +30,7 @@ namespace Webcon {
 		public string? response_body=null;
 		public int response_http_status = 200;
 		public HashSet<string> response_headers;
+		public SourceFunc ready_callback;
 		
 		public RequestImpl(string path, HashMap<string,string>? gets, HashMap<string,string>? posts, HashMap<string,string>? cookies, HashMap<string,HashSet<string>> headers) {
 			this.gets = gets;
@@ -128,6 +129,10 @@ namespace Webcon {
 
 		public override void set_session_var(string key, string val) {
 			session.set_var(key, val);
+		}
+
+		public override void finish() {
+			Idle.add(ready_callback);
 		}
 	}
 }

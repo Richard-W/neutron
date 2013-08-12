@@ -73,4 +73,5 @@ void request_handler(Webcon.Request req) {
 	</html>
 	""");
 	req.set_response_body(contentb.str);
+	req.finish();
 }

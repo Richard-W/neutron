@@ -104,8 +104,10 @@ namespace Webcon {
 					req.set_cookie("webcon_session_id", session_id, 3600, "/", true, use_tls);
 
 					if(request_handlers.has_key(req.path)) {
+						req.ready_callback = handle_connection.callback;
 						var wrapper = request_handlers.get(req.path);
 						wrapper.handler(req);
+						yield;
 					} else {
 						req.set_response_http_status(404);
 						req.set_response_body("<!DOCTYPE html><html><head><meta charset=\"utf-8\" /><title>404 - Page not found</title></head><body><h1>404 - Page not found</h1></body></html>");
