@@ -24,14 +24,14 @@ include_directories(${GEE_INCLUDE_DIRS})
 link_directories(${GEE_LIBRARY_DIRS})
 
 vala_precompile(C_SOURCES
-		src/webcon-errors.vala
-		src/webcon-configuration.vala
-		src/webcon-session.vala
-		src/webcon-request.vala
-		src/webcon-requestimpl.vala
-		src/webcon-httpserver.vala
 		src/webcon-application.vala
-		src/webcon-httpparser.vala
+		src/webcon-configuration.vala
+		src/webcon-errors.vala
+		src/webcon-http-server.vala
+		src/webcon-http-parser.vala
+		src/webcon-http-session.vala
+		src/webcon-http-request.vala
+		src/webcon-http-requestimpl.vala
 	PACKAGES
 		gio-2.0
 		gee-0.8
