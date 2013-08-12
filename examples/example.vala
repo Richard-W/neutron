@@ -19,7 +19,7 @@
 
 int main(string[] argv) {
 	Webcon.Application app;
-	Webcon.Http.HttpServer http;
+	Webcon.Http.Server http;
 
 	try {
 		app = new Webcon.Application(argv);

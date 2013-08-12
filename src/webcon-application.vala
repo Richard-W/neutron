@@ -52,15 +52,15 @@ namespace Webcon {
 		}
 
 		/* Http */
-		private Http.HttpServer? http_server;
+		private Http.Server? http_server;
 		private bool http_enabled = false;
 
 		public void enable_http() throws Error {
 			http_enabled = true;
-			http_server = new Http.HttpServer(config.http_port, config.http_use_tls, config.http_tls_certificate);
+			http_server = new Http.Server(config.http_port, config.http_use_tls, config.http_tls_certificate);
 		}
 
-		public Http.HttpServer? get_http_server() {
+		public Http.Server? get_http_server() {
 			if(http_enabled) return http_server;
 			else return null;
 		}

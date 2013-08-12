@@ -20,7 +20,7 @@
 using Gee;
 
 namespace Webcon.Http {
-	public class HttpServer : Object {
+	public class Server : Object {
 		private uint16 _port;
 		public uint16 port { get { return _port; } set { } }
 
@@ -33,7 +33,7 @@ namespace Webcon.Http {
 		private HashMap<string, Session> stored_sessions;
 		private HashMap<string, RequestHandlerWrapper> request_handlers;
 
-		public HttpServer(uint16 port, bool use_tls, TlsCertificate? tls_cert = null) throws Error {
+		public Server(uint16 port, bool use_tls, TlsCertificate? tls_cert = null) throws Error {
 			assert(port != 0);
 
 			this._port = port;
