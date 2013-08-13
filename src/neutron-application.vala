@@ -24,9 +24,7 @@ namespace Neutron {
 		private MainLoop mainloop;
 
 		public Application(string[] argv, string? configfile = null) throws Error {
-			var config_from_argv = true;
 			config = new Configuration(argv, configfile);
-
 			mainloop = new MainLoop();
 		}
 
