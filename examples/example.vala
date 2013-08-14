@@ -35,12 +35,17 @@ int main(string[] argv) {
 	return app.run();
 }
 
+class ExampleSession : Neutron.Http.Session {
+	public string teststring;
+}
+
 void request_handler(Neutron.Http.Request req) {
 	req.set_cookie("testcookie", "testvalue", 3600);
 	req.set_cookie("ütf-8-test", "testvalüe", 3600);
 	req.add_header_line("content-type: text/html");
-	if(req.get_session_vars() == null) {
-		req.set_session_var("testkey", "testval");
+	if(req.get_session() == null) {
+		req.set_session(new ExampleSession());
+		((ExampleSession) req.get_session()).teststring = "Bla";
 	}
 	var contentb = new StringBuilder();
 	contentb.append("""
@@ -71,9 +76,8 @@ void request_handler(Neutron.Http.Request req) {
 		contentb.append("%s: %s<br />".printf(key, req.get_cookie_var(key)));
 	}
 	contentb.append("<h3>Session</h3>");
-	foreach(string key in req.get_session_vars()) {
-		contentb.append("%s: %s<br />".printf(key, req.get_session_var(key)));
-	}
+	contentb.append("%s: %s<br />".printf("teststring", ((ExampleSession) req.get_session()).teststring));
+
 	contentb.append("<h3>Path</h3>");
 	contentb.append("%s<br />".printf(req.path));
 	contentb.append("""

@@ -95,31 +95,12 @@ namespace Neutron.Http {
 					string? session_id = req.get_cookie_var("neutron_session_id");
 					Session? session = null;
 
-					/* If session_id is not set or invalid create new session */
-					//TODO: clean up sessions
-					if(session_id == null) {
-						session = new Session();
-						session_id = session.get_session_id();
-						stored_sessions.set(session_id, session);
-					}
-					else if(!stored_sessions.has_key(session_id)) {
-						session = new Session();
-						session_id = session.get_session_id();
-						stored_sessions.set(session_id, session);
-					}
-					/* if(session_id == null || stored_sessions.has_key(session_id)
-					 * would have been better practice, but triggers a bug in valac.
-					 * https://bugzilla.gnome.org/show_bug.cgi?id=703666
-					 */
-					else {
+					if(session_id != null && stored_sessions.has_key(session_id)) {
 						session = stored_sessions.get(session_id);
 					}
 
 					/* Add the session to the request-object */
-					req.set_session(session);
-
-					/* Refresh or set session-cookie */
-					req.set_cookie("neutron_session_id", session_id, 3600, "/", true, use_tls);
+					req.session = session;
 
 					/* Check if a handler is registered for the requested path */
 					if(request_handlers.has_key(req.path)) {
@@ -133,6 +114,30 @@ namespace Neutron.Http {
 
 						/* Pause until finish-method is called on the Request-Object */
 						yield;
+
+						/* Check if session was changed */
+						if(req.session_changed) {
+							if(req.session == null) {
+								if(session != null) {	
+									req.set_cookie("neutron_session_id", "deleted", -1, "/", true, use_tls);
+									stored_sessions.unset(session.get_session_id());
+								}
+								session = null;
+								session_id = null;
+							} else {
+								if(req.session != session) {
+									if(session != null) stored_sessions.unset(session.get_session_id());
+								}
+								session = req.session;
+								session_id = req.session.get_session_id();
+								stored_sessions.set(session_id, session);
+							}
+						}
+
+						/* Set/Refresh session-cookie */
+						if(session != null) {
+							req.set_cookie("neutron_session_id", session_id, 3600, "/", true, use_tls);
+						}
 					} else {
 						/* Create rudimentary error-page */
 						//TODO: Customize error-pages

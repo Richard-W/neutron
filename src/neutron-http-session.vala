@@ -19,7 +19,7 @@
 
 namespace Neutron.Http {
 	/** This class represents a unique client-session which can store data between requests */
-	private class Session : Object {
+	public class Session : Object {
 		private string sessid;
 		private Gee.HashMap<string,string> vars;
 
@@ -42,20 +42,6 @@ namespace Neutron.Http {
 				strbuilder.append_c((char) chr);
 			}
 			return strbuilder.str;
-		}
-
-		public void set_var(string key, string val) {
-			vars.set(key, val);
-		}
-
-		public string? get_var(string key) {
-			if(!vars.has_key(key)) return null;
-			else return vars.get(key);
-		}
-
-		public string[]? get_vars() {
-			if(vars.size == 0) return null;
-			return vars.keys.to_array();
 		}
 	}
 }

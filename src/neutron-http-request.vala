@@ -30,8 +30,8 @@ namespace Neutron.Http {
 		public abstract string? get_cookie_var(string key);
 		/** Get string from header */
 		public abstract string[]? get_header_var(string key);
-		/** Get string from Session */
-		public abstract string? get_session_var(string key);
+		/** Get session Object */
+		public abstract Session? get_session();
 
 		/** Return all set keys */
 		public abstract string[]? get_post_vars();
@@ -41,14 +41,13 @@ namespace Neutron.Http {
 		public abstract string[]? get_cookie_vars();
 		/** Return all set keys */
 		public abstract string[]? get_header_vars();
-		/** Return all set keys */
-		public abstract string[]? get_session_vars();
 
 		public abstract void set_cookie(string key, string val, int lifetime, string path="/", bool http_only=false, bool secure=false);
-		public abstract void set_session_var(string key, string val);
 		public abstract void set_response_body(string body);
 		public abstract void set_response_http_status(int status);
 		public abstract void add_header_line(string header_line);
+		/** Set session Object */
+		public abstract void set_session(Session? session);
 
 		public abstract void finish();
 	}
