@@ -66,7 +66,11 @@ namespace Neutron.Http {
 			try {
 				while(!message_complete && (recved = yield stream.input_stream.read_async(buffer)) != 0) {
 					var nparsed = http_parser_execute(&parser, &parser_settings, (char*) buffer, recved);
-					if(parser.http_errno != 0 || nparsed != recved) {
+					if((bool)parser.upgrade) {
+						yield stream.output_stream.write_async((uint8[]) "HTTP/1.1 501 Not implemented\r\n\r\n".to_utf8());
+						closed(this);
+						return null;
+					} else if(parser.http_errno != 0 || nparsed != recved) {
 						yield stream.output_stream.write_async((uint8[]) "HTTP/1.1 400 Bad Request\r\n\r\n".to_utf8());
 						closed(this);
 						return null;
