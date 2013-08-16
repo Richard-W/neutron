@@ -26,7 +26,10 @@ int main(string[] argv) {
 		app.enable_http();
 
 		http = app.get_http_server();
-		http.set_handler("/example", request_handler);
+		http.set_handler("/variables", variables);
+		http.set_handler("/create_session", create_session);
+		http.set_handler("/display_session", display_session);
+		http.set_handler("/destroy_session", destroy_session);
 	} catch(Error e) {
 		stderr.printf("Error: %s\n", e.message);
 		return 1;
@@ -35,61 +38,89 @@ int main(string[] argv) {
 	return app.run();
 }
 
-class ExampleSession : Neutron.Http.Session {
-	public string teststring;
-}
-
-void request_handler(Neutron.Http.Request req) {
-	req.set_cookie("testcookie", "testvalue", 3600);
-	req.set_cookie("ütf-8-test", "testvalüe", 3600);
-	req.add_header_line("content-type: text/html");
-	if(req.get_session() == null) {
-		req.set_session(new ExampleSession());
-		((ExampleSession) req.get_session()).teststring = "Bla";
-	}
-	var contentb = new StringBuilder();
-	contentb.append("""
-	<!DOCTYPE html>
+void variables(Neutron.Http.Request req) {
+	var page = new StringBuilder();
+	page.append("""<!DOCTYPE html>
 	<html>
-		<head>
-			<title>Testsite</title>
-			<meta charset="utf-8" />
-		</head>
-		<body>
-			<h3>Request-vars</h3>
+	<head>
+		<meta charset="utf-8" />
+		<title>Variables</title>
+	</head>
+	<body>
+	<h1>Request</h1>
 	""");
 	foreach(string key in req.get_request_vars()) {
-		contentb.append("%s: %s<br />".printf(key, req.get_request_var(key)));
+		page.append("%s: %s<br />\n".printf(key, req.get_request_var(key)));
 	}
-	contentb.append("<h3>Headers</h3>");
+	page.append("<h1>Post</h1>\n");
+	foreach(string key in req.get_post_vars()) {
+		page.append("%s: %s<br />\n".printf(key, req.get_post_var(key)));
+	}
+	page.append("<h1>Cookies</h1>\n");
+	foreach(string key in req.get_cookie_vars()) {
+		page.append("%s: %s<br />\n".printf(key, req.get_cookie_var(key)));
+	}
+	page.append("<h1>Headers</h1>\n");
 	foreach(string key in req.get_header_vars()) {
 		foreach(string val in req.get_header_var(key)) {
-			contentb.append("%s: %s<br />".printf(key, val));
+			page.append("%s: %s<br />\n".printf(key, val));
 		}
 	}
-	contentb.append("<h3>Post</h3>");
-	foreach(string key in req.get_post_vars()) {
-		contentb.append("%s: %s<br />".printf(key, req.get_post_var(key)));
-	}
-	contentb.append("<h3>Cookies</h3>");
-	foreach(string key in req.get_cookie_vars()) {
-		contentb.append("%s: %s<br />".printf(key, req.get_cookie_var(key)));
-	}
-	contentb.append("<h3>Session</h3>");
-	contentb.append("%s: %s<br />".printf("teststring", ((ExampleSession) req.get_session()).teststring));
+	page.append("</body>\n</html>");
+	req.set_response_body(page.str);
+	req.finish();
+}
 
-	contentb.append("<h3>Path</h3>");
-	contentb.append("%s<br />".printf(req.path));
-	contentb.append("""
-	<h3>Form</h3>
-	<form method="POST" action = "#">
-	<input type="text" name="field1">
-	<input type="text" name="field2">
-	<input type="submit" value="submit">
-	</form>
+void create_session(Neutron.Http.Request req) {
+	var page = new StringBuilder();
+	page.append("""<!DOCTYPE html>
+	<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>Variables</title>
+	</head>
+	<body>
+	<h1>Session creation</h1>
 	</body>
-	</html>
+	</html>""");
+	req.set_session(new Neutron.Http.Session());
+	req.set_response_body(page.str);
+	req.finish();
+}
+
+void display_session(Neutron.Http.Request req) {
+	var page = new StringBuilder();
+	page.append("""<!DOCTYPE html>
+	<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>Variables</title>
+	</head>
+	<body>
+	<h1>Session display</h1>
 	""");
-	req.set_response_body(contentb.str);
+	if(req.get_session() == null)
+		page.append("<p>Session is not set</p>\n");
+	else
+		page.append("<p>Session is set</p>\n");
+	page.append("</body>\n</html>");
+	req.set_response_body(page.str);
+	req.finish();
+}
+
+void destroy_session(Neutron.Http.Request req) {
+	var page = new StringBuilder();
+	page.append("""<!DOCTYPE html>
+	<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>Variables</title>
+	</head>
+	<body>
+	<h1>Session destroy</h1>
+	""");
+	req.set_session(null);
+	page.append("</body>\n</html>");
+	req.set_response_body(page.str);
 	req.finish();
 }
