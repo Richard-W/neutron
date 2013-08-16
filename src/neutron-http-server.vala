@@ -156,9 +156,14 @@ namespace Neutron.Http {
 					}
 
 					/* Include body in response */
-					respb.append("Content-Length: %ld\r\n".printf(req.response_body.length));
-					respb.append("\r\n");
-					respb.append(req.response_body);
+					if(req.response_body != null) {
+						respb.append("Content-Length: %ld\r\n".printf(req.response_body.length));
+						respb.append("\r\n");
+						respb.append(req.response_body);
+					} else {
+						respb.append("Content-Length: 0\r\n");
+						respb.append("\r\n");
+					}
 
 					/* Send response to client */
 					yield conn.output_stream.write_async((uint8[]) respb.str.to_utf8());
