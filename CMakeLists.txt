@@ -1,6 +1,15 @@
 cmake_minimum_required(VERSION 2.6)
 project(neutron)
 
+option(INSTALL_HEADERS "Install header, vapi and pkgconfig files" ON)
+option(INSTALL_LIBRARY "Install shared library" ON)
+
+set(VERSION_MAJOR 0)
+set(VERSION_MINOR 1)
+set(VERSION_PATCH 0)
+
+set(VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
+
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 find_package(Vala REQUIRED)
 include(UseVala)
@@ -55,3 +64,42 @@ target_link_libraries(neutron
 	${GIO_LIBRARIES}
 	${GEE_LIBRARIES}
 )
+
+if(INSTALL_LIBRARY)
+	install(
+		TARGETS
+			neutron
+		LIBRARY DESTINATION lib
+	)
+endif(INSTALL_LIBRARY)
+
+
+if(INSTALL_HEADERS)
+	install(
+		FILES
+			${CMAKE_CURRENT_SOURCE_DIR}/vapi/neutron.deps
+			${CMAKE_CURRENT_BINARY_DIR}/neutron.vapi
+		DESTINATION
+			share/vala/vapi/
+	)
+
+	install(
+		FILES
+			${CMAKE_CURRENT_BINARY_DIR}/neutron.h
+		DESTINATION
+			include/
+	)
+
+	configure_file(
+		"${CMAKE_CURRENT_SOURCE_DIR}/neutron.pc.in"
+		"${CMAKE_CURRENT_BINARY_DIR}/neutron.pc"
+		@ONLY
+	)
+
+	install(
+		FILES
+			${CMAKE_CURRENT_BINARY_DIR}/neutron.pc
+		DESTINATION
+			lib/pkgconfig/
+	)
+endif(INSTALL_HEADERS)
