@@ -30,7 +30,7 @@ namespace Neutron.Http {
 		private TlsCertificate? tls_cert;
 		private SocketService listener;
 
-		private HashMap<string, Session> stored_sessions;
+		private SessionProvider sessionprovider;
 		private HashMap<string, RequestHandlerWrapper> request_handlers;
 
 		public Server(uint16 port, bool use_tls, TlsCertificate? tls_cert = null) throws Error {
@@ -45,8 +45,9 @@ namespace Neutron.Http {
 			listener.add_inet_port(port, null);
 			listener.incoming.connect(on_incoming);
 
-			stored_sessions = new HashMap<string, Session>();
 			request_handlers = new HashMap<string, RequestHandlerWrapper>();
+
+			sessionprovider = new SessionProvider(3600);
 		}
 
 		//TODO: Regular expressions?
@@ -91,19 +92,12 @@ namespace Neutron.Http {
 
 			while((req = yield parser.run()) != null) {
 				try {
-					/* Get session_id */
-					string? session_id = req.get_cookie_var("neutron_session_id");
-					Session? session = null;
-
-					if(session_id != null && stored_sessions.has_key(session_id)) {
-						session = stored_sessions.get(session_id);
-					}
-
-					/* Add the session to the request-object */
-					req.session = session;
 
 					/* Check if a handler is registered for the requested path */
 					if(request_handlers.has_key(req.path)) {
+						/* Let the sessionprovider add information to the Request */
+						sessionprovider.pre_callback(req);
+
 						/* This is used to resume this method after the finish-method
 						   on the request is called */
 						req.ready_callback = handle_connection.callback;
@@ -115,29 +109,8 @@ namespace Neutron.Http {
 						/* Pause until finish-method is called on the Request-Object */
 						yield;
 
-						/* Check if session was changed */
-						if(req.session_changed) {
-							if(req.session == null) {
-								if(session != null) {	
-									req.set_cookie("neutron_session_id", "deleted", -1, "/", true, use_tls);
-									stored_sessions.unset(session.get_session_id());
-								}
-								session = null;
-								session_id = null;
-							} else {
-								if(req.session != session) {
-									if(session != null) stored_sessions.unset(session.get_session_id());
-								}
-								session = req.session;
-								session_id = req.session.get_session_id();
-								stored_sessions.set(session_id, session);
-							}
-						}
-
-						/* Set/Refresh session-cookie */
-						if(session != null) {
-							req.set_cookie("neutron_session_id", session_id, 3600, "/", true, use_tls);
-						}
+						/* Refresh sessionprovider */
+						sessionprovider.post_callback(req);
 					} else {
 						/* Create rudimentary error-page */
 						//TODO: Customize error-pages
