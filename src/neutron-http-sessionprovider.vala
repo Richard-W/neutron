@@ -34,8 +34,12 @@ namespace Neutron.Http {
 			string? session_id = req.get_cookie_var("neutron_session_id");
 			Session? session = null;
 
-			if(session_id != null && stored_sessions.has_key(session_id)) {
-				session = stored_sessions.get(session_id);
+			if(session_id != null) {
+				if(stored_sessions.has_key(session_id)) {
+					session = stored_sessions.get(session_id);
+				} else {
+					req.set_session(null);
+				}
 			}
 
 			/* Add the session to the request-object */
