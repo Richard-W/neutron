@@ -53,7 +53,9 @@ namespace Neutron.Http {
 			}
 		}
 
+		/** This reads the session-id from the request and adds the corresponding Session-Object */
 		public void pre_callback(RequestImpl req) {
+			//TODO: Do not clean up before every request */
 			cleanup();
 
 			string? session_id = req.get_cookie_var("neutron_session_id");
@@ -74,6 +76,7 @@ namespace Neutron.Http {
 			}
 		}
 
+		/** This checks if the Session-object of a Request was replaced or set and sets the cookies */
 		public void post_callback(RequestImpl req) {
 			string? cookie_session_id = req.get_cookie_var("neutron_session_id");
 			string? prop_session_id = null;
