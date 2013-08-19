@@ -47,7 +47,7 @@ namespace Neutron.Http {
 
 			request_handlers = new HashMap<string, RequestHandlerWrapper>();
 
-			sessionprovider = new SessionProvider(3600);
+			sessionprovider = new SessionProvider(3600, -1);
 		}
 
 		//TODO: Regular expressions?

@@ -22,11 +22,13 @@ using Gee;
 namespace Neutron.Http {
 	private class SessionProvider : Object {
 		public int lifetime;
+		public int max_lifetime;
 
 		private HashMap<string, Session> stored_sessions;
 
-		public SessionProvider(int lifetime) {
+		public SessionProvider(int lifetime, int max_lifetime) {
 			this.lifetime = lifetime;
+			this.max_lifetime = max_lifetime;
 			stored_sessions = new HashMap<string, Session>();
 		}
 
