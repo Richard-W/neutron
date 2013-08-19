@@ -33,7 +33,7 @@ namespace Neutron.Http {
 		private SessionProvider sessionprovider;
 		private HashMap<string, RequestHandlerWrapper> request_handlers;
 
-		public Server(uint16 port, bool use_tls, TlsCertificate? tls_cert = null) throws Error {
+		public Server(uint16 port, bool use_tls, TlsCertificate? tls_cert = null, int session_lifetime = 3600, int session_max_lifetime = -1) throws Error {
 			assert(port != 0);
 
 			this._port = port;
@@ -47,7 +47,7 @@ namespace Neutron.Http {
 
 			request_handlers = new HashMap<string, RequestHandlerWrapper>();
 
-			sessionprovider = new SessionProvider(3600, -1);
+			sessionprovider = new SessionProvider(session_lifetime, session_max_lifetime);
 		}
 
 		//TODO: Regular expressions?

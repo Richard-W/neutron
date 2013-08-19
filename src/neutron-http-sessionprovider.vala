@@ -32,7 +32,30 @@ namespace Neutron.Http {
 			stored_sessions = new HashMap<string, Session>();
 		}
 
+		public void cleanup() {
+			var now = new DateTime.now_local();
+			var to_delete = new HashSet<string>();
+
+			foreach(string key in stored_sessions.keys) {
+				var session = stored_sessions.get(key);
+				var req_diff = now.difference(session.last_request_time) / TimeSpan.SECOND;
+				var creation_diff = now.difference(session.creation_time) / TimeSpan.SECOND;
+
+				if(req_diff > lifetime && lifetime > 0) {
+					to_delete.add(key);
+				} else if(creation_diff > max_lifetime && max_lifetime > 0) {
+					to_delete.add(key);
+				}
+			}
+
+			foreach(string key in to_delete) {
+				stored_sessions.unset(key);
+			}
+		}
+
 		public void pre_callback(RequestImpl req) {
+			cleanup();
+
 			string? session_id = req.get_cookie_var("neutron_session_id");
 			Session? session = null;
 
@@ -65,9 +88,11 @@ namespace Neutron.Http {
 					req.set_cookie("neutron_session_id", "deleted", -1, "/", true, false);
 					stored_sessions.unset(cookie_session_id);
 				} else if(cookie_session_id == null && prop_session_id != null) {
+					req.session.set_last_request_time();
 					stored_sessions.set(prop_session_id, req.session);
 				} else if(cookie_session_id != prop_session_id) {
 					stored_sessions.unset(cookie_session_id);
+					req.session.set_last_request_time();
 					stored_sessions.set(prop_session_id, req.session);
 				} else if(cookie_session_id == null && prop_session_id == null) {
 					set_sessioncookie = false;

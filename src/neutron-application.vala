@@ -46,7 +46,7 @@ namespace Neutron {
 
 		public void enable_http() throws Error {
 			http_enabled = true;
-			http_server = new Http.Server(config.http_port, config.http_use_tls, config.http_tls_certificate);
+			http_server = new Http.Server(config.http_port, config.http_use_tls, config.http_tls_certificate, config.http_session_lifetime, config.http_session_max_lifetime);
 		}
 
 		public Http.Server? get_http_server() {

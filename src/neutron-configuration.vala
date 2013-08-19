@@ -25,7 +25,6 @@ namespace Neutron {
 		/** Fork and detach from tty */
 		public bool general_daemon {
 			get { return _general_daemon; }
-			set { }
 		}
 
 		/* Http */
@@ -34,21 +33,30 @@ namespace Neutron {
 		/** The port the http-server will bind to */
 		public uint16 http_port {
 			get { return _http_port; }
-			set { }
 		}
 
 		private bool _http_use_tls;
 		/** Makes the http-server use https */
 		public bool http_use_tls {
 			get { return _http_use_tls; }
-			set { }
 		}
 
 		private TlsCertificate? _http_tls_certificate;
 		/** The certificate and private key used for https */
 		public TlsCertificate? http_tls_certificate {
 			get { return _http_tls_certificate; }
-			set { }
+		}
+
+		private int _http_session_lifetime;
+		/** Maximum time sessions stays stored between requests */
+		public int http_session_lifetime {
+			get { return _http_session_lifetime; }
+		}
+
+		private int _http_session_max_lifetime;
+		/** Maximum time sessions stays stored at all */
+		public int http_session_max_lifetime {
+			get { return _http_session_max_lifetime; }
 		}
 
 		/* Internal */
@@ -57,7 +65,6 @@ namespace Neutron {
 		/** Configuration-file that is parsed when reload() is called without arguments */
 		public string internal_config_file {
 			get { return _internal_config_file; }
-			set { }
 		}
 
 		/** Should be given the argv-array, to determine the location of the config-file. */
@@ -92,6 +99,8 @@ namespace Neutron {
 			parse_bool(kf, out _general_daemon, "General", "daemon", false, false);
 			parse_port(kf, out _http_port, "Http", "port", false, 80);
 			parse_bool(kf, out _http_use_tls, "Http", "use_tls", false, false);
+			parse_int(kf, out _http_session_lifetime, "Http", "session_lifetime", false, 3600);
+			parse_int(kf, out _http_session_max_lifetime, "Http", "session_max_lifetime", false, -1);
 			parse_certificate(kf, out _http_tls_certificate, "Http", "tls_cert_file", "Http", "tls_key_file", _http_use_tls);
 		}
 
@@ -120,6 +129,15 @@ namespace Neutron {
 				return;
 			}
 			dest = kf.get_boolean(group, key);
+		}
+
+		/** Parses an integer from the config-file */
+		private void parse_int(KeyFile kf, out int dest, string group, string key, bool required, int default_value) throws Error {
+			if(!check_option(kf, group, key, required)) {
+				dest = default_value;
+				return;
+			}
+			dest = (int) kf.get_int64(group, key);
 		}
 
 		/** Parses a TlsCertificate from the config-file */
