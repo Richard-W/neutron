@@ -29,7 +29,7 @@ hello.vala:
     }
 
     void page_hello_world(Neutron.Http.Request req) {
-    	req.set_body("Hello World!");
+    	req.set_response_body("Hello World!");
 	req.finish();
     }
     //Compile with "valac hello.vala --pkg neutron" if you installed the library
