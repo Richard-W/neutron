@@ -41,6 +41,7 @@ namespace Neutron.Http {
 		public signal void closed(Parser parser);
 		public signal void request(Request request);
 
+		/** Instantiates a Parser that reads from the supplied IOStream */
 		public Parser(IOStream stream) {
 			parser = http_parser();
 			http_parser_init(&parser, http_parser_type.HTTP_REQUEST);
@@ -59,6 +60,7 @@ namespace Neutron.Http {
 			parser_settings.on_message_complete = (void*) on_message_complete_cb;
 		}
 
+		/** Get the next request */
 		public async RequestImpl? run() {
 			uint8[] buffer = new uint8[80*1024];
 			ssize_t recved = 0;
@@ -190,6 +192,12 @@ namespace Neutron.Http {
 		}
 	}
 
+	/* The following part is not really good practice, but it was the easiest way to
+	 * make vala leave the function-signatures alone.
+	 *
+	 * This needs some further thought, but i do not think that it is critical
+	 * to make this beautiful. It works.
+	 */
 
 	private int on_message_begin_cb(http_parser *parser) {
 		var parser_obj = (Parser) parser->data;
