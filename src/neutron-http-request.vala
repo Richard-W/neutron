@@ -20,7 +20,9 @@
 namespace Neutron.Http {
 	public abstract class Request : Object {
 		/** The requested path */
-		public string path;
+		public abstract string path {
+			get;
+		}
 
 		/** Get string from POST-body */
 		public abstract string? get_post_var(string key);
@@ -42,13 +44,23 @@ namespace Neutron.Http {
 		/** Return all set keys */
 		public abstract string[]? get_header_vars();
 
+		/** Set cookie in client */
 		public abstract void set_cookie(string key, string val, int lifetime, string path="/", bool http_only=false, bool secure=false);
+		/** Set the body of the response (usually a html-page) */
 		public abstract void set_response_body(string body);
+		/** Set the response code (default 200 OK) */
 		public abstract void set_response_http_status(int status);
+		/** Adds a line to the header */
 		public abstract void add_header_line(string header_line);
 		/** Set session Object */
 		public abstract void set_session(Session? session);
 
+		/**
+		 * Send the response to the client
+		 *
+		 * This method sends the response and resumes the
+		 * handling of requests for a given connection
+		 */
 		public abstract void finish();
 	}
 }

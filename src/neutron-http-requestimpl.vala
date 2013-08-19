@@ -25,6 +25,7 @@ namespace Neutron.Http {
 		private HashMap<string,string>? posts;
 		private HashMap<string,string>? cookies;
 		private HashMap<string,HashSet<string>>? headers;
+		private string _path;
 
 		public Session? session = null;
 		public string? response_body=null;
@@ -33,12 +34,16 @@ namespace Neutron.Http {
 		public HashSet<string> response_headers;
 		public SourceFunc ready_callback;
 		
+		public override string path {
+			get { return _path; }
+		}
+		
 		public RequestImpl(string path, HashMap<string,string>? gets, HashMap<string,string>? posts, HashMap<string,string>? cookies, HashMap<string,HashSet<string>> headers) {
 			this.gets = gets;
 			this.posts = posts;
 			this.cookies = cookies;
 			this.headers = headers;
-			this.path = path;
+			this._path = path;
 
 			response_headers = new HashSet<string>();
 		}
