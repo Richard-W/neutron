@@ -108,7 +108,7 @@ namespace Neutron.Http {
 		public int on_url(http_parser *parser, char *data, size_t length) {
 			url = ((string) data).substring(0, (long) length);
 			var urlarr = url.split("?",2);
-			if(urlarr[0][urlarr[0].length-1] == '/') {
+			if(urlarr[0][urlarr[0].length-1] == '/' && urlarr[0].length > 1) {
 				path = urlarr[0].substring(0, urlarr[0].length-1);
 			} else path = urlarr[0];
 			if(urlarr.length == 1) return 0;
