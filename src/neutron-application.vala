@@ -28,6 +28,7 @@ namespace Neutron {
 			mainloop = new MainLoop();
 		}
 
+		/** This runs the GLib.MainLoop and daemonizes the process if it is specified in the config */
 		public int run() {
 			if(config.general_daemon) {
 				var pid = Posix.fork();
@@ -44,11 +45,13 @@ namespace Neutron {
 		private Http.Server? http_server;
 		private bool http_enabled = false;
 
+		/** This instantiates a Http.Server-Object using the settings from the config-file */
 		public void enable_http() throws Error {
 			http_enabled = true;
 			http_server = new Http.Server(config.http_port, config.http_use_tls, config.http_tls_certificate, config.http_session_lifetime, config.http_session_max_lifetime);
 		}
 
+		/** Returns the Http.Server-Object */
 		public Http.Server? get_http_server() {
 			if(http_enabled) return http_server;
 			else return null;
