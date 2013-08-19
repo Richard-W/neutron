@@ -28,9 +28,24 @@ namespace Neutron.Http {
 		private string sessid;
 		private Gee.HashMap<string,string> vars;
 
+		private DateTime _last_request_time;
+		public DateTime last_request_time {
+			get { return _last_request_time; }
+		}
+
+		private DateTime _creation_time;
+		public DateTime creation_time {
+			get { return _creation_time; }
+		}
+
 		public Session() {
 			sessid = generate_session_id();
 			vars = new Gee.HashMap<string,string>();
+			_creation_time = new DateTime.now_local();
+		}
+
+		public void set_last_request_time() {
+			_last_request_time = new DateTime.now_local();
 		}
 
 		public string get_session_id() {

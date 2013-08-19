@@ -37,13 +37,16 @@ namespace Neutron.Http {
 			if(session_id != null) {
 				if(stored_sessions.has_key(session_id)) {
 					session = stored_sessions.get(session_id);
+
+					/* Reset last_request-DateTime so the session does not get cleaned up */
+					session.set_last_request_time();
+
+					/* Add the session to the request-object */
+					req.session = session;
 				} else {
 					req.set_session(null);
 				}
 			}
-
-			/* Add the session to the request-object */
-			req.session = session;
 		}
 
 		public void post_callback(RequestImpl req) {
