@@ -9,11 +9,11 @@ Usage
 We'll start with a simple hello-world-application.
 
 hello.vala:
-    int main(string[] argv) {
-    	Neutron.Application app;
-
-    	try {
-    		app = new Neutron.Application(argv);
+```vala
+int main(string[] argv) {
+	Neutron.Application app;
+	try {
+		app = new Neutron.Application(argv);
 
 		//Enable the http-server
 		app.enable_http();
@@ -26,13 +26,14 @@ hello.vala:
 	}
 
 	return app.run();
-    }
+}
 
-    void page_hello_world(Neutron.Http.Request req) {
-    	req.set_response_body("Hello World!");
+void page_hello_world(Neutron.Http.Request req) {
+	req.set_response_body("Hello World!");
 	req.finish();
-    }
-    //Compile with "valac hello.vala --pkg neutron" if you installed the library
+}
+//Compile with "valac hello.vala --pkg neutron" if you installed the library
+```
 
 Well... where is the port-number and all the other stuff? If you run the program without
 any changes now it will just bind to port 80 and use unencrypted http.
