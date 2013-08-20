@@ -39,8 +39,10 @@ Well... where is the port-number and all the other stuff? If you run the program
 any changes now it will just bind to port 80 and use unencrypted http.
 
 If you want to use your own settings just create a file named hello.conf:
-    [Http]
-    port = 8080
+```
+[Http]
+port = 8080
+```
 and start the above example with
     ./hello -c hello.conf
 
