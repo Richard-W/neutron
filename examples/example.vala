@@ -26,6 +26,7 @@ int main(string[] argv) {
 		app.enable_http();
 
 		http = app.get_http_server();
+		http.set_handler("/", root);
 		http.set_handler("/variables", variables);
 		http.set_handler("/create_session", create_session);
 		http.set_handler("/display_session", display_session);
@@ -36,6 +37,27 @@ int main(string[] argv) {
 	}
 
 	return app.run();
+}
+
+void root(Neutron.Http.Request req) {
+	var page = new StringBuilder();
+	page.append("""<!DOCTYPE html>
+	<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>Topsite</title>
+	</head>
+	<body>
+		<h1>Neutron Testpage</h1>
+		<a href="/create_session">Create session</a><br />
+		<a href="/destroy_session">Destroy session</a><br />
+		<a href="/display_session">Display session</a><br />
+		<a href="/variables">Variables</a><br />
+	</body>
+	</html>
+	""");
+	req.set_response_body(page.str);
+	req.finish();
 }
 
 void variables(Neutron.Http.Request req) {
@@ -77,7 +99,7 @@ void create_session(Neutron.Http.Request req) {
 	<html>
 	<head>
 		<meta charset="utf-8" />
-		<title>Variables</title>
+		<title>Create session</title>
 	</head>
 	<body>
 	<h1>Session creation</h1>
@@ -94,7 +116,7 @@ void display_session(Neutron.Http.Request req) {
 	<html>
 	<head>
 		<meta charset="utf-8" />
-		<title>Variables</title>
+		<title>Display session</title>
 	</head>
 	<body>
 	<h1>Session display</h1>
@@ -114,7 +136,7 @@ void destroy_session(Neutron.Http.Request req) {
 	<html>
 	<head>
 		<meta charset="utf-8" />
-		<title>Variables</title>
+		<title>Destroy session</title>
 	</head>
 	<body>
 	<h1>Session destroy</h1>
