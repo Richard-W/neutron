@@ -22,7 +22,9 @@ namespace Neutron {
 		/* General */
 
 		private bool _general_daemon;
-		/** Fork and detach from tty */
+		/**
+		 * Fork and detach from tty 
+		 */
 		public bool general_daemon {
 			get { return _general_daemon; }
 		}
@@ -30,31 +32,41 @@ namespace Neutron {
 		/* Http */
 
 		private uint16 _http_port;
-		/** The port the http-server will bind to */
+		/**
+		 * The port the http-server will bind to 
+		 */
 		public uint16 http_port {
 			get { return _http_port; }
 		}
 
 		private bool _http_use_tls;
-		/** Makes the http-server use https */
+		/**
+		 * Makes the http-server use https 
+		 */
 		public bool http_use_tls {
 			get { return _http_use_tls; }
 		}
 
 		private TlsCertificate? _http_tls_certificate;
-		/** The certificate and private key used for https */
+		/**
+		 * The certificate and private key used for https 
+		 */
 		public TlsCertificate? http_tls_certificate {
 			get { return _http_tls_certificate; }
 		}
 
 		private int _http_session_lifetime;
-		/** Maximum time sessions stays stored between requests */
+		/**
+		 * Maximum time sessions stays stored between requests 
+		 */
 		public int http_session_lifetime {
 			get { return _http_session_lifetime; }
 		}
 
 		private int _http_session_max_lifetime;
-		/** Maximum time sessions stays stored at all */
+		/**
+		 * Maximum time sessions stays stored at all 
+		 */
 		public int http_session_max_lifetime {
 			get { return _http_session_max_lifetime; }
 		}
@@ -62,12 +74,16 @@ namespace Neutron {
 		/* Internal */
 
 		private string _internal_config_file;
-		/** Configuration-file that is parsed when reload() is called without arguments */
+		/**
+		 * Configuration-file that is parsed when reload() is called without arguments 
+		 */
 		public string internal_config_file {
 			get { return _internal_config_file; }
 		}
 
-		/** Should be given the argv-array, to determine the location of the config-file. */
+		/**
+		 * Should be given the argv-array, to determine the location of the config-file. 
+		 */
 		public Configuration(string[] argv, string? alternative = null) throws Error {
 			string? config_file = null;
 			OptionEntry[] options = new OptionEntry[1];
@@ -84,7 +100,9 @@ namespace Neutron {
 			reload();
 		}
 
-		/** Parses the config-file again. You can also specify a new config-file */
+		/**
+		 * Parses the config-file again. You can also specify a new config-file 
+		 */
 		public void reload(string? new_config = null) throws Error {
 			if(new_config != null) _internal_config_file = new_config;
 			if(_internal_config_file == null) {
@@ -104,14 +122,18 @@ namespace Neutron {
 			parse_certificate(kf, out _http_tls_certificate, "Http", "tls_cert_file", "Http", "tls_key_file", _http_use_tls);
 		}
 
-		/** Set the default values */
+		/**
+		 * Set the default values 
+		 */
 		public void set_defaults() {
 			_general_daemon = false;
 			_http_port = 80;
 			_http_use_tls = false;
 		}
 
-		/** This basically just parses a uint16 */
+		/**
+		 * This basically just parses a uint16 
+		 */
 		private void parse_port(KeyFile kf, out uint16 dest, string group, string key, bool required, uint16 default_value) throws Error {
 			if(!check_option(kf, group, key, required)) {
 				dest = default_value;
@@ -122,7 +144,9 @@ namespace Neutron {
 			dest = (uint16) port_proto;
 		}
 
-		/** Parses a boolean from the config-file */
+		/**
+		 * Parses a boolean from the config-file 
+		 */
 		private void parse_bool(KeyFile kf, out bool dest, string group, string key, bool required, bool default_value) throws Error {
 			if(!check_option(kf, group, key, required)) {
 				dest = default_value;
@@ -131,7 +155,9 @@ namespace Neutron {
 			dest = kf.get_boolean(group, key);
 		}
 
-		/** Parses an integer from the config-file */
+		/**
+		 * Parses an integer from the config-file 
+		 */
 		private void parse_int(KeyFile kf, out int dest, string group, string key, bool required, int default_value) throws Error {
 			if(!check_option(kf, group, key, required)) {
 				dest = default_value;
@@ -140,7 +166,9 @@ namespace Neutron {
 			dest = (int) kf.get_int64(group, key);
 		}
 
-		/** Parses a TlsCertificate from the config-file */
+		/**
+		 * Parses a TlsCertificate from the config-file 
+		 */
 		private void parse_certificate(KeyFile kf, out TlsCertificate cert, string cert_group, string cert_key, string key_group, string key_key, bool required) throws Error {
 			if((!check_option(kf, cert_group, cert_key, required)) || (!check_option(kf, key_group, key_key, required))) {
 				cert = null;
@@ -153,7 +181,9 @@ namespace Neutron {
 			cert = new TlsCertificate.from_files(cert_file, key_file);
 		}
 
-		/** Checks if option is set in the config-file. Throws an error if it is not set, but required */
+		/**
+		 * Checks if option is set in the config-file. Throws an error if it is not set, but required 
+		 */
 		private bool check_option(KeyFile kf, string group, string key, bool required) throws Error {
 			if(!kf.has_group(group) || !kf.has_key(group, key)) {
 				if(required)

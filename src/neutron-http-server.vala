@@ -51,28 +51,38 @@ namespace Neutron.Http {
 		}
 
 		//TODO: Regular expressions?
-		/** Adds a handler for a specific http-path */
+		/**
+		 * Adds a handler for a specific http-path 
+		 */
 		public void set_handler(string path, RequestHandlerFunc handler) {
 			request_handlers.set(path, new RequestHandlerWrapper(handler));
 		}
 
-		/** Start handling connections */
+		/**
+		 * Start handling connections 
+		 */
 		public void start() {
 			listener.start();
 		}
 
-		/** Stop handling connections */
+		/**
+		 * Stop handling connections 
+		 */
 		public void stop() {
 			listener.stop();
 		}
 
-		/** Gets the connections from listener */
+		/**
+		 * Gets the connections from listener 
+		 */
 		private bool on_incoming(SocketConnection conn, Object? source_object) {
 			handle_connection.begin((IOStream) conn);
 			return true;
 		}
 
-		/** Handle the incoming connection asynchronously */
+		/**
+		 * Handle the incoming connection asynchronously 
+		 */
 		private async void handle_connection(IOStream conn) {
 			if(_use_tls) {
 				try {
@@ -164,6 +174,8 @@ namespace Neutron.Http {
 		}
 	}
 
-	/** Delegate for request-handler functions */
+	/**
+	 * Delegate for request-handler functions 
+	 */
 	public delegate void RequestHandlerFunc(Request request);
 }
