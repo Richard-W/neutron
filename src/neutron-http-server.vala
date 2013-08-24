@@ -29,12 +29,14 @@ namespace Neutron.Http {
 
 		private TlsCertificate? tls_cert;
 		private SocketService listener;
+		private ThreadController? tcontrol;
 
 		private SessionProvider sessionprovider;
 		private HashMap<string, RequestHandlerWrapper> request_handlers;
 
-		public Server(uint16 port, bool use_tls, TlsCertificate? tls_cert = null, int session_lifetime = 3600, int session_max_lifetime = -1) throws Error {
+		public Server(ThreadController? tcontrol, uint16 port, bool use_tls, TlsCertificate? tls_cert = null, int session_lifetime = 3600, int session_max_lifetime = -1) throws Error {
 			assert(port != 0);
+			this.tcontrol = tcontrol;
 
 			this._port = port;
 			this._use_tls = use_tls;
@@ -76,7 +78,17 @@ namespace Neutron.Http {
 		 * Gets the connections from listener 
 		 */
 		private bool on_incoming(SocketConnection conn, Object? source_object) {
-			handle_connection.begin((IOStream) conn);
+			if(tcontrol == null)
+				handle_connection.begin((IOStream) conn);
+			else {
+				var isource = new IdleSource();
+				isource.set_callback(() => {
+					this.handle_connection.begin((IOStream) conn);
+					isource.destroy();
+					return true;
+				});
+				tcontrol.invoke(isource);
+			}
 			return true;
 		}
 

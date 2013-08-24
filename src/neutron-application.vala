@@ -22,10 +22,12 @@ namespace Neutron {
 		/* General */
 		private Configuration config;
 		private MainLoop mainloop;
+		private ThreadController tcontrol;
 
 		public Application(string[] argv, string? configfile = null) throws Error {
 			config = new Configuration(argv, configfile);
 			mainloop = new MainLoop();
+			tcontrol = new ThreadController(4);
 		}
 
 		/**
@@ -52,7 +54,7 @@ namespace Neutron {
 		 */
 		public void enable_http() throws Error {
 			http_enabled = true;
-			http_server = new Http.Server(config.http_port, config.http_use_tls, config.http_tls_certificate, config.http_session_lifetime, config.http_session_max_lifetime);
+			http_server = new Http.Server(tcontrol, config.http_port, config.http_use_tls, config.http_tls_certificate, config.http_session_lifetime, config.http_session_max_lifetime);
 		}
 
 		/**

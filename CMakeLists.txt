@@ -42,6 +42,7 @@ vala_precompile(C_SOURCES
 		src/neutron-http-request.vala
 		src/neutron-http-requestimpl.vala
 		src/neutron-http-sessionprovider.vala
+		src/neutron-threadcontroller.vala
 	PACKAGES
 		gio-2.0
 		gee-0.8
@@ -51,7 +52,8 @@ vala_precompile(C_SOURCES
 	CUSTOM_VAPIS
 		vapi/http_parser.vapi
 	OPTIONS
-		-g
+		--target-glib=2.32
+		--thread
 )
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/http_parser)
