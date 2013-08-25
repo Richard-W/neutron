@@ -105,7 +105,7 @@ void create_session(Neutron.Http.Request req) {
 	<h1>Session creation</h1>
 	</body>
 	</html>""");
-	req.set_session(new Neutron.Http.Session());
+	req.session = new Neutron.Http.Session();
 	req.set_response_body(page.str);
 	req.finish();
 }
@@ -121,7 +121,7 @@ void display_session(Neutron.Http.Request req) {
 	<body>
 	<h1>Session display</h1>
 	""");
-	if(req.get_session() == null)
+	if(req.session == null)
 		page.append("<p>Session is not set</p>\n");
 	else
 		page.append("<p>Session is set</p>\n");
@@ -141,7 +141,7 @@ void destroy_session(Neutron.Http.Request req) {
 	<body>
 	<h1>Session destroy</h1>
 	""");
-	req.set_session(null);
+	req.session = null;
 	page.append("</body>\n</html>");
 	req.set_response_body(page.str);
 	req.finish();

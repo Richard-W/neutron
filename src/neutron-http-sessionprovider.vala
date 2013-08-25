@@ -71,9 +71,9 @@ namespace Neutron.Http {
 					session.set_last_request_time();
 
 					/* Add the session to the request-object */
-					req.session = session;
+					req._session = session;
 				} else {
-					req.set_session(null);
+					req.session = null;
 				}
 			}
 		}

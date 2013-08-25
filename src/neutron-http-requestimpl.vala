@@ -25,17 +25,22 @@ namespace Neutron.Http {
 		private HashMap<string,string>? posts;
 		private HashMap<string,string>? cookies;
 		private HashMap<string,HashSet<string>>? headers;
-		private string _path;
 
-		public Session? session = null;
 		public string? response_body=null;
-		public bool session_changed = false;
 		public int response_http_status = 200;
 		public HashSet<string> response_headers;
 		public SourceFunc ready_callback;
 		
+		private string _path;
 		public override string path {
 			get { return _path; }
+		}
+
+		public bool session_changed = false;
+		public Session? _session = null;
+		public override Session? session {
+			get { return _session; }
+			set { _session = value; session_changed = true; }
 		}
 		
 		public RequestImpl(string path, HashMap<string,string>? gets, HashMap<string,string>? posts, HashMap<string,string>? cookies, HashMap<string,HashSet<string>> headers) {
@@ -94,10 +99,6 @@ namespace Neutron.Http {
 			return headers.keys.to_array();
 		}
 
-		public override Session? get_session() {
-			return session;
-		}
-
 		public override void set_cookie(string key, string val, int lifetime, string path="/", bool http_only=false, bool secure=false) {
 			var cookie = new StringBuilder();
 
@@ -121,11 +122,6 @@ namespace Neutron.Http {
 
 		public override void set_response_http_status(int status) {
 			response_http_status = status;
-		}
-
-		public override void set_session(Session? session) {
-			this.session_changed = true;
-			this.session = session;
 		}
 
 		public override void finish() {

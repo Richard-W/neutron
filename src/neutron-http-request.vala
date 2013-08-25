@@ -27,6 +27,14 @@ namespace Neutron.Http {
 		}
 
 		/**
+		 * The unique session-object
+		 */
+		public abstract Session? session {
+			get;
+			set;
+		}
+
+		/**
 		 * Get string from POST-body 
 		 */
 		public abstract string? get_post_var(string key);
@@ -45,11 +53,6 @@ namespace Neutron.Http {
 		 * Get string from header 
 		 */
 		public abstract string[]? get_header_var(string key);
-
-		/**
-		 * Get session Object 
-		 */
-		public abstract Session? get_session();
 
 		/**
 		 * Return all set keys 
@@ -90,11 +93,6 @@ namespace Neutron.Http {
 		 * Adds a line to the header 
 		 */
 		public abstract void add_header_line(string header_line);
-
-		/**
-		 * Set session Object 
-		 */
-		public abstract void set_session(Session? session);
 
 		/**
 		 * Send the response to the client
