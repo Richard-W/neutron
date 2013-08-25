@@ -61,6 +61,7 @@ The RequestHandlerFunc (in the above case page_hello_world) is only a receiver. 
 when the function returns. What matters is the finish-method. It MUST be called eventually (because if it
 is not you got yourself a nice memory-leak), but you can do it whenever or whereever you want.
 
-Also note that Neutron is single-threaded. This might change in the future, but until then you do not want
-to use blocking operations. This is not really a problem though, because vala provides asynchronous methods
-for almost everything that matters.
+Also note, that the user of your application can set worker_threads in the config-file to a value > 0 which
+will distribute the execution of your callbacks over several threads. You still need to use asynchronous
+operations because every thread is able to handle several connections. Also i strongly advise you to use
+the AsyncQueue-class to share data between your requests.
