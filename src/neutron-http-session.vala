@@ -25,8 +25,12 @@ namespace Neutron.Http {
 	 * properties. I strongly recommend you derive only once per project.
 	 */	 
 	public class Session : Object {
-		private string sessid;
 		private Gee.HashMap<string,string> vars;
+
+		private string _session_id;
+		public string session_id {
+			get { return _session_id; }
+		}
 
 		private DateTime _last_request_time;
 		public DateTime last_request_time {
@@ -39,17 +43,13 @@ namespace Neutron.Http {
 		}
 
 		public Session() {
-			sessid = generate_session_id();
+			_session_id = generate_session_id();
 			vars = new Gee.HashMap<string,string>();
 			_creation_time = new DateTime.now_local();
 		}
 
 		public void set_last_request_time() {
 			_last_request_time = new DateTime.now_local();
-		}
-
-		public string get_session_id() {
-			return sessid;
 		}
 
 		private string generate_session_id() {

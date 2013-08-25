@@ -85,7 +85,7 @@ namespace Neutron.Http {
 			string? cookie_session_id = req.get_cookie_var("neutron_session_id");
 			string? prop_session_id = null;
 
-			if(req.session != null) prop_session_id = req.session.get_session_id();
+			if(req.session != null) prop_session_id = req.session.session_id;
 
 			bool set_sessioncookie = true;
 
