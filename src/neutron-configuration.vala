@@ -29,6 +29,14 @@ namespace Neutron {
 			get { return _general_daemon; }
 		}
 
+		private int _general_worker_threads;
+		/**
+		 * Number of worker threads running
+		 */
+		public int general_worker_threads {
+			get { return _general_worker_threads; }
+		}
+
 		/* Http */
 
 		private uint16 _http_port;
@@ -115,6 +123,7 @@ namespace Neutron {
 			kf.load_from_file(_internal_config_file, KeyFileFlags.NONE);
 
 			parse_bool(kf, out _general_daemon, "General", "daemon", false, false);
+			parse_int(kf, out _general_worker_threads, "General", "worker_threads", false, 0);
 			parse_port(kf, out _http_port, "Http", "port", false, 80);
 			parse_bool(kf, out _http_use_tls, "Http", "use_tls", false, false);
 			parse_int(kf, out _http_session_lifetime, "Http", "session_lifetime", false, 3600);

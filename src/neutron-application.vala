@@ -22,12 +22,15 @@ namespace Neutron {
 		/* General */
 		private Configuration config;
 		private MainLoop mainloop;
-		private ThreadController tcontrol;
+		private ThreadController? tcontrol;
 
 		public Application(string[] argv, string? configfile = null) throws Error {
 			config = new Configuration(argv, configfile);
 			mainloop = new MainLoop();
-			tcontrol = new ThreadController(4);
+
+			if(config.general_worker_threads > 0)
+				tcontrol = new ThreadController(config.general_worker_threads);
+			else tcontrol = null;
 		}
 
 		/**
