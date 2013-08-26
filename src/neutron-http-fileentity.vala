@@ -27,7 +27,7 @@ namespace Neutron.Http {
 			this.filename = filename;
 		}
 
-		public override async ConnectionAction handle_request() {
+		protected override async ConnectionAction handle_request() {
 			try {
 				var file = File.new_for_path(filename);
 				if(!file.query_exists()) {

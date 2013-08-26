@@ -27,7 +27,7 @@ namespace Neutron.Http {
 			this.content = content;
 		}
 
-		public override async ConnectionAction handle_request() {
+		protected override async ConnectionAction handle_request() {
 			try {
 				yield send_status(200);
 				yield send_default_headers();

@@ -137,7 +137,7 @@ namespace Neutron.Http {
 			if(request.session != null) session_delete = request.session;
 		}
 
-		public abstract async ConnectionAction handle_request();
+		protected abstract async ConnectionAction handle_request();
 	}
 
 	public abstract class EntityFactory : Object {
