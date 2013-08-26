@@ -61,14 +61,7 @@ See examples/example.conf in the repository. Note that you also can hardcode a c
 in your application by giving the constructor of the Application class it's second argument.
 The -c option will still be first choice.
 
-Well, the hello application is really simple and fits nicely into one function, but what if
-you want to build bigger applications?
-
-The RequestHandlerFunc (in the above case page_hello_world) is only a receiver. The library does not care
-when the function returns. What matters is the finish-method. It MUST be called eventually (because if it
-is not you got yourself a nice memory-leak), but you can do it whenever or whereever you want.
-
 Also note, that the user of your application can set worker_threads in the config-file to a value > 0 which
-will distribute the execution of your callbacks over several threads. You still need to use asynchronous
-operations because every thread is able to handle several connections. Also i strongly advise you to use
-the AsyncQueue-class to share data between your requests.
+will distribute the execution over several threads. You still need to use asynchronous operations because every
+thread is able to handle several connections. Also i strongly advise you to use the AsyncQueue-class to share
+data between requests.
