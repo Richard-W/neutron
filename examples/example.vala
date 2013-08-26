@@ -27,23 +27,88 @@ int main(string[] argv) {
 
 		http = app.get_http_server();
 
-		var root = new Neutron.Http.StaticEntityFactory("text/html", """
-		<!DOCTYPE html>
+		var root = new Neutron.Http.StaticEntityFactory("text/html", """<!DOCTYPE html>
 		<html>
 		<head>
 			<meta charset="utf-8" />
 		</head>
 		<body>
 			<h1>Neutron testpage</h1>
-			<br><a href="/variables">Variables</a>
+			<br><a href="/request">Request</a>
+			<br><a href="/file">Filetest</a>
 		</body>
-		</html>
-		""");
+		</html>""");
 		http.set_handler("/", root);
+
+		var file = new Neutron.Http.FileEntityFactory("text/html", "./file.html");
+		http.set_handler("/file", file);
+
+		var request = new DisplayRequestEntityFactory();
+		http.set_handler("/request", request);
 	} catch(Error e) {
 		stderr.printf("Error: %s\n", e.message);
 		return 1;
 	}
 
 	return app.run();
+}
+
+class DisplayRequestEntity : Neutron.Http.ChunkedEntity {
+	protected override async Neutron.Http.ConnectionAction handle_request() {
+		try {
+			yield send_status(200);
+			yield send_header("Content-Type", "text/html");
+
+			if(request.session == null) yield set_session(new Neutron.Http.Session());
+
+			yield end_headers();
+
+			yield send_chunk("""
+			<!DOCTYPE html>
+			<html>
+			<head>
+				<title>Display Request</title>
+			</head>
+			<body>
+				<h1>Display Request</h1>
+				<h2>Headers</h2>
+			""");
+
+			foreach(string header_key in request.get_header_vars()) {
+				foreach(string header_field in request.get_header_var(header_key)) {
+					yield send_chunk("%s: %s<br />\n".printf(header_key, header_field));
+				}
+			}
+
+			yield send_chunk("<h2>Request</h2>");
+			foreach(string request_key in request.get_request_vars()) {
+				yield send_chunk("%s: %s<br />\n".printf(request_key, request.get_request_var(request_key)));
+			}
+
+			yield send_chunk("<h2>Post</h2>");
+			foreach(string post_key in request.get_post_vars()) {
+				yield send_chunk("%s: %s<br />\n".printf(post_key, request.get_post_var(post_key)));
+			}
+
+			yield send_chunk("<h2>Cookies</h2>");
+			foreach(string cookie_key in request.get_cookie_vars()) {
+				yield send_chunk("%s: %s<br />\n".printf(cookie_key, request.get_cookie_var(cookie_key)));
+			}
+
+			yield send_chunk("""
+			</body>
+			</html>
+			""");
+			yield send_end_chunk();
+			return Neutron.Http.ConnectionAction.KEEP_ALIVE;
+		} catch(Error e) {
+			return Neutron.Http.ConnectionAction.CLOSE;
+		}
+	}
+}
+
+class DisplayRequestEntityFactory : Neutron.Http.EntityFactory {
+	public override Neutron.Http.Entity create_entity() {
+		return (Neutron.Http.Entity) new DisplayRequestEntity();
+	}
 }
