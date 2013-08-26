@@ -43,6 +43,7 @@ namespace Neutron.Http {
 		public Session() {
 			_session_id = generate_session_id();
 			_creation_time = new DateTime.now_local();
+			_last_request_time = new DateTime.now_local();
 		}
 
 		public void set_last_request_time() {
