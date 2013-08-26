@@ -42,6 +42,10 @@ namespace Neutron.Http {
 			yield client.output_stream.write_async(data);
 		}
 
+		protected async void send_bytes(uint8[] buffer) throws Error {
+			yield client.output_stream.write_async(buffer);
+		}
+
 		protected async void send_status(int code, string? description = null) throws Error {
 			if(status_sent) throw new HttpError.STATUS_ALREADY_SENT("You can not send the status twice");
 
