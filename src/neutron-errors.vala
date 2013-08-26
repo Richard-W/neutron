@@ -22,4 +22,12 @@ namespace Neutron {
 		REQUIRED_OPTION_MISSING,
 		INVALID_OPTION
 	}
+
+	namespace Http {
+		public errordomain HttpError {
+			STATUS_ALREADY_SENT,
+			STATUS_NOT_SENT,
+			HEADERS_ALREADY_SENT
+		}
+	}
 }
