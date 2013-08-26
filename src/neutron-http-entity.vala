@@ -22,9 +22,17 @@ namespace Neutron.Http {
 		private IOStream client;
 		private Session? session_set = null;
 		private Session? session_delete = null;
-		private bool status_sent = false;
-		private bool headers_sent = false;
 		
+		private bool _status_sent = false;
+		protected bool status_sent {
+			get { return _status_sent; }
+		}
+
+		private bool _headers_sent = false;
+		protected bool headers_sent {
+			get { return _headers_sent; }
+		}
+
 		private Request _request;
 		protected Request request {
 			get { return _request; }
