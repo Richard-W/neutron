@@ -18,6 +18,18 @@ int main(string[] argv) {
 		//Enable the http-server
 		app.enable_http();
 
+		var page_hello_world = new Neutron.Http.StaticEntityFactory("text/html", """
+		<!DOCTYPE html>
+		<html>
+		<head>
+			<meta charset="utf-8" />
+		</head>
+		<body>
+			<h1>Hello World!</h1>
+		</body>
+		</html>
+		""");
+
 		var http = app.get_http_server();
 		http.set_handler("/", page_hello_world);
 	} catch(Error e) {
@@ -26,11 +38,6 @@ int main(string[] argv) {
 	}
 
 	return app.run();
-}
-
-void page_hello_world(Neutron.Http.Request req) {
-	req.set_response_body("Hello World!");
-	req.finish();
 }
 //Compile with "valac hello.vala --pkg neutron" if you installed the library
 ```
