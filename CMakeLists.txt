@@ -44,6 +44,7 @@ vala_precompile(C_SOURCES
 		src/neutron-http-sessionprovider.vala
 		src/neutron-threadcontroller.vala
 		src/neutron-http-entity.vala
+		src/neutron-http-staticentity.vala
 	PACKAGES
 		gio-2.0
 		gee-0.8
