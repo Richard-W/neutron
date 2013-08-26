@@ -19,10 +19,14 @@
 
 namespace Neutron.Http {
 	public abstract class Entity : Object {
-		private IOStream client;
 		private Session? session_set = null;
 		private Session? session_delete = null;
 		
+		private IOStream _io_stream;
+		protected IOStream io_stream {
+			get { return _io_stream; }
+		}
+
 		private bool _status_sent = false;
 		protected bool status_sent {
 			get { return _status_sent; }
@@ -38,20 +42,20 @@ namespace Neutron.Http {
 			get { return _request; }
 		}
 
-		public async ServerAction server_callback(Request request, IOStream client) {
+		public async ServerAction server_callback(Request request, IOStream io_stream) {
 			this._request = request;
-			this.client = client;
+			this._io_stream = io_stream;
 			var action = yield handle_request();
 			return new ServerAction(action, session_set, session_delete);
 		}
 
 		protected async void raw_send(string str) throws Error {
 			var data = (uint8[]) str.to_utf8();
-			yield client.output_stream.write_async(data);
+			yield _io_stream.output_stream.write_async(data);
 		}
 
 		protected async void send_bytes(uint8[] buffer) throws Error {
-			yield client.output_stream.write_async(buffer);
+			yield _io_stream.output_stream.write_async(buffer);
 		}
 
 		protected async void send_status(int code, string? description = null) throws Error {
