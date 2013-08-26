@@ -101,8 +101,8 @@ namespace Neutron.Http {
 
 			if(description != null) desc = description;
 			yield raw_send("HTTP/1.1 %d %s\r\n".printf(code, desc));
-			yield send_default_headers();
 			_status_sent = true;
+			yield send_default_headers();
 		}
 
 		protected async void send_header(string key, string val) throws Error {
