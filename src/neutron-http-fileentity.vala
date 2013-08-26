@@ -38,6 +38,7 @@ namespace Neutron.Http {
 				}
 				yield send_status(200);
 				yield send_default_headers();
+				yield send_header("Content-Type", mime_type);
 
 				var info = yield file.query_info_async("*", FileQueryInfoFlags.NONE);
 				var size = info.get_size();
