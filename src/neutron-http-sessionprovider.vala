@@ -72,8 +72,6 @@ namespace Neutron.Http {
 
 					/* Add the session to the request-object */
 					req._session = session;
-				} else {
-					req.session = null;
 				}
 			}
 		}
@@ -81,35 +79,13 @@ namespace Neutron.Http {
 		/**
 		 * This checks if the Session-object of a Request was replaced or set and sets the cookies 
 		 */
-		public void post_callback(RequestImpl req) {
-			string? cookie_session_id = req.get_cookie_var("neutron_session_id");
-			string? prop_session_id = null;
-
-			if(req.session != null) prop_session_id = req.session.session_id;
-
-			bool set_sessioncookie = true;
-
-			if(req.session_changed) {
-				if(cookie_session_id != null && prop_session_id == null) {
-					set_sessioncookie = false;
-					req.set_cookie("neutron_session_id", "deleted", -1, "/", true, false);
-					stored_sessions.unset(cookie_session_id);
-				} else if(cookie_session_id == null && prop_session_id != null) {
-					req.session.set_last_request_time();
-					stored_sessions.set(prop_session_id, req.session);
-				} else if(cookie_session_id != prop_session_id) {
-					stored_sessions.unset(cookie_session_id);
-					req.session.set_last_request_time();
-					stored_sessions.set(prop_session_id, req.session);
-				} else if(cookie_session_id == null && prop_session_id == null) {
-					set_sessioncookie = false;
-				} else {
-					assert_not_reached();
-				}
+		public void post_callback(Session? set_session, Session? deleted_session) {
+			if(set_session != null) {
+				stored_sessions.set(set_session.session_id, set_session);
 			}
 
-			if(set_sessioncookie && prop_session_id != null) {
-				req.set_cookie("neutron_session_id", prop_session_id, lifetime, "/", true, false);
+			if(deleted_session != null) {
+				stored_sessions.unset(deleted_session.session_id);
 			}
 		}
 	}
