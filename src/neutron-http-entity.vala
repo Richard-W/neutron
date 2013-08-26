@@ -98,7 +98,7 @@ namespace Neutron.Http {
 			yield raw_send("%s: %s\r\n".printf(key, val));
 		}
 
-		protected async void send_default_headers() throws Error {
+		protected virtual async void send_default_headers() throws Error {
 			yield send_header("Server", "neutron");
 		}
 
