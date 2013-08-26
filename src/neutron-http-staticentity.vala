@@ -30,7 +30,6 @@ namespace Neutron.Http {
 		protected override async ConnectionAction handle_request() {
 			try {
 				yield send_status(200);
-				yield send_default_headers();
 				yield send_header("Content-Length", "%d".printf(content.length));
 				yield send_header("Content-Type", mime_type);
 				yield end_headers();

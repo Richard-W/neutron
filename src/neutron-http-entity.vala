@@ -97,7 +97,8 @@ namespace Neutron.Http {
 
 			if(description != null) desc = description;
 			yield raw_send("HTTP/1.1 %d %s\r\n".printf(code, desc));
-			status_sent = true;
+			yield send_default_headers();
+			_status_sent = true;
 		}
 
 		protected async void send_header(string key, string val) throws Error {
@@ -112,7 +113,7 @@ namespace Neutron.Http {
 
 		protected async void end_headers() throws Error {
 			yield raw_send("\r\n");
-			headers_sent = true;
+			_headers_sent = true;
 		}
 
 		protected async void set_cookie(string key,

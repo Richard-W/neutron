@@ -32,7 +32,6 @@ namespace Neutron.Http {
 				var file = File.new_for_path(filename);
 				if(!file.query_exists()) {
 					yield send_status(500);
-					yield send_default_headers();
 					yield end_headers();
 					return ConnectionAction.CLOSE;
 				}
