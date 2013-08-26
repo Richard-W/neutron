@@ -125,6 +125,8 @@ namespace Neutron.Http {
 					/* Call handler */
 					var server_action = yield entity.server_callback(req, conn);
 
+					sessionprovider.post_callback(server_action.new_session, server_action.old_session);
+
 					if(server_action.connection_action == ConnectionAction.CLOSE)
 						break;
 					else if(server_action.connection_action == ConnectionAction.RELEASE)
