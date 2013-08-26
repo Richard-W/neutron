@@ -32,7 +32,7 @@ namespace Neutron.Http {
 		private ThreadController? tcontrol;
 
 		private SessionProvider sessionprovider;
-		private HashMap<string, RequestHandlerWrapper> request_handlers;
+		private HashMap<string, EntityFactory> request_handlers;
 
 		public Server(ThreadController? tcontrol, uint16 port, bool use_tls, TlsCertificate? tls_cert = null, int session_lifetime = 3600, int session_max_lifetime = -1) throws Error {
 			assert(port != 0);
@@ -47,7 +47,7 @@ namespace Neutron.Http {
 			listener.add_inet_port(port, null);
 			listener.incoming.connect(on_incoming);
 
-			request_handlers = new HashMap<string, RequestHandlerWrapper>();
+			request_handlers = new HashMap<string, EntityFactory>();
 
 			sessionprovider = new SessionProvider(session_lifetime, session_max_lifetime);
 		}
@@ -56,8 +56,8 @@ namespace Neutron.Http {
 		/**
 		 * Adds a handler for a specific http-path 
 		 */
-		public void set_handler(string path, RequestHandlerFunc handler) {
-			request_handlers.set(path, new RequestHandlerWrapper(handler));
+		public void set_handler(string path, EntityFactory entfac) {
+			request_handlers.set(path, entfac);
 		}
 
 		/**
@@ -112,57 +112,28 @@ namespace Neutron.Http {
 			var parser = new Parser(conn);
 			RequestImpl req;
 
-			while((req = yield parser.run()) != null) {
-				try {
+			bool keep_running = true;
+			while((req = yield parser.run()) != null && keep_running) {
+				/* Check if a handler is registered for the requested path */
+				if(request_handlers.has_key(req.path)) {
+					/* Let the sessionprovider add information to the Request */
+					sessionprovider.pre_callback(req);
 
-					/* Check if a handler is registered for the requested path */
-					if(request_handlers.has_key(req.path)) {
-						/* Let the sessionprovider add information to the Request */
-						sessionprovider.pre_callback(req);
+					var entityfac = request_handlers.get(req.path);
+					var entity = entityfac.create_entity();
 
-						/* This is used to resume this method after the finish-method
-						   on the request is called */
-						req.ready_callback = handle_connection.callback;
+					/* Call handler */
+					var server_action = yield entity.server_callback(req, conn);
 
-						var wrapper = request_handlers.get(req.path);
-						/* Call handler */
-						wrapper.handler(req);
-
-						/* Pause until finish-method is called on the Request-Object */
-						yield;
-
-						/* Refresh sessionprovider */
-						sessionprovider.post_callback(req);
-					} else {
-						/* Create rudimentary error-page */
-						//TODO: Customize error-pages
-						req.set_response_http_status(404);
-						req.set_response_body("<!DOCTYPE html><html><head><meta charset=\"utf-8\" /><title>404 - Page not found</title></head><body><h1>404 - Page not found</h1></body></html>");
-					}
-
-					var respb = new StringBuilder();
-					//TODO: Append name of status-code
-					respb.append("HTTP/1.1 %d\r\n".printf(req.response_http_status));
-					respb.append("Connection: keep-alive\r\n");
-
-					/* Include headers and cookies in response */
-					foreach(string header_line in req.response_headers) {
-						respb.append("%s\r\n".printf(header_line));
-					}
-
-					/* Include body in response */
-					if(req.response_body != null) {
-						respb.append("Content-Length: %ld\r\n".printf(req.response_body.length));
-						respb.append("\r\n");
-						respb.append(req.response_body);
-					} else {
-						respb.append("Content-Length: 0\r\n");
-						respb.append("\r\n");
-					}
-
-					/* Send response to client */
-					yield conn.output_stream.write_async((uint8[]) respb.str.to_utf8());
-				} catch(Error e) { }
+					if(server_action.connection_action == ConnectionAction.CLOSE)
+						break;
+					else if(server_action.connection_action == ConnectionAction.RELEASE)
+						return;
+					else if(server_action.connection_action != ConnectionAction.KEEP_ALIVE)
+						assert_not_reached();
+				} else {
+					//TODO: 404-page
+				}
 			}
 
 			try {
@@ -174,20 +145,30 @@ namespace Neutron.Http {
 		}
 	}
 
-	/** 
-	 * HashMap does not Support delegates as generic-types so we have to
-	 * wrap the delegate in something HashMap does support.
-	 */
-	private class RequestHandlerWrapper : Object {
-		public RequestHandlerFunc handler;
-
-		public RequestHandlerWrapper(RequestHandlerFunc handler) {
-			this.handler = handler;
-		}
+	public enum ConnectionAction {
+		/**
+		 * Close the connection
+		 */
+		CLOSE,
+		/**
+		 * Keep handling the connection
+		 */
+		KEEP_ALIVE,
+		/**
+		 * Stop handling the connection but leave it open
+		 */
+		RELEASE
 	}
 
-	/**
-	 * Delegate for request-handler functions 
-	 */
-	public delegate void RequestHandlerFunc(Request request);
+	public class ServerAction : Object {
+		public ConnectionAction connection_action;
+		public Session? new_session;
+		public Session? old_session;
+
+		public ServerAction(ConnectionAction a, Session? b, Session? c) {
+			connection_action = a;
+			new_session = b;
+			old_session = c;
+		}
+	}
 }
