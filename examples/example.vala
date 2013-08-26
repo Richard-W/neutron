@@ -26,11 +26,25 @@ int main(string[] argv) {
 		app.enable_http();
 
 		http = app.get_http_server();
+
+		var root = new Neutron.Http.StaticEntityFactory("text/html", """<!DOCTYPE html>
+		<html>
+		<head>
+			<meta charset="utf-8" />
+		</head>
+		<body>
+			<h1>Neutron testpage</h1>
+			<br><a href="/request">Request</a>
+			<br><a href="/file">Filetest</a>
+		</body>
+		</html>""");
 		http.set_handler("/", root);
-		http.set_handler("/variables", variables);
-		http.set_handler("/create_session", create_session);
-		http.set_handler("/display_session", display_session);
-		http.set_handler("/destroy_session", destroy_session);
+
+		var file = new Neutron.Http.FileEntityFactory("text/html", "./file.html");
+		http.set_handler("/file", file);
+
+		var request = new DisplayRequestEntityFactory();
+		http.set_handler("/request", request);
 	} catch(Error e) {
 		stderr.printf("Error: %s\n", e.message);
 		return 1;
@@ -39,110 +53,62 @@ int main(string[] argv) {
 	return app.run();
 }
 
-void root(Neutron.Http.Request req) {
-	var page = new StringBuilder();
-	page.append("""<!DOCTYPE html>
-	<html>
-	<head>
-		<meta charset="utf-8" />
-		<title>Topsite</title>
-	</head>
-	<body>
-		<h1>Neutron Testpage</h1>
-		<a href="/create_session">Create session</a><br />
-		<a href="/destroy_session">Destroy session</a><br />
-		<a href="/display_session">Display session</a><br />
-		<a href="/variables">Variables</a><br />
-	</body>
-	</html>
-	""");
-	req.set_response_body(page.str);
-	req.finish();
-}
+class DisplayRequestEntity : Neutron.Http.ChunkedEntity {
+	protected override async Neutron.Http.ConnectionAction handle_request() {
+		try {
+			yield send_status(200);
+			yield send_header("Content-Type", "text/html");
 
-void variables(Neutron.Http.Request req) {
-	var page = new StringBuilder();
-	page.append("""<!DOCTYPE html>
-	<html>
-	<head>
-		<meta charset="utf-8" />
-		<title>Variables</title>
-	</head>
-	<body>
-	<h1>Request</h1>
-	""");
-	foreach(string key in req.get_request_vars()) {
-		page.append("%s: %s<br />\n".printf(key, req.get_request_var(key)));
-	}
-	page.append("<h1>Post</h1>\n");
-	foreach(string key in req.get_post_vars()) {
-		page.append("%s: %s<br />\n".printf(key, req.get_post_var(key)));
-	}
-	page.append("<h1>Cookies</h1>\n");
-	foreach(string key in req.get_cookie_vars()) {
-		page.append("%s: %s<br />\n".printf(key, req.get_cookie_var(key)));
-	}
-	page.append("<h1>Headers</h1>\n");
-	foreach(string key in req.get_header_vars()) {
-		foreach(string val in req.get_header_var(key)) {
-			page.append("%s: %s<br />\n".printf(key, val));
+			if(request.session == null) yield set_session(new Neutron.Http.Session());
+
+			yield end_headers();
+
+			yield send_chunk("""
+			<!DOCTYPE html>
+			<html>
+			<head>
+				<title>Display Request</title>
+			</head>
+			<body>
+				<h1>Display Request</h1>
+				<h2>Headers</h2>
+			""");
+
+			foreach(string header_key in request.get_header_vars()) {
+				foreach(string header_field in request.get_header_var(header_key)) {
+					yield send_chunk("%s: %s<br />\n".printf(header_key, header_field));
+				}
+			}
+
+			yield send_chunk("<h2>Request</h2>");
+			foreach(string request_key in request.get_request_vars()) {
+				yield send_chunk("%s: %s<br />\n".printf(request_key, request.get_request_var(request_key)));
+			}
+
+			yield send_chunk("<h2>Post</h2>");
+			foreach(string post_key in request.get_post_vars()) {
+				yield send_chunk("%s: %s<br />\n".printf(post_key, request.get_post_var(post_key)));
+			}
+
+			yield send_chunk("<h2>Cookies</h2>");
+			foreach(string cookie_key in request.get_cookie_vars()) {
+				yield send_chunk("%s: %s<br />\n".printf(cookie_key, request.get_cookie_var(cookie_key)));
+			}
+
+			yield send_chunk("""
+			</body>
+			</html>
+			""");
+			yield send_end_chunk();
+			return Neutron.Http.ConnectionAction.KEEP_ALIVE;
+		} catch(Error e) {
+			return Neutron.Http.ConnectionAction.CLOSE;
 		}
 	}
-	page.append("</body>\n</html>");
-	req.set_response_body(page.str);
-	req.finish();
 }
 
-void create_session(Neutron.Http.Request req) {
-	var page = new StringBuilder();
-	page.append("""<!DOCTYPE html>
-	<html>
-	<head>
-		<meta charset="utf-8" />
-		<title>Create session</title>
-	</head>
-	<body>
-	<h1>Session creation</h1>
-	</body>
-	</html>""");
-	req.session = new Neutron.Http.Session();
-	req.set_response_body(page.str);
-	req.finish();
-}
-
-void display_session(Neutron.Http.Request req) {
-	var page = new StringBuilder();
-	page.append("""<!DOCTYPE html>
-	<html>
-	<head>
-		<meta charset="utf-8" />
-		<title>Display session</title>
-	</head>
-	<body>
-	<h1>Session display</h1>
-	""");
-	if(req.session == null)
-		page.append("<p>Session is not set</p>\n");
-	else
-		page.append("<p>Session is set</p>\n");
-	page.append("</body>\n</html>");
-	req.set_response_body(page.str);
-	req.finish();
-}
-
-void destroy_session(Neutron.Http.Request req) {
-	var page = new StringBuilder();
-	page.append("""<!DOCTYPE html>
-	<html>
-	<head>
-		<meta charset="utf-8" />
-		<title>Destroy session</title>
-	</head>
-	<body>
-	<h1>Session destroy</h1>
-	""");
-	req.session = null;
-	page.append("</body>\n</html>");
-	req.set_response_body(page.str);
-	req.finish();
+class DisplayRequestEntityFactory : Neutron.Http.EntityFactory {
+	public override Neutron.Http.Entity create_entity() {
+		return (Neutron.Http.Entity) new DisplayRequestEntity();
+	}
 }

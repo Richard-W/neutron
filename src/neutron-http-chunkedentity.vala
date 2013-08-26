@@ -17,17 +17,25 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-namespace Neutron {
-	public errordomain ConfigurationError {
-		REQUIRED_OPTION_MISSING,
-		INVALID_OPTION
-	}
+namespace Neutron.Http {
+	public abstract class ChunkedEntity : Entity {
+		protected override async void send_default_headers() throws Error {
+			yield base.send_default_headers();
+			yield send_header("Transfer-Encoding", "chunked");
+		}
 
-	namespace Http {
-		public errordomain HttpError {
-			STATUS_ALREADY_SENT,
-			STATUS_NOT_SENT,
-			HEADERS_ALREADY_SENT
+		protected async void send_chunk(string str) throws Error {
+			yield send_byte_chunk((uint8[]) str.to_utf8());
+		}
+
+		protected async void send_byte_chunk(uint8[] data) throws Error {
+			yield raw_send("%x\r\n".printf((int) data.length));
+			yield send_bytes(data);
+			yield raw_send("\r\n");
+		}
+
+		protected async void send_end_chunk() throws Error {
+			yield raw_send("0\r\n\r\n");
 		}
 	}
 }
