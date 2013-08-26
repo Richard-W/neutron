@@ -26,21 +26,14 @@ namespace Neutron.Http {
 		private HashMap<string,string>? cookies;
 		private HashMap<string,HashSet<string>>? headers;
 
-		public string? response_body=null;
-		public int response_http_status = 200;
-		public HashSet<string> response_headers;
-		public SourceFunc ready_callback;
-		
 		private string _path;
 		public override string path {
 			get { return _path; }
 		}
 
-		public bool session_changed = false;
 		public Session? _session = null;
 		public override Session? session {
 			get { return _session; }
-			set { _session = value; session_changed = true; }
 		}
 		
 		public RequestImpl(string path, HashMap<string,string>? gets, HashMap<string,string>? posts, HashMap<string,string>? cookies, HashMap<string,HashSet<string>> headers) {
@@ -49,8 +42,6 @@ namespace Neutron.Http {
 			this.cookies = cookies;
 			this.headers = headers;
 			this._path = path;
-
-			response_headers = new HashSet<string>();
 		}
 
 		private string? get_var(HashMap<string,string> map, string key) {
@@ -97,35 +88,6 @@ namespace Neutron.Http {
 			if(headers == null) return null;
 			if(headers.size == 0) return null;
 			return headers.keys.to_array();
-		}
-
-		public override void set_cookie(string key, string val, int lifetime, string path="/", bool http_only=false, bool secure=false) {
-			var cookie = new StringBuilder();
-
-			cookie.append("Set-Cookie: %s=%s".printf(key, val));
-			cookie.append("; Max-Age=%d".printf(lifetime));
-			cookie.append("; Path=%s".printf(path));
-
-			if(http_only) cookie.append("; HttpOnly");
-			if(secure) cookie.append("; Secure");
-
-			this.add_header_line(cookie.str);
-		}
-
-		public override void add_header_line(string header_line) {
-			response_headers.add(header_line);
-		}
-		
-		public override void set_response_body(string body) {
-			response_body = body;
-		}
-
-		public override void set_response_http_status(int status) {
-			response_http_status = status;
-		}
-
-		public override void finish() {
-			Idle.add(ready_callback);
 		}
 	}
 }
