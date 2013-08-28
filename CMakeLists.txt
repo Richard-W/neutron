@@ -46,7 +46,6 @@ vala_precompile(C_SOURCES
 		src/neutron-http-entity.vala
 		src/neutron-http-staticentity.vala
 		src/neutron-http-fileentity.vala
-		src/neutron-http-chunkedentity.vala
 	PACKAGES
 		gio-2.0
 		gee-0.8
