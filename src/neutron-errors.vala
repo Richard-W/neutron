@@ -27,7 +27,8 @@ namespace Neutron {
 		public errordomain HttpError {
 			STATUS_ALREADY_SENT,
 			STATUS_NOT_SENT,
-			HEADERS_ALREADY_SENT
+			HEADERS_ALREADY_SENT,
+			HEADERS_NOT_SENT
 		}
 	}
 }
