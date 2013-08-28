@@ -42,6 +42,15 @@ namespace Neutron.Http {
 			get { return _request; }
 		}
 
+		private TransferEncoding _transfer_encoding = TransferEncoding.CHUNKED;
+		protected TransferEncoding transfer_encoding {
+			get { return _transfer_encoding; }
+			set {
+				if(!_status_sent)_transfer_encoding = value;
+				else assert_not_reached();
+			}
+		}
+
 		public async ServerAction server_callback(Request request, IOStream io_stream) {
 			this._request = request;
 			this._io_stream = io_stream;
@@ -49,13 +58,29 @@ namespace Neutron.Http {
 			return new ServerAction(action, session_set, session_delete);
 		}
 
-		protected async void raw_send(string str) throws Error {
-			var data = (uint8[]) str.to_utf8();
+		private async void real_send(uint8[] data) throws Error {
 			yield _io_stream.output_stream.write_async(data);
 		}
 
-		protected async void send_bytes(uint8[] buffer) throws Error {
-			yield _io_stream.output_stream.write_async(buffer);
+		protected async void send_bytes(uint8[] data) throws Error {
+			if(!_headers_sent) throw new HttpError.HEADERS_NOT_SENT("You have to call end_headers() before calling send() or send_bytes()");
+			if(_transfer_encoding == TransferEncoding.CHUNKED) {
+				yield real_send((uint8[]) "%x\r\n".printf((int) data.length).to_utf8());
+				yield real_send(data);
+				yield real_send((uint8[]) "\r\n".to_utf8());
+			}
+			else yield real_send(data);
+		}
+
+		protected async void send(string str) throws Error {
+			var data = (uint8[]) str.to_utf8();
+			yield send_bytes(data);
+		}
+
+		protected async void end_body() throws Error {
+			if(_transfer_encoding == TransferEncoding.CHUNKED) {
+				yield real_send((uint8[]) "0\r\n\r\n".to_utf8());
+			}
 		}
 
 		protected async void send_status(int code, string? description = null) throws Error {
@@ -100,7 +125,7 @@ namespace Neutron.Http {
 			}
 
 			if(description != null) desc = description;
-			yield raw_send("HTTP/1.1 %d %s\r\n".printf(code, desc));
+			yield real_send((uint8[]) "HTTP/1.1 %d %s\r\n".printf(code, desc).to_utf8());
 			_status_sent = true;
 			yield send_default_headers();
 		}
@@ -108,15 +133,16 @@ namespace Neutron.Http {
 		protected async void send_header(string key, string val) throws Error {
 			if(!status_sent) throw new HttpError.STATUS_NOT_SENT("You have to send the status first");
 			if(headers_sent) throw new HttpError.HEADERS_ALREADY_SENT("Already in body of message");
-			yield raw_send("%s: %s\r\n".printf(key, val));
+			yield real_send((uint8[]) "%s: %s\r\n".printf(key, val).to_utf8());
 		}
 
 		protected virtual async void send_default_headers() throws Error {
 			yield send_header("Server", "neutron");
+			if(_transfer_encoding == TransferEncoding.CHUNKED) yield send_header("Transfer-Encoding", "chunked");
 		}
 
 		protected async void end_headers() throws Error {
-			yield raw_send("\r\n");
+			yield real_send((uint8[]) "\r\n".to_utf8());
 			_headers_sent = true;
 		}
 
@@ -155,5 +181,10 @@ namespace Neutron.Http {
 
 	public abstract class EntityFactory : Object {
 		public abstract Entity create_entity();
+	}
+
+	public enum TransferEncoding {
+		CHUNKED,
+		NONE
 	}
 }

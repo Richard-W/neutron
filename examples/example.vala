@@ -53,7 +53,7 @@ int main(string[] argv) {
 	return app.run();
 }
 
-class DisplayRequestEntity : Neutron.Http.ChunkedEntity {
+class DisplayRequestEntity : Neutron.Http.Entity {
 	protected override async Neutron.Http.ConnectionAction handle_request() {
 		try {
 			yield send_status(200);
@@ -63,7 +63,7 @@ class DisplayRequestEntity : Neutron.Http.ChunkedEntity {
 
 			yield end_headers();
 
-			yield send_chunk("""
+			yield send("""
 			<!DOCTYPE html>
 			<html>
 			<head>
@@ -76,30 +76,30 @@ class DisplayRequestEntity : Neutron.Http.ChunkedEntity {
 
 			foreach(string header_key in request.get_header_vars()) {
 				foreach(string header_field in request.get_header_var(header_key)) {
-					yield send_chunk("%s: %s<br />\n".printf(header_key, header_field));
+					yield send("%s: %s<br />\n".printf(header_key, header_field));
 				}
 			}
 
-			yield send_chunk("<h2>Request</h2>");
+			yield send("<h2>Request</h2>");
 			foreach(string request_key in request.get_request_vars()) {
-				yield send_chunk("%s: %s<br />\n".printf(request_key, request.get_request_var(request_key)));
+				yield send("%s: %s<br />\n".printf(request_key, request.get_request_var(request_key)));
 			}
 
-			yield send_chunk("<h2>Post</h2>");
+			yield send("<h2>Post</h2>");
 			foreach(string post_key in request.get_post_vars()) {
-				yield send_chunk("%s: %s<br />\n".printf(post_key, request.get_post_var(post_key)));
+				yield send("%s: %s<br />\n".printf(post_key, request.get_post_var(post_key)));
 			}
 
-			yield send_chunk("<h2>Cookies</h2>");
+			yield send("<h2>Cookies</h2>");
 			foreach(string cookie_key in request.get_cookie_vars()) {
-				yield send_chunk("%s: %s<br />\n".printf(cookie_key, request.get_cookie_var(cookie_key)));
+				yield send("%s: %s<br />\n".printf(cookie_key, request.get_cookie_var(cookie_key)));
 			}
 
-			yield send_chunk("""
+			yield send("""
 			</body>
 			</html>
 			""");
-			yield send_end_chunk();
+			yield end_body();
 			return Neutron.Http.ConnectionAction.KEEP_ALIVE;
 		} catch(Error e) {
 			return Neutron.Http.ConnectionAction.CLOSE;

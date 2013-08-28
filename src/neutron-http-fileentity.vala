@@ -29,6 +29,7 @@ namespace Neutron.Http {
 
 		protected override async ConnectionAction handle_request() {
 			try {
+				transfer_encoding = TransferEncoding.NONE;
 				var file = File.new_for_path(filename);
 				if(!file.query_exists()) {
 					yield send_status(500);
