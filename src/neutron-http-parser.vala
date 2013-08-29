@@ -32,6 +32,7 @@ namespace Neutron.Http {
 		private string? url = null;
 		private string? path = null;
 		private bool message_complete = false;
+		private int timeout;
 
 		private IOStream stream;
 
@@ -44,12 +45,13 @@ namespace Neutron.Http {
 		/**
 		 * Instantiates a Parser that reads from the supplied IOStream 
 		 */
-		public Parser(IOStream stream) {
+		public Parser(IOStream stream, int timeout) {
 			parser = http_parser();
 			http_parser_init(&parser, http_parser_type.HTTP_REQUEST);
 			parser.data = (void*) this;
 
 			this.stream = stream;
+			this.timeout = timeout;
 
 			parser_settings = http_parser_settings();
 			parser_settings.on_message_begin = (void*) on_message_begin_cb;
@@ -70,7 +72,16 @@ namespace Neutron.Http {
 			ssize_t recved = 0;
 			
 			try {
-				while(!message_complete && (recved = yield stream.input_stream.read_async(buffer)) != 0) {
+				Cancellable? timeout_provider = null;
+				if(timeout > 0) {
+					timeout_provider = new Cancellable();
+					Timeout.add_seconds((uint) timeout, () => {
+						timeout_provider.cancel();
+						return true;
+					});
+				}
+
+				while(!message_complete && (recved = yield stream.input_stream.read_async(buffer, Priority.DEFAULT, timeout_provider)) != 0) {
 					var nparsed = http_parser_execute(&parser, &parser_settings, (char*) buffer, recved);
 					if((bool)parser.upgrade) {
 						yield stream.output_stream.write_async((uint8[]) "HTTP/1.1 501 Not implemented\r\n\r\n".to_utf8());
@@ -82,6 +93,14 @@ namespace Neutron.Http {
 						return null;
 					}
 					buffer = new uint8[80*1024];
+
+					if(timeout > 0) {
+						timeout_provider = new Cancellable();
+						Timeout.add_seconds((uint) timeout, () => {
+							timeout_provider.cancel();
+							return true;
+						});
+					}
 				}
 			} catch(Error e) {
 				closed(this);

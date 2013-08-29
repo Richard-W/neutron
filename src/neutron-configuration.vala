@@ -79,6 +79,14 @@ namespace Neutron {
 			get { return _http_session_max_lifetime; }
 		}
 
+		private int _http_timeout;
+		/**
+		 * The timeout of the connection
+		 */
+		public int http_timeout {
+			get { return _http_timeout; }
+		}
+
 		/* Internal */
 
 		private string _internal_config_file;
@@ -129,6 +137,7 @@ namespace Neutron {
 			parse_int(kf, out _http_session_lifetime, "Http", "session_lifetime", false, 3600);
 			parse_int(kf, out _http_session_max_lifetime, "Http", "session_max_lifetime", false, -1);
 			parse_certificate(kf, out _http_tls_certificate, "Http", "tls_cert_file", "Http", "tls_key_file", _http_use_tls);
+			parse_int(kf, out _http_timeout, "Http", "timeout", false, -1);
 		}
 
 		/**

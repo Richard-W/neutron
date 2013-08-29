@@ -27,6 +27,9 @@ namespace Neutron.Http {
 		private bool _use_tls;
 		public bool use_tls { get { return _use_tls; } set { } }
 
+		private int _timeout;
+		public int timeout { get { return _timeout; } }
+
 		private TlsCertificate? tls_cert;
 		private SocketService listener;
 		private ThreadController? tcontrol;
@@ -35,13 +38,14 @@ namespace Neutron.Http {
 		private HashMap<string, EntityFactory> request_handlers;
 		private EntityFactory not_found_handler = new NotFoundEntityFactory();
 
-		public Server(ThreadController? tcontrol, uint16 port, bool use_tls, TlsCertificate? tls_cert = null, int session_lifetime = 3600, int session_max_lifetime = -1) throws Error {
+		public Server(ThreadController? tcontrol, uint16 port, bool use_tls, TlsCertificate? tls_cert = null, int session_lifetime = 3600, int session_max_lifetime = -1, int timeout = -1) throws Error {
 			assert(port != 0);
 			this.tcontrol = tcontrol;
 
 			this._port = port;
 			this._use_tls = use_tls;
 			this.tls_cert = tls_cert;
+			this._timeout = timeout;
 
 			/* Define listener */
 			listener = new SocketService();
@@ -117,7 +121,7 @@ namespace Neutron.Http {
 
 			/* Parser takes an IOStream-Object, so it does not care whether connection
 			 * is encrypted or not */
-			var parser = new Parser(conn);
+			var parser = new Parser(conn, _timeout);
 			RequestImpl req;
 
 			bool keep_running = true;
