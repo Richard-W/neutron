@@ -223,12 +223,12 @@ namespace Neutron.Http {
 	}
 
 	public enum TransferEncoding {
-		CHUNKED,
-		NONE
+		NONE,
+		CHUNKED
 	}
 
 	public enum ContentEncoding {
-		GZIP,
-		NONE
-}
+		NONE,
+		GZIP
+	}
 }
