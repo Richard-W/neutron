@@ -46,7 +46,16 @@ namespace Neutron.Http {
 		protected TransferEncoding transfer_encoding {
 			get { return _transfer_encoding; }
 			set {
-				if(!_status_sent)_transfer_encoding = value;
+				if(!_status_sent) _transfer_encoding = value;
+				else assert_not_reached();
+			}
+		}
+
+		private ContentEncoding _content_encoding = ContentEncoding.NONE;
+		protected ContentEncoding content_encoding {
+			get { return _content_encoding; }
+			set {
+				if(!_headers_sent) _content_encoding = value;
 				else assert_not_reached();
 			}
 		}
@@ -54,6 +63,18 @@ namespace Neutron.Http {
 		public async ServerAction server_callback(Request request, IOStream io_stream) {
 			this._request = request;
 			this._io_stream = io_stream;
+
+			var accepted_encodings = request.get_header_var("accept-encoding");
+			if(accepted_encodings != null) {
+				var enc_array = accepted_encodings[0].split(",");
+				foreach(string enc in enc_array) {
+					if(enc.strip().down() == "gzip") {
+						content_encoding = ContentEncoding.GZIP;
+						break;
+					}
+				}
+			}
+
 			var action = yield handle_request();
 			return new ServerAction(action, session_set, session_delete);
 		}
@@ -187,4 +208,9 @@ namespace Neutron.Http {
 		CHUNKED,
 		NONE
 	}
+
+	public enum ContentEncoding {
+		GZIP,
+		NONE
+}
 }
