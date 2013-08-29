@@ -21,6 +21,14 @@ namespace Neutron.Http {
 	public abstract class Entity : Object {
 		private Session? session_set = null;
 		private Session? session_delete = null;
+
+		private ZlibCompressor gzip_converter;
+		private ConverterOutputStream gzip_stream;
+
+		private ChunkConverter chunk_converter;
+		private ConverterOutputStream chunk_stream;
+
+		private OutputStream outstream;
 		
 		private IOStream _io_stream;
 		protected IOStream io_stream {
@@ -63,6 +71,7 @@ namespace Neutron.Http {
 		public async ServerAction server_callback(Request request, IOStream io_stream) {
 			this._request = request;
 			this._io_stream = io_stream;
+			this.outstream = io_stream.output_stream;
 
 			var accepted_encodings = request.get_header_var("accept-encoding");
 			if(accepted_encodings != null) {
@@ -80,16 +89,11 @@ namespace Neutron.Http {
 		}
 
 		private async void real_send(uint8[] data) throws Error {
-			yield _io_stream.output_stream.write_async(data);
+			yield outstream.write_async(data);
 		}
 
 		protected async void send_bytes(uint8[] data) throws Error {
 			if(!_headers_sent) throw new HttpError.HEADERS_NOT_SENT("You have to call end_headers() before calling send() or send_bytes()");
-			if(_transfer_encoding == TransferEncoding.CHUNKED) {
-				yield real_send((uint8[]) "%x\r\n".printf((int) data.length).to_utf8());
-				yield real_send(data);
-				yield real_send((uint8[]) "\r\n".to_utf8());
-			}
 			else yield real_send(data);
 		}
 
@@ -99,9 +103,8 @@ namespace Neutron.Http {
 		}
 
 		protected async void end_body() throws Error {
-			if(_transfer_encoding == TransferEncoding.CHUNKED) {
-				yield real_send((uint8[]) "0\r\n\r\n".to_utf8());
-			}
+			if(_content_encoding == ContentEncoding.GZIP) yield gzip_stream.close_async();
+			if(_transfer_encoding == TransferEncoding.CHUNKED) yield chunk_stream.close_async();
 		}
 
 		protected async void send_status(int code, string? description = null) throws Error {
@@ -160,11 +163,26 @@ namespace Neutron.Http {
 		protected virtual async void send_default_headers() throws Error {
 			yield send_header("Server", "neutron");
 			if(_transfer_encoding == TransferEncoding.CHUNKED) yield send_header("Transfer-Encoding", "chunked");
+			if(_content_encoding == ContentEncoding.GZIP) yield send_header("Content-Encoding", "gzip");
 		}
 
 		protected async void end_headers() throws Error {
 			yield real_send((uint8[]) "\r\n".to_utf8());
 			_headers_sent = true;
+
+			if(_transfer_encoding == TransferEncoding.CHUNKED) {
+				chunk_converter = new ChunkConverter();
+				chunk_stream = new ConverterOutputStream(outstream, chunk_converter);
+				chunk_stream.set_close_base_stream(false);
+				outstream = chunk_stream;
+			}
+
+			if(_content_encoding == ContentEncoding.GZIP) {
+				gzip_converter = new ZlibCompressor(ZlibCompressorFormat.GZIP);
+				gzip_stream = new ConverterOutputStream(outstream, gzip_converter);
+				gzip_stream.set_close_base_stream(false);
+				outstream = gzip_stream;
+			}
 		}
 
 		protected async void set_cookie(string key,

@@ -29,9 +29,7 @@ namespace Neutron.Http {
 
 		protected override async ConnectionAction handle_request() {
 			try {
-				transfer_encoding = TransferEncoding.NONE;
 				yield send_status(200);
-				yield send_header("Content-Length", "%d".printf(content.length));
 				yield send_header("Content-Type", mime_type);
 				yield end_headers();
 				yield send(content);

@@ -29,7 +29,6 @@ namespace Neutron.Http {
 
 		protected override async ConnectionAction handle_request() {
 			try {
-				transfer_encoding = TransferEncoding.NONE;
 				var file = File.new_for_path(filename);
 				if(!file.query_exists()) {
 					yield send_status(500);
@@ -37,13 +36,11 @@ namespace Neutron.Http {
 					return ConnectionAction.CLOSE;
 				}
 				yield send_status(200);
-				yield send_default_headers();
 				yield send_header("Content-Type", mime_type);
 
-				var info = yield file.query_info_async("*", FileQueryInfoFlags.NONE);
-				var size = info.get_size();
+				//var info = yield file.query_info_async("*", FileQueryInfoFlags.NONE);
+				//var size = info.get_size();
 
-				yield send_header("Content-Length", "%lld".printf(size));
 				yield end_headers();
 
 				var fstream = yield file.read_async();
@@ -56,6 +53,8 @@ namespace Neutron.Http {
 					yield send_bytes(buffer);
 					buffer = new uint8[10240];
 				}
+
+				yield end_body();
 			} catch(Error e) {
 				return ConnectionAction.CLOSE;
 			}
