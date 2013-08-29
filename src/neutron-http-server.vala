@@ -33,6 +33,7 @@ namespace Neutron.Http {
 
 		private SessionProvider sessionprovider;
 		private HashMap<string, EntityFactory> request_handlers;
+		private EntityFactory not_found_handler = new NotFoundEntityFactory();
 
 		public Server(ThreadController? tcontrol, uint16 port, bool use_tls, TlsCertificate? tls_cert = null, int session_lifetime = 3600, int session_max_lifetime = -1) throws Error {
 			assert(port != 0);
@@ -58,6 +59,13 @@ namespace Neutron.Http {
 		 */
 		public void set_handler(string path, EntityFactory entfac) {
 			request_handlers.set(path, entfac);
+		}
+
+		/**
+		 * Sets a handler for 404-Errors
+		 */
+		public void set_not_found_handler(EntityFactory entfac) {
+			not_found_handler = entfac;
 		}
 
 		/**
@@ -114,28 +122,30 @@ namespace Neutron.Http {
 
 			bool keep_running = true;
 			while((req = yield parser.run()) != null && keep_running) {
+				/* Let the sessionprovider add information to the Request */
+				sessionprovider.pre_callback(req);
+
+				Entity entity;
+
 				/* Check if a handler is registered for the requested path */
 				if(request_handlers.has_key(req.path)) {
-					/* Let the sessionprovider add information to the Request */
-					sessionprovider.pre_callback(req);
-
 					var entityfac = request_handlers.get(req.path);
-					var entity = entityfac.create_entity();
-
-					/* Call handler */
-					var server_action = yield entity.server_callback(req, conn);
-
-					sessionprovider.post_callback(server_action.new_session, server_action.old_session);
-
-					if(server_action.connection_action == ConnectionAction.CLOSE)
-						break;
-					else if(server_action.connection_action == ConnectionAction.RELEASE)
-						return;
-					else if(server_action.connection_action != ConnectionAction.KEEP_ALIVE)
-						assert_not_reached();
+					entity = entityfac.create_entity();
 				} else {
-					//TODO: 404-page
+					entity = not_found_handler.create_entity();
 				}
+
+				/* Call handler */
+				var server_action = yield entity.server_callback(req, conn);
+
+				sessionprovider.post_callback(server_action.new_session, server_action.old_session);
+
+				if(server_action.connection_action == ConnectionAction.CLOSE)
+					break;
+				else if(server_action.connection_action == ConnectionAction.RELEASE)
+					return;
+				else if(server_action.connection_action != ConnectionAction.KEEP_ALIVE)
+					assert_not_reached();
 			}
 
 			try {
