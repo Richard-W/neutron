@@ -18,8 +18,21 @@
  */
 
 namespace Neutron.Http {
-	public abstract class Entity : Object {
+	/**
+	 * Represents the response to a certain request.
+	 *
+	 * Responsible for responding to all http-requests. Implements
+	 * the whole low-level functionality required to answer to requests
+	 * such a gzip-compression or chunk-encoding.
+	 */
+	 public abstract class Entity : Object {
+		/**
+		 * Will be stored within the server
+		 */
 		private Session? session_set = null;
+		/**
+		 * Will be deleted from the server
+		 */
 		private Session? session_delete = null;
 
 		private ZlibCompressor gzip_converter;
@@ -28,9 +41,17 @@ namespace Neutron.Http {
 		private ChunkConverter chunk_converter;
 		private ConverterOutputStream chunk_stream;
 
+		/**
+		 * Always write to this stream. It applies chunk-encoding and/or gzip-compression where necessary
+		 */
 		private OutputStream outstream;
 		
 		private IOStream _io_stream;
+		/**
+		 * Direct connection to the client.
+		 *
+		 * May be useful for protocol-upgrades
+		 */
 		protected IOStream io_stream {
 			get { return _io_stream; }
 		}
@@ -68,6 +89,9 @@ namespace Neutron.Http {
 			}
 		}
 
+		/**
+		 * Called by the server. Initializes this class somewhat
+		 */
 		public async ServerAction server_callback(Request request, IOStream io_stream) {
 			this._request = request;
 			this._io_stream = io_stream;
@@ -88,25 +112,46 @@ namespace Neutron.Http {
 			return new ServerAction(action, session_set, session_delete);
 		}
 
+		/**
+		 * This just sends something to the client.
+		 *
+		 * Needed because send and send_bytes throw errors when called
+		 * before headers are sent.
+		 */
 		private async void real_send(uint8[] data) throws Error {
 			yield outstream.write_async(data);
 		}
 
+		/**
+		 * Send the contents of data to the client
+		 */
 		protected async void send_bytes(uint8[] data) throws Error {
 			if(!_headers_sent) throw new HttpError.HEADERS_NOT_SENT("You have to call end_headers() before calling send() or send_bytes()");
 			else yield real_send(data);
 		}
 
+		/**
+		 * Convenience-wrapper for send_bytes
+		 */
 		protected async void send(string str) throws Error {
 			var data = (uint8[]) str.to_utf8();
 			yield send_bytes(data);
 		}
 
+		/**
+		 * Call this after you sent the whole entity
+		 *
+		 * This is absolutely necessary when using Transfer- or ContentEncoding,
+		 * because the browser will fail if you do not call it then.
+		 */
 		protected async void end_body() throws Error {
 			if(_content_encoding == ContentEncoding.GZIP) yield gzip_stream.close_async();
 			if(_transfer_encoding == TransferEncoding.CHUNKED) yield chunk_stream.close_async();
 		}
 
+		/**
+		 * Sends HTTP-Status
+		 */
 		protected async void send_status(int code, string? description = null) throws Error {
 			if(status_sent) throw new HttpError.STATUS_ALREADY_SENT("You can not send the status twice");
 
@@ -154,18 +199,30 @@ namespace Neutron.Http {
 			yield send_default_headers();
 		}
 
+		/**
+		 * Sends header-line to client
+		 */
 		protected async void send_header(string key, string val) throws Error {
 			if(!status_sent) throw new HttpError.STATUS_NOT_SENT("You have to send the status first");
 			if(headers_sent) throw new HttpError.HEADERS_ALREADY_SENT("Already in body of message");
 			yield real_send((uint8[]) "%s: %s\r\n".printf(key, val).to_utf8());
 		}
 
+		/**
+		 * Sends headers chosen by the library (Content-Encoding for example)
+		 */
 		protected virtual async void send_default_headers() throws Error {
 			yield send_header("Server", "neutron");
 			if(_transfer_encoding == TransferEncoding.CHUNKED) yield send_header("Transfer-Encoding", "chunked");
 			if(_content_encoding == ContentEncoding.GZIP) yield send_header("Content-Encoding", "gzip");
 		}
 
+		/**
+		 * Call this after you sent all headers.
+		 *
+		 * After calling this method you are able to use the send and send_bytes methods.
+		 * It is also impossible to send headers after calling it.
+		 */
 		protected async void end_headers() throws Error {
 			yield real_send((uint8[]) "\r\n".to_utf8());
 			_headers_sent = true;
@@ -185,6 +242,10 @@ namespace Neutron.Http {
 			}
 		}
 
+
+		/**
+		 * Convenience-wrapper for send_header-method. Sets a cookie.
+		 */
 		protected async void set_cookie(string key,
 						string val,
 						int lifetime,
@@ -204,6 +265,9 @@ namespace Neutron.Http {
 			yield send_header("Set-Cookie", cookie.str);
 		}
 
+		/**
+		 * Sets a session within the server
+		 */
 		protected async void set_session(Session? session) throws Error {
 			if(session != null) {
 				yield set_cookie("neutron_session_id", session.session_id, 24*3600, "/", true);
@@ -215,9 +279,19 @@ namespace Neutron.Http {
 			if(request.session != null) session_delete = request.session;
 		}
 
+		/**
+		 * Override this method to write you own entity.
+		 */
 		protected abstract async ConnectionAction handle_request();
 	}
 
+	/**
+	 * Creates entities of a certain type and is used to register handlers
+	 *
+	 * If you are not using this class, or subclasses of it, to construct entities you
+	 * are either very clever in abusing the api or more certainly doing something
+	 * horribly wrong
+	 */
 	public abstract class EntityFactory : Object {
 		public abstract Entity create_entity();
 	}
