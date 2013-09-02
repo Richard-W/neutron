@@ -96,6 +96,22 @@ class DisplayRequestEntity : Neutron.Http.Entity {
 			}
 
 			yield send("""
+			<h2>Form</h2>
+			<form method="post" action="/request">
+			<table border=0>
+			<tr>
+				<td>input1</td>
+				<td><input type="text" name="input1"></td>
+			</tr><tr>
+				<td>input2</td>
+				<td><input type="text" name="input2"></td>
+			</tr><tr>
+				<td colspan=2><input type="submit" value="Send"></td>
+			</tr>
+			</table>
+			""");
+
+			yield send("""
 			</body>
 			</html>
 			""");
