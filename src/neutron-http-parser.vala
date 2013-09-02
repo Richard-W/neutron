@@ -46,7 +46,7 @@ namespace Neutron.Http {
 			var cookies = new HashMap<string, string>();
 			string path;
 
-			int state = 0;
+			int state = -1;
 
 			var method = new StringBuilder();
 			var url = new StringBuilder();
@@ -76,6 +76,12 @@ namespace Neutron.Http {
 						char nextchar = (char) buf[bufpos];
 
 						switch(state) {
+						case -1:
+							if(nextchar != '\r' && nextchar != '\n') {
+								state = 0;
+								continue;
+							}
+							break;
 						case 0:
 							if(nextchar == ' ') {
 								state = 1;
