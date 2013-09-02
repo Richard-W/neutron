@@ -54,15 +54,10 @@ vala_precompile(C_SOURCES
 		posix
 	GENERATE_VAPI
 		neutron
-	CUSTOM_VAPIS
-		vapi/http_parser.vapi
 	OPTIONS
 		--target-glib=2.32
 		--thread
 )
-
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/http_parser)
-list(APPEND C_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/external/http_parser/http_parser.c)
 
 add_library(neutron SHARED ${C_SOURCES})
 target_link_libraries(neutron
