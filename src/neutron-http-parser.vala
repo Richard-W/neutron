@@ -208,6 +208,49 @@ namespace Neutron.Http {
 						}
 					}
 				}
+
+				if(headers.has_key("content-length") && method.str == "POST") {
+					var clen = uint64.parse(headers.get("content-length").to_array()[0]);
+					uint8[] bodybuffer;
+					var bodybuilder = new StringBuilder();
+					uint64 already_received = 0;
+					size_t recved;
+
+					if(bufpos != -1) {
+						while(bufpos < reclen && already_received < reclen) {
+							bodybuilder.append_c((char) buf[bufpos]);
+							bufpos++;
+							already_received++;
+						}
+						if(bufpos >= reclen) bufpos = -1;
+					}
+
+					if(already_received < clen) {
+						Cancellable? timeout_provider = null;
+						if(timeout > 0) {
+							timeout_provider = new Cancellable();
+							Timeout.add_seconds((uint) timeout, () => {
+								timeout_provider.cancel();
+								return true;
+							});
+						}
+						while(clen > already_received) {
+							bodybuffer = new uint8[clen - already_received];
+							recved = yield stream.input_stream.read_async(bodybuffer, Priority.DEFAULT, timeout_provider);
+							if(recved == 0) return null;
+							already_received += recved;
+							bodybuilder.append((string) bodybuffer);
+							if(timeout > 0) {
+								timeout_provider = new Cancellable();
+								Timeout.add_seconds((uint) timeout, () => {
+									timeout_provider.cancel();
+									return true;
+								});
+							}
+						}
+					}
+					parse_varstring(body, bodybuilder.str);
+				}
 			} catch(Error e) {
 				return null;
 			}
