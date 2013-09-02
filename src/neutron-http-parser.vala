@@ -17,185 +17,253 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-using Native.HttpParser;
 using Gee;
 
 namespace Neutron.Http {
 	private class Parser : Object {
-		private HashMap<string, HashSet<string>> headers;
-		private HashMap<string, string> body;
-		private HashMap<string, string> gets;
-		private HashMap<string, string> cookies;
-
-		private string? header_field = null;
-		private string? header_value = null;
-		private string? url = null;
-		private string? path = null;
-		private bool message_complete = false;
 		private int timeout;
-
 		private IOStream stream;
-
-		private http_parser parser;
-		private http_parser_settings parser_settings;
-
-		public signal void closed(Parser parser);
-		public signal void request(Request request);
+		private uint8[] buf;
+		private int bufpos = -1;
+		private const int buflen = 80*1024;
+		private size_t reclen;
 
 		/**
 		 * Instantiates a Parser that reads from the supplied IOStream 
 		 */
 		public Parser(IOStream stream, int timeout) {
-			parser = http_parser();
-			http_parser_init(&parser, http_parser_type.HTTP_REQUEST);
-			parser.data = (void*) this;
-
 			this.stream = stream;
 			this.timeout = timeout;
-
-			parser_settings = http_parser_settings();
-			parser_settings.on_message_begin = (void*) on_message_begin_cb;
-			parser_settings.on_url = (void*) on_url_cb;
-			parser_settings.on_status_complete = (void*) on_status_complete_cb;
-			parser_settings.on_header_field = (void*) on_header_field_cb;
-			parser_settings.on_header_value = (void*) on_header_value_cb;
-			parser_settings.on_headers_complete = (void*) on_headers_complete_cb;
-			parser_settings.on_body = (void*) on_body_cb;
-			parser_settings.on_message_complete = (void*) on_message_complete_cb;
 		}
 
 		/**
 		 * Get the next request 
 		 */
 		public async RequestImpl? run() {
-			uint8[] buffer = new uint8[80*1024];
-			ssize_t recved = 0;
+			var headers = new HashMap<string, HashSet<string>>();
+			var body = new HashMap<string, string>();
+			var gets = new HashMap<string, string>();
+			var cookies = new HashMap<string, string>();
+			string path;
+
+			int state = -1;
+
+			var method = new StringBuilder();
+			var url = new StringBuilder();
+			var httpver = new StringBuilder();
+			StringBuilder? header_key = null;
+			StringBuilder header_val = null;
 			
 			try {
-				Cancellable? timeout_provider = null;
-				if(timeout > 0) {
-					timeout_provider = new Cancellable();
-					Timeout.add_seconds((uint) timeout, () => {
-						timeout_provider.cancel();
-						return true;
-					});
+				while(state < 9) {
+					if(bufpos == -1) {
+						buf = new uint8[buflen];
+						Cancellable? timeout_provider = null;
+						if(timeout > 0) {
+							timeout_provider = new Cancellable();
+							Timeout.add_seconds((uint) timeout, () => {
+								timeout_provider.cancel();
+								return true;
+							});
+						}
+						reclen = yield stream.input_stream.read_async(buf, Priority.DEFAULT, timeout_provider);
+						/* Connection closed */
+						if(reclen == 0) return null;
+						bufpos = 0;
+					}
+
+					while(bufpos < reclen && state < 9) {
+						char nextchar = (char) buf[bufpos];
+
+						switch(state) {
+						case -1:
+							if(nextchar != '\r' && nextchar != '\n') {
+								state = 0;
+								continue;
+							}
+							break;
+						case 0:
+							if(nextchar == ' ') {
+								state = 1;
+								bufpos++;
+								continue;
+							}
+							if(nextchar == '\r' || nextchar == '\n') {
+								return null;
+							}
+
+							method.append_c(nextchar);
+							break;
+						case 1:
+							if(nextchar == ' ') {
+								state = 2;
+								bufpos++;
+								continue;
+							}
+							if(nextchar == '\r' || nextchar == '\n') {
+								return null;
+							}
+
+							url.append_c(nextchar);
+							break;
+						case 2:
+							if(nextchar == '\r') {
+								state = 3;
+								bufpos++;
+								continue;
+							}
+							if(nextchar == '\n') {
+								state = 4;
+								header_key = new StringBuilder();
+								bufpos++;
+								continue;
+							}
+							if(nextchar == ' ') {
+								return null;
+							}
+
+							httpver.append_c(nextchar);
+							break;
+						case 3:
+							if(nextchar != '\n') {
+								return null;
+							} else {
+								state = 4;
+								header_key = new StringBuilder();
+							}
+							break;
+						case 4:
+							if(nextchar == ':') {
+								state = 5;
+								bufpos++;
+								continue;
+							}
+							if(nextchar == ' ') {
+								return null;
+							}
+							if(nextchar == '\r') {
+								state = 8;
+								bufpos++;
+								continue;
+							}
+							if(nextchar == '\n') {
+								state = 9;
+								bufpos++;
+								continue;
+							}
+
+							header_key.append_c(nextchar);
+							break;
+						case 5:
+							if(nextchar == ' ') {
+								state = 6;
+								header_val = new StringBuilder();
+								bufpos++;
+								continue;
+							} else return null;
+						case 6:
+							if(nextchar == '\r') {
+								state = 7;
+								bufpos++;
+								var key_str = header_key.str.down();
+								if(!headers.has_key(key_str)) headers.set(key_str, new HashSet<string>());
+								headers.get(key_str).add(header_val.str);
+								header_key = new StringBuilder();
+								continue;
+							}
+							if(nextchar == '\n') {
+								state = 4;
+								var key_str = header_key.str.down();
+								if(!headers.has_key(key_str)) headers.set(key_str, new HashSet<string>());
+								headers.get(key_str).add(header_val.str);
+								header_key = new StringBuilder();
+								bufpos++;
+								continue;
+							}
+
+							header_val.append_c(nextchar);
+							break;
+						case 7:
+							if(nextchar == '\n') state = 4;
+							else return null;
+							break;
+						case 8:
+							if(nextchar == '\n') state = 9;
+							else return null;
+							break;
+						}
+						bufpos++;
+					}
+
+					assert(reclen >= bufpos);
+					if(bufpos == reclen) bufpos = -1;
 				}
 
-				while(!message_complete && (recved = yield stream.input_stream.read_async(buffer, Priority.DEFAULT, timeout_provider)) != 0) {
-					var nparsed = http_parser_execute(&parser, &parser_settings, (char*) buffer, recved);
-					if((bool)parser.upgrade) {
-						yield stream.output_stream.write_async((uint8[]) "HTTP/1.1 501 Not implemented\r\n\r\n".to_utf8());
-						closed(this);
-						return null;
-					} else if(parser.http_errno != 0 || nparsed != recved) {
-						yield stream.output_stream.write_async((uint8[]) "HTTP/1.1 400 Bad Request\r\n\r\n".to_utf8());
-						closed(this);
-						return null;
-					}
-					buffer = new uint8[80*1024];
+				var urlarr = url.str.split("?",2);
+				if(urlarr[0][urlarr[0].length-1] == '/' && urlarr[0].length > 1) {
+					path = urlarr[0].substring(0, urlarr[0].length-1);
+				} else path = urlarr[0];
+				if(urlarr.length == 2) parse_varstring(gets, urlarr[1]);
 
-					if(timeout > 0) {
-						timeout_provider = new Cancellable();
-						Timeout.add_seconds((uint) timeout, () => {
-							timeout_provider.cancel();
-							return true;
-						});
+				if(headers.has_key("cookie")) {
+					var cookieset = headers.get("cookie");
+					foreach(string cookiestring in cookieset) {
+						var cookiearr = cookiestring.split(";");
+						foreach(string cookie in cookiearr) {
+							var cookiesplit = cookie.split("=", 2);
+							if(cookiesplit.length != 2) continue;
+							else cookies.set(cookiesplit[0].strip(), cookiesplit[1].strip());
+						}
 					}
+				}
+
+				if(headers.has_key("content-length") && method.str == "POST") {
+					var clen = uint64.parse(headers.get("content-length").to_array()[0]);
+					uint8[] bodybuffer;
+					var bodybuilder = new StringBuilder();
+					uint64 already_received = 0;
+					size_t recved;
+
+					if(bufpos != -1) {
+						while(bufpos < reclen && already_received < reclen) {
+							bodybuilder.append_c((char) buf[bufpos]);
+							bufpos++;
+							already_received++;
+						}
+						if(bufpos >= reclen) bufpos = -1;
+					}
+
+					if(already_received < clen) {
+						Cancellable? timeout_provider = null;
+						if(timeout > 0) {
+							timeout_provider = new Cancellable();
+							Timeout.add_seconds((uint) timeout, () => {
+								timeout_provider.cancel();
+								return true;
+							});
+						}
+						while(clen > already_received) {
+							bodybuffer = new uint8[clen - already_received];
+							recved = yield stream.input_stream.read_async(bodybuffer, Priority.DEFAULT, timeout_provider);
+							if(recved == 0) return null;
+							already_received += recved;
+							bodybuilder.append((string) bodybuffer);
+							if(timeout > 0) {
+								timeout_provider = new Cancellable();
+								Timeout.add_seconds((uint) timeout, () => {
+									timeout_provider.cancel();
+									return true;
+								});
+							}
+						}
+					}
+					parse_varstring(body, bodybuilder.str);
 				}
 			} catch(Error e) {
-				closed(this);
 				return null;
 			}
 
-			if(!message_complete) {
-				closed(this);
-			}
-
-			message_complete = false;
 			return new RequestImpl(path, gets, body, cookies, headers);
-		}
-
-		public int on_message_begin(http_parser *parser) {
-			headers = new HashMap<string,HashSet<string>>();
-			body = new HashMap<string,string>();
-			gets = new HashMap<string,string>();
-			cookies = new HashMap<string,string>();
-
-			url = null;
-			path = null;
-			header_field = null;
-			header_value = null;
-			return 0;
-		}
-
-		public int on_url(http_parser *parser, char *data, size_t length) {
-			url = ((string) data).substring(0, (long) length);
-			var urlarr = url.split("?",2);
-			if(urlarr[0][urlarr[0].length-1] == '/' && urlarr[0].length > 1) {
-				path = urlarr[0].substring(0, urlarr[0].length-1);
-			} else path = urlarr[0];
-			if(urlarr.length == 1) return 0;
-
-			parse_varstring(gets, urlarr[1]);
-
-			return 0;
-		}
-
-		public int on_status_complete(http_parser *parser) {
-			return 0;
-		}
-
-		public int on_header_field(http_parser *parser, char *data, size_t length) {
-			if(header_field != null) {
-				header_set(header_field, "");
-			}
-
-			header_field = ((string) data).substring(0, (long) length);
-			return 0;
-		}
-
-		public int on_header_value(http_parser *parser, char *data, size_t length) {
-			if(header_field == null) return 1;
-			header_value = ((string) data).substring(0, (long) length);
-
-			header_set(header_field, header_value);
-			header_field = null;
-			header_value = null;
-			return 0;
-		}
-
-		private void header_set(string key, string val) {
-			var dkey = key.down();
-			if(!headers.has_key(dkey)) headers.set(dkey,new HashSet<string>());
-			headers.get(dkey).add(val);
-		}
-
-		public int on_headers_complete(http_parser *parser) {
-			return 0;
-		}
-
-		public int on_body(http_parser *parser, char *data, size_t length) {
-			var bodystr = ((string) data).substring(0, (long) length);
-			parse_varstring(body, bodystr);
-			return 0;
-		}
-
-		public int on_message_complete(http_parser *parser) {
-			message_complete = true;
-
-			/* Parse cookies */
-			if(headers.has_key("cookie")) {
-				var cookieset = headers.get("cookie");
-				foreach(string cookiestring in cookieset) {
-					var cookiearr = cookiestring.split(";");
-					foreach(string cookie in cookiearr) {
-						var cookiesplit = cookie.split("=", 2);
-						if(cookiesplit.length != 2) continue;
-						else cookies.set(cookiesplit[0].strip(), cookiesplit[1].strip());
-					}
-				}
-			}
-			return 0;
 		}
 
 		private void parse_varstring(HashMap<string, string> map, string varstring) {
@@ -213,45 +281,5 @@ namespace Neutron.Http {
 				map.set(ue_key, ue_val);
 			}
 		}
-	}
-
-	/* The following part is not really good practice, but it was the easiest way to
-	 * make vala leave the function-signatures alone.
-	 *
-	 * This needs some further thought, but i do not think that it is critical
-	 * to make this beautiful. It works.
-	 */
-
-	private int on_message_begin_cb(http_parser *parser) {
-		var parser_obj = (Parser) parser->data;
-		return parser_obj.on_message_begin(parser);
-	}
-	private int on_status_complete_cb(http_parser *parser) {
-		var parser_obj = (Parser) parser->data;
-		return parser_obj.on_status_complete(parser);
-	}
-	private int on_headers_complete_cb(http_parser *parser) {
-		var parser_obj = (Parser) parser->data;
-		return parser_obj.on_headers_complete(parser);
-	}
-	private int on_message_complete_cb(http_parser *parser) {
-		var parser_obj = (Parser) parser->data;
-		return parser_obj.on_message_complete(parser);
-	}
-	private int on_url_cb(http_parser *parser, char *data, size_t length) {
-		var parser_obj = (Parser) parser->data;
-		return parser_obj.on_url(parser, data, length);
-	}
-	private int on_header_field_cb(http_parser *parser, char *data, size_t length) {
-		var parser_obj = (Parser) parser->data;
-		return parser_obj.on_header_field(parser, data, length);
-	}
-	private int on_header_value_cb(http_parser *parser, char *data, size_t length) {
-		var parser_obj = (Parser) parser->data;
-		return parser_obj.on_header_value(parser, data, length);
-	}
-	private int on_body_cb(http_parser *parser, char *data, size_t length) {
-		var parser_obj = (Parser) parser->data;
-		return parser_obj.on_body(parser, data, length);
 	}
 }
