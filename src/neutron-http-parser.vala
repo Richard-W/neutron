@@ -165,15 +165,17 @@ namespace Neutron.Http {
 							if(nextchar == '\r') {
 								state = 7;
 								bufpos++;
-								if(!headers.has_key(header_key.str)) headers.set(header_key.str.down(), new HashSet<string>());
-								headers.get(header_key.str.down()).add(header_val.str);
+								var key_str = header_key.str.down();
+								if(!headers.has_key(key_str)) headers.set(key_str, new HashSet<string>());
+								headers.get(key_str).add(header_val.str);
 								header_key = new StringBuilder();
 								continue;
 							}
 							if(nextchar == '\n') {
 								state = 4;
-								if(!headers.has_key(header_key.str.down())) headers.set(header_key.str, new HashSet<string>());
-								headers.get(header_key.str.down()).add(header_val.str);
+								var key_str = header_key.str.down();
+								if(!headers.has_key(key_str)) headers.set(key_str, new HashSet<string>());
+								headers.get(key_str).add(header_val.str);
 								header_key = new StringBuilder();
 								bufpos++;
 								continue;
