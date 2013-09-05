@@ -285,17 +285,6 @@ namespace Neutron.Http {
 		protected abstract async ConnectionAction handle_request();
 	}
 
-	/**
-	 * Creates entities of a certain type and is used to register handlers
-	 *
-	 * If you are not using this class, or subclasses of it, to construct entities you
-	 * are either very clever in abusing the api or more certainly doing something
-	 * horribly wrong
-	 */
-	public abstract class EntityFactory : Object {
-		public abstract Entity create_entity();
-	}
-
 	public enum TransferEncoding {
 		NONE,
 		CHUNKED

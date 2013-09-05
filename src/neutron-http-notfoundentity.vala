@@ -42,10 +42,4 @@ namespace Neutron.Http {
 			}
 		}
 	}
-
-	public class NotFoundEntityFactory : EntityFactory {
-		public override Entity create_entity() {
-			return (Entity) new NotFoundEntity();
-		}
-	}
 }

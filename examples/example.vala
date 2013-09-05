@@ -26,31 +26,36 @@ int main(string[] argv) {
 		app.enable_http();
 
 		http = app.get_http_server();
-
-		var root = new Neutron.Http.StaticEntityFactory("text/html", """<!DOCTYPE html>
-		<html>
-		<head>
-			<meta charset="utf-8" />
-		</head>
-		<body>
-			<h1>Neutron testpage</h1>
-			<br><a href="/request">Request</a>
-			<br><a href="/file">Filetest</a>
-		</body>
-		</html>""");
-		http.set_handler("/", root);
-
-		var file = new Neutron.Http.FileEntityFactory("text/html", "./file.html");
-		http.set_handler("/file", file);
-
-		var request = new DisplayRequestEntityFactory();
-		http.set_handler("/request", request);
+		http.select_entity.connect(on_select_entity);
 	} catch(Error e) {
 		stderr.printf("Error: %s\n", e.message);
 		return 1;
 	}
 
 	return app.run();
+}
+
+Neutron.Http.Entity on_select_entity(Neutron.Http.Request request) {
+	switch(request.path) {
+	case "/":
+		return new Neutron.Http.StaticEntity("text/html", """
+		<html>
+                <head>
+                        <meta charset="utf-8" />
+                </head>
+                <body>
+                        <h1>Neutron testpage</h1>
+                        <br><a href="/request">Request</a>
+                        <br><a href="/file">Filetest</a>
+                </body>
+                </html>""");
+	case "/file":
+		return new Neutron.Http.FileEntity("text/html", "./file.html");
+	case "/request":
+		return new DisplayRequestEntity();
+	default:
+		return new Neutron.Http.NotFoundEntity();
+	}
 }
 
 class DisplayRequestEntity : Neutron.Http.Entity {
@@ -120,11 +125,5 @@ class DisplayRequestEntity : Neutron.Http.Entity {
 		} catch(Error e) {
 			return Neutron.Http.ConnectionAction.CLOSE;
 		}
-	}
-}
-
-class DisplayRequestEntityFactory : Neutron.Http.EntityFactory {
-	public override Neutron.Http.Entity create_entity() {
-		return (Neutron.Http.Entity) new DisplayRequestEntity();
 	}
 }

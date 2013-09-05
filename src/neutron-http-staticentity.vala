@@ -40,19 +40,4 @@ namespace Neutron.Http {
 			return ConnectionAction.KEEP_ALIVE;
 		}
 	}
-
-	public class StaticEntityFactory : EntityFactory {
-		public string mime_type;
-		public string content;
-
-		public StaticEntityFactory(string mime_type, string content) {
-			this.mime_type = mime_type;
-			this.content = content;
-		}
-
-		public override Entity create_entity() {
-			var ent = new StaticEntity(mime_type, content);
-			return (Entity) ent;
-		}
-	}
 }

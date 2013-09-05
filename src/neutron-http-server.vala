@@ -21,6 +21,8 @@ using Gee;
 
 namespace Neutron.Http {
 	public class Server : Object {
+		public signal Entity select_entity(Request request);
+
 		private uint16 _port;
 		public uint16 port { get { return _port; } set { } }
 
@@ -33,10 +35,7 @@ namespace Neutron.Http {
 		private TlsCertificate? tls_cert;
 		private SocketService listener;
 		private ThreadController? tcontrol;
-
 		private SessionProvider sessionprovider;
-		private HashMap<string, EntityFactory> request_handlers;
-		private EntityFactory not_found_handler = new NotFoundEntityFactory();
 
 		public Server(ThreadController? tcontrol, uint16 port, bool use_tls, TlsCertificate? tls_cert = null, int session_lifetime = 3600, int session_max_lifetime = -1, int timeout = -1) throws Error {
 			assert(port != 0);
@@ -52,24 +51,7 @@ namespace Neutron.Http {
 			listener.add_inet_port(port, null);
 			listener.incoming.connect(on_incoming);
 
-			request_handlers = new HashMap<string, EntityFactory>();
-
 			sessionprovider = new SessionProvider(session_lifetime, session_max_lifetime);
-		}
-
-		//TODO: Regular expressions?
-		/**
-		 * Adds a handler for a specific http-path 
-		 */
-		public void set_handler(string path, EntityFactory entfac) {
-			request_handlers.set(path, entfac);
-		}
-
-		/**
-		 * Sets a handler for 404-Errors
-		 */
-		public void set_not_found_handler(EntityFactory entfac) {
-			not_found_handler = entfac;
 		}
 
 		/**
@@ -129,15 +111,8 @@ namespace Neutron.Http {
 				/* Let the sessionprovider add information to the Request */
 				sessionprovider.pre_callback(req);
 
-				Entity entity;
-
-				/* Check if a handler is registered for the requested path */
-				if(request_handlers.has_key(req.path)) {
-					var entityfac = request_handlers.get(req.path);
-					entity = entityfac.create_entity();
-				} else {
-					entity = not_found_handler.create_entity();
-				}
+				/* Let the user choose the entity */
+				var entity = select_entity(req);
 
 				/* Call handler */
 				var server_action = yield entity.server_callback(req, conn);

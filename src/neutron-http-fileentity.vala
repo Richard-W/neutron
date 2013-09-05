@@ -61,19 +61,4 @@ namespace Neutron.Http {
 			return ConnectionAction.KEEP_ALIVE;
 		}
 	}
-
-	public class FileEntityFactory : EntityFactory {
-		public string mime_type;
-		public string filename;
-
-		public FileEntityFactory(string mime_type, string filename) {
-			this.mime_type = mime_type;
-			this.filename = filename;
-		}
-
-		public override Entity create_entity() {
-			var ent = new FileEntity(mime_type, filename);
-			return (Entity) ent;
-		}
-	}
 }
