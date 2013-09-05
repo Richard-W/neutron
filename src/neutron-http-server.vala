@@ -24,27 +24,25 @@ namespace Neutron.Http {
 		public signal Entity select_entity(Request request);
 
 		private uint16 _port;
-		public uint16 port { get { return _port; } set { } }
+		public uint16 port {
+			get { return _port; }
+		}
 
-		private bool _use_tls;
-		public bool use_tls { get { return _use_tls; } set { } }
+		private TlsCertificate? _tls_certificate = null;
+		public TlsCertificate? tls_certificate {
+			set { _tls_certificate = value; }
+		}
 
-		private int _timeout;
-		public int timeout { get { return _timeout; } }
+		public bool use_tls = false;
+		public ThreadController? thread_controller = null;
+		public int timeout = -1;
 
-		private TlsCertificate? tls_cert;
 		private SocketService listener;
-		private ThreadController? tcontrol;
 		private SessionProvider sessionprovider;
 
-		public Server(ThreadController? tcontrol, uint16 port, bool use_tls, TlsCertificate? tls_cert = null, int session_lifetime = 3600, int session_max_lifetime = -1, int timeout = -1) throws Error {
+		public Server(uint16 port, int session_lifetime = 3600, int session_max_lifetime = -1) throws Error {
 			assert(port != 0);
-			this.tcontrol = tcontrol;
-
 			this._port = port;
-			this._use_tls = use_tls;
-			this.tls_cert = tls_cert;
-			this._timeout = timeout;
 
 			/* Define listener */
 			listener = new SocketService();
@@ -72,7 +70,7 @@ namespace Neutron.Http {
 		 * Gets the connections from listener 
 		 */
 		private bool on_incoming(SocketConnection conn, Object? source_object) {
-			if(tcontrol == null)
+			if(thread_controller == null)
 				handle_connection.begin((IOStream) conn);
 			else {
 				var isource = new IdleSource();
@@ -81,7 +79,7 @@ namespace Neutron.Http {
 					isource.destroy();
 					return true;
 				});
-				tcontrol.invoke(isource);
+				thread_controller.invoke(isource);
 			}
 			return true;
 		}
@@ -90,10 +88,10 @@ namespace Neutron.Http {
 		 * Handle the incoming connection asynchronously 
 		 */
 		private async void handle_connection(IOStream conn) {
-			if(_use_tls) {
+			if(use_tls) {
 				try {
 					/* Wrap the connection in a TlsServerConnection */
-					var tlsconn = TlsServerConnection.new(conn, tls_cert);
+					var tlsconn = TlsServerConnection.new(conn, _tls_certificate);
 					yield tlsconn.handshake_async();
 					conn = (IOStream) tlsconn;
 				} catch(Error e) {
@@ -103,7 +101,7 @@ namespace Neutron.Http {
 
 			/* Parser takes an IOStream-Object, so it does not care whether connection
 			 * is encrypted or not */
-			var parser = new Parser(conn, _timeout);
+			var parser = new Parser(conn, timeout);
 			RequestImpl req;
 
 			bool keep_running = true;
