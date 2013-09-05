@@ -263,7 +263,7 @@ namespace Neutron.Http {
 				return null;
 			}
 
-			return new RequestImpl(path, gets, body, cookies, headers);
+			return new RequestImpl(method.str, path, gets, body, cookies, headers);
 		}
 
 		private void parse_varstring(HashMap<string, string> map, string varstring) {

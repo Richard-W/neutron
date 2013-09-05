@@ -27,6 +27,13 @@ namespace Neutron.Http {
 		}
 
 		/**
+		 * Http-Method (e.g. GET, POST, PROPFIND)
+		 */
+		public abstract string method {
+			get;
+		}
+
+		/**
 		 * The unique session-object
 		 */
 		public abstract Session? session {

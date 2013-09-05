@@ -31,17 +31,23 @@ namespace Neutron.Http {
 			get { return _path; }
 		}
 
+		private string _method;
+		public override string method {
+			get { return _method; }
+		}
+
 		public Session? _session = null;
 		public override Session? session {
 			get { return _session; }
 		}
 		
-		public RequestImpl(string path, HashMap<string,string>? gets, HashMap<string,string>? posts, HashMap<string,string>? cookies, HashMap<string,HashSet<string>> headers) {
+		public RequestImpl(string method, string path, HashMap<string,string>? gets, HashMap<string,string>? posts, HashMap<string,string>? cookies, HashMap<string,HashSet<string>> headers) {
 			this.gets = gets;
 			this.posts = posts;
 			this.cookies = cookies;
 			this.headers = headers;
 			this._path = path;
+			this._method = method;
 		}
 
 		private string? get_var(HashMap<string,string> map, string key) {

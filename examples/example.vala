@@ -100,6 +100,8 @@ class DisplayRequestEntity : Neutron.Http.Entity {
 				yield send("%s: %s<br />\n".printf(cookie_key, request.get_cookie_var(cookie_key)));
 			}
 
+			yield send("<h2>Method</h2>%s<br />".printf(request.method));
+
 			yield send("""
 			<h2>Form</h2>
 			<form method="post" action="/request">
