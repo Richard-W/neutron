@@ -18,7 +18,20 @@ int main(string[] argv) {
 		//Enable the http-server
 		app.enable_http();
 
-		var page_hello_world = new Neutron.Http.StaticEntityFactory("text/html", """
+		var http = app.get_http_server();
+		http.select_entity.connect(on_select_entity);
+	} catch(Error e) {
+		stderr.printf("Caught error: %s\n", e.message);
+		return 1;
+	}
+
+	return app.run();
+}
+
+Neutron.Http.Entity on_select_entity(Neutron.Http.Request request) {
+	switch(request.path) {
+	case "/":
+		return new Neutron.Http.StaticEntity("text/html", """
 		<!DOCTYPE html>
 		<html>
 		<head>
@@ -29,15 +42,9 @@ int main(string[] argv) {
 		</body>
 		</html>
 		""");
-
-		var http = app.get_http_server();
-		http.set_handler("/", page_hello_world);
-	} catch(Error e) {
-		stderr.printf("Caught error: %s\n", e.message);
-		return 1;
+	default:
+		return new Neutron.Http.NotFoundEntity();
 	}
-
-	return app.run();
 }
 //Compile with "valac hello.vala --pkg neutron" if you installed the library
 ```
