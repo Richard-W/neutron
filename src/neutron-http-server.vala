@@ -21,23 +21,51 @@ using Gee;
 
 namespace Neutron.Http {
 	public class Server : Object {
+		/**
+		 * Fired when a new Request comes in and used for selecting an appropriate Entity
+		 */
 		public signal Entity select_entity(Request request);
 
 		private uint16 _port;
+		/**
+		 * The port the Http-Server is currently listening on
+		 */
 		public uint16 port {
 			get { return _port; }
 		}
 
 		private TlsCertificate? _tls_certificate = null;
+		/**
+		 * Certificate used when use_tls == true. You can only set this.
+		 */
 		public TlsCertificate? tls_certificate {
 			set { _tls_certificate = value; }
 		}
 
+		/**
+		 * Whether the server uses TLS
+		 */
 		public bool use_tls = false;
+
+		/**
+		 * Used to distribute requests over threads
+		 */
 		public ThreadController? thread_controller = null;
+
+		/**
+		 * The time in seconds the server will wait for new requests before it
+		 * disconnects from the client
+		 */
 		public int timeout = -1;
 
+		/**
+		 * The time a session is stored when no new request claim it
+		 */
 		public int session_lifetime = 3600;
+
+		/**
+		 * The time after which a session is deleted unconditionally.
+		 */
 		public int session_max_lifetime = -1;
 
 		private SocketService listener;
@@ -132,10 +160,12 @@ namespace Neutron.Http {
 				/* Call handler */
 				var server_action = yield entity.server_callback(req, conn);
 
+				/* Store new session */
 				if(server_action.new_session != null) {
 					stored_sessions.set(server_action.new_session.session_id, server_action.new_session);
 				}
 
+				/* Delete old session */
 				if(server_action.old_session != null) {
 					stored_sessions.unset(server_action.old_session.session_id);
 				}
