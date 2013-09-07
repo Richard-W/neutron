@@ -165,13 +165,9 @@ namespace Neutron.Http {
 				var req_diff = now.difference(session.last_request_time) / TimeSpan.SECOND;
 				var creation_diff = now.difference(session.creation_time) / TimeSpan.SECOND;
 
-				stdout.printf("----------\nsession_id = %s\nreq_diff = %lld\ncreation_diff = %lld\nlifetime = %d\nmax_lifetime = %d\n", session.session_id, req_diff, creation_diff, session_lifetime, session_max_lifetime);
-
 				if(req_diff > session_lifetime && session_lifetime > 0) {
-					stdout.printf("deleted\n");
 					to_delete.add(key);
 				} else if(creation_diff > session_max_lifetime && session_max_lifetime > 0) {
-					stdout.printf("deleted\n");
 					to_delete.add(key);
 				}
 			}
