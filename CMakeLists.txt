@@ -41,7 +41,6 @@ vala_precompile(C_SOURCES
 		src/neutron-http-session.vala
 		src/neutron-http-request.vala
 		src/neutron-http-requestimpl.vala
-		src/neutron-http-sessionprovider.vala
 		src/neutron-threadcontroller.vala
 		src/neutron-http-entity.vala
 		src/neutron-http-staticentity.vala

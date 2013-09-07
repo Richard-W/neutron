@@ -58,12 +58,14 @@ namespace Neutron {
 		public void enable_http() throws Error {
 			http_enabled = true;
 
-			http_server = new Http.Server(config.http_port, config.http_session_lifetime, config.http_session_max_lifetime);
+			http_server = new Http.Server(config.http_port);
 
 			http_server.thread_controller = tcontrol;
 			http_server.use_tls = config.http_use_tls;
 			http_server.tls_certificate = config.http_tls_certificate;
 			http_server.timeout = config.http_timeout;
+			http_server.session_lifetime = config.http_session_lifetime;
+			http_server.session_max_lifetime = config.http_session_max_lifetime;
 		}
 
 		/**

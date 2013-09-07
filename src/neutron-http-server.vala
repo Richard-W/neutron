@@ -37,10 +37,13 @@ namespace Neutron.Http {
 		public ThreadController? thread_controller = null;
 		public int timeout = -1;
 
-		private SocketService listener;
-		private SessionProvider sessionprovider;
+		public int session_lifetime = 3600;
+		public int session_max_lifetime = -1;
 
-		public Server(uint16 port, int session_lifetime = 3600, int session_max_lifetime = -1) throws Error {
+		private SocketService listener;
+		private HashMap<string, Session> stored_sessions;
+
+		public Server(uint16 port) throws Error {
 			assert(port != 0);
 			this._port = port;
 
@@ -49,7 +52,7 @@ namespace Neutron.Http {
 			listener.add_inet_port(port, null);
 			listener.incoming.connect(on_incoming);
 
-			sessionprovider = new SessionProvider(session_lifetime, session_max_lifetime);
+			stored_sessions = new HashMap<string, Session>();
 		}
 
 		/**
@@ -106,8 +109,22 @@ namespace Neutron.Http {
 
 			bool keep_running = true;
 			while((req = yield parser.run()) != null && keep_running) {
-				/* Let the sessionprovider add information to the Request */
-				sessionprovider.pre_callback(req);
+				/* cleanup sessions */
+				cleanup_sessions();
+
+				/* Add session to request */
+				string? session_id = req.get_cookie_var("neutron_session_id");
+				if(session_id != null) {
+					if(stored_sessions.has_key(session_id)) {
+						var session = stored_sessions.get(session_id);
+
+						/* Reset last_request-DateTime so the session does not get cleaned up */
+						session.set_last_request_time();
+
+						/* Add the session to the request-object */
+						req._session = session;
+					}
+				}
 
 				/* Let the user choose the entity */
 				var entity = select_entity(req);
@@ -115,7 +132,13 @@ namespace Neutron.Http {
 				/* Call handler */
 				var server_action = yield entity.server_callback(req, conn);
 
-				sessionprovider.post_callback(server_action.new_session, server_action.old_session);
+				if(server_action.new_session != null) {
+					stored_sessions.set(server_action.new_session.session_id, server_action.new_session);
+				}
+
+				if(server_action.old_session != null) {
+					stored_sessions.unset(server_action.old_session.session_id);
+				}
 
 				if(server_action.connection_action == ConnectionAction.CLOSE)
 					break;
@@ -130,6 +153,31 @@ namespace Neutron.Http {
 				yield conn.close_async();
 			} catch(Error e) {
 				return;
+			}
+		}
+
+		private void cleanup_sessions() {
+			var now = new DateTime.now_local();
+			var to_delete = new HashSet<string>();
+
+			foreach(string key in stored_sessions.keys) {
+				var session = stored_sessions.get(key);
+				var req_diff = now.difference(session.last_request_time) / TimeSpan.SECOND;
+				var creation_diff = now.difference(session.creation_time) / TimeSpan.SECOND;
+
+				stdout.printf("----------\nsession_id = %s\nreq_diff = %lld\ncreation_diff = %lld\nlifetime = %d\nmax_lifetime = %d\n", session.session_id, req_diff, creation_diff, session_lifetime, session_max_lifetime);
+
+				if(req_diff > session_lifetime && session_lifetime > 0) {
+					stdout.printf("deleted\n");
+					to_delete.add(key);
+				} else if(creation_diff > session_max_lifetime && session_max_lifetime > 0) {
+					stdout.printf("deleted\n");
+					to_delete.add(key);
+				}
+			}
+
+			foreach(string key in to_delete) {
+				stored_sessions.unset(key);
 			}
 		}
 	}
