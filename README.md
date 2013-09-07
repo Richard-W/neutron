@@ -28,10 +28,10 @@ int main(string[] argv) {
 	return app.run();
 }
 
-Neutron.Http.Entity on_select_entity(Neutron.Http.Request request) {
+void on_select_entity(Neutron.Http.Request request, Neutron.Http.EntitySelectContainer container) {
 	switch(request.path) {
 	case "/":
-		return new Neutron.Http.StaticEntity("text/html", """
+		container.set_entity(new Neutron.Http.StaticEntity("text/html", """
 		<!DOCTYPE html>
 		<html>
 		<head>
@@ -41,9 +41,8 @@ Neutron.Http.Entity on_select_entity(Neutron.Http.Request request) {
 			<h1>Hello World!</h1>
 		</body>
 		</html>
-		""");
-	default:
-		return new Neutron.Http.NotFoundEntity();
+		"""));
+		break;
 	}
 }
 //Compile with "valac hello.vala --pkg neutron" if you installed the library

@@ -24,7 +24,7 @@ namespace Neutron.Http {
 		/**
 		 * Fired when a new Request comes in and used for selecting an appropriate Entity
 		 */
-		public signal Entity select_entity(Request request);
+		public signal void select_entity(Request request, EntitySelectContainer container);
 
 		private uint16 _port;
 		/**
@@ -155,7 +155,14 @@ namespace Neutron.Http {
 				}
 
 				/* Let the user choose the entity */
-				var entity = select_entity(req);
+				Entity? entity;
+				var container = new EntitySelectContainer();
+				select_entity(req, container);
+				entity = container.get_entity();
+
+				/* If no entity was chosen return 404 */
+				if(entity == null)
+					entity = new NotFoundEntity();
 
 				/* Call handler */
 				var server_action = yield entity.server_callback(req, conn);
@@ -232,6 +239,19 @@ namespace Neutron.Http {
 			connection_action = a;
 			new_session = b;
 			old_session = c;
+		}
+	}
+
+	public class EntitySelectContainer : Object {
+		private Entity? entity=null;
+
+		public void set_entity(Entity entity) {
+			if(this.entity == null)
+				this.entity = entity;
+		}
+
+		public Entity get_entity() {
+			return this.entity;
 		}
 	}
 }

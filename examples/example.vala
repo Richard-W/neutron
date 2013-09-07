@@ -35,10 +35,10 @@ int main(string[] argv) {
 	return app.run();
 }
 
-Neutron.Http.Entity on_select_entity(Neutron.Http.Request request) {
+void on_select_entity(Neutron.Http.Request request, Neutron.Http.EntitySelectContainer container) {
 	switch(request.path) {
 	case "/":
-		return new Neutron.Http.StaticEntity("text/html", """
+		container.set_entity(new Neutron.Http.StaticEntity("text/html", """
 		<html>
                 <head>
                         <meta charset="utf-8" />
@@ -48,13 +48,14 @@ Neutron.Http.Entity on_select_entity(Neutron.Http.Request request) {
                         <br><a href="/request">Request</a>
                         <br><a href="/file">Filetest</a>
                 </body>
-                </html>""");
+                </html>"""));
+		break;
 	case "/file":
-		return new Neutron.Http.FileEntity("text/html", "./file.html");
+		container.set_entity(new Neutron.Http.FileEntity("text/html", "./file.html"));
+		break;
 	case "/request":
-		return new DisplayRequestEntity();
-	default:
-		return new Neutron.Http.NotFoundEntity();
+		container.set_entity(new DisplayRequestEntity());
+		break;
 	}
 }
 
