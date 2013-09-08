@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-namespace Neutron.Http {
+namespace Neutron {
 	/**
 	 * This class represents a unique client-session which can store data between requests
 	 *

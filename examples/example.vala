@@ -65,7 +65,7 @@ class DisplayRequestEntity : Neutron.Http.Entity {
 			yield send_status(200);
 			yield send_header("Content-Type", "text/html");
 
-			if(request.session == null) yield set_session(new Neutron.Http.Session());
+			if(request.session == null) yield set_session(new Neutron.Session());
 
 			yield end_headers();
 
