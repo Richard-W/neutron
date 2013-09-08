@@ -56,6 +56,9 @@ void on_select_entity(Neutron.Http.Request request, Neutron.Http.EntitySelectCon
 	case "/request":
 		container.set_entity(new DisplayRequestEntity());
 		break;
+	case "/websocket":
+		container.set_entity(new Neutron.Http.WebsocketEntity());
+		break;
 	}
 }
 
