@@ -47,7 +47,7 @@ vala_precompile(C_SOURCES
 		src/neutron-http-fileentity.vala
 		src/neutron-http-chunkconverter.vala
 		src/neutron-http-notfoundentity.vala
-		src/neutron-http-websocketentity.vala
+		src/neutron-websocket-httpupgradeentity.vala
 	PACKAGES
 		gio-2.0
 		gee-0.8
