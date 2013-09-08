@@ -47,6 +47,7 @@ namespace Neutron.Http {
 
 				yield send_status(101);
 				yield send_header("Upgrade", "websocket");
+				yield send_header("Connection", "Upgrade");
 				yield send_header("Sec-WebSocket-Accept", acceptstring);
 				yield end_headers();
 
