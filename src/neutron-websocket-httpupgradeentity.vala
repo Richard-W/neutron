@@ -18,7 +18,7 @@
  */
 
 public class Neutron.Websocket.HttpUpgradeEntity : Http.Entity {
-	public signal void incoming(IOStream connection, Session? session);
+	public signal void incoming(Websocket.Connection conn);
 
 	public override async Http.ConnectionAction handle_request() {
 		try {
@@ -51,7 +51,7 @@ public class Neutron.Websocket.HttpUpgradeEntity : Http.Entity {
 			yield send_header("Sec-WebSocket-Extensions", "");
 			yield end_headers();
 
-			incoming(new Websocket.Connection(request.session));
+			incoming(new Websocket.Connection(io_stream, request.session));
 			
 			return Http.ConnectionAction.RELEASE;
 		} catch(Error e) {
