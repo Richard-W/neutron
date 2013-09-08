@@ -270,7 +270,7 @@ namespace Neutron.Http {
 		 */
 		protected async void set_session(Session? session) throws Error {
 			if(session != null) {
-				yield set_cookie("neutron_session_id", session.session_id, 24*3600, "/", true);
+				yield set_cookie("neutron_session_id", session.session_id, 24*3600, "/");
 				session_set = session;
 			} else {
 				yield set_cookie("neutron_session_id", "deleted", -1);
