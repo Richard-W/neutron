@@ -71,13 +71,13 @@ void on_select_entity(Neutron.Http.Request request, Neutron.Http.EntitySelectCon
 void on_incoming_ws(Neutron.Websocket.Connection conn) {
 	conn.ref();
 
-	conn.message.connect(on_message);
-	conn.close.connect(on_close);
+	conn.on_message.connect(on_message);
+	conn.on_close.connect(on_close);
 	conn.start();
 }
 
 void on_message(string message, Neutron.Websocket.Connection conn) {
-	conn.send.begin("Got line: %s\n".printf(message));
+	conn.send.begin("Got line: %s".printf(message));
 }
 
 void on_close(Neutron.Websocket.Connection conn) {
