@@ -19,7 +19,7 @@
 
 namespace Neutron.Http {
 	public class NotFoundEntity : Entity {
-		public async override ConnectionAction handle_request() {
+		protected async override ConnectionAction handle_request() {
 			try {
 				yield send_status(404);
 				yield send_header("Content-type", "text/html");
