@@ -22,7 +22,7 @@ int main(string[] argv) {
 	Neutron.Http.Server http;
 
 	try {
-		app = new Neutron.Application(argv);
+		app = new Neutron.Application(argv, "./example.conf");
 		app.enable_http();
 
 		http = app.get_http_server();
@@ -47,6 +47,7 @@ void on_select_entity(Neutron.Http.Request request, Neutron.Http.EntitySelectCon
                         <h1>Neutron testpage</h1>
                         <br><a href="/request">Request</a>
                         <br><a href="/file">Filetest</a>
+			<br><a href="/websocket">Websocket</a>
                 </body>
                 </html>"""));
 		break;
@@ -71,17 +72,16 @@ void on_incoming_ws(Neutron.Websocket.Connection conn) {
 	conn.ref();
 
 	conn.message.connect(on_message);
-	conn.error.connect(on_error);
+	conn.close.connect(on_close);
 	conn.start();
 }
 
 void on_message(string message, Neutron.Websocket.Connection conn) {
-	stdout.printf("%s\n", message);
 	conn.send.begin("Got line: %s\n".printf(message));
 }
 
-void on_error(string errstr, Neutron.Websocket.Connection conn) {
-	stdout.printf("Error: %s\n", errstr);
+void on_close(Neutron.Websocket.Connection conn) {
+	conn.unref();
 }
 
 class DisplayRequestEntity : Neutron.Http.Entity {
