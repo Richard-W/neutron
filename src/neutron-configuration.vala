@@ -149,6 +149,8 @@ namespace Neutron {
 			parse_certificate(kf, out _http_tls_certificate, "Http", "tls_cert_file", "Http", "tls_key_file", _http_use_tls);
 			parse_int(kf, out _http_timeout, "Http", "timeout", false, -1);
 			parse_uint(kf, out _websocket_message_max_size, "Websocket", "message_max_size", false, 1048576);
+
+			Websocket.Connection.message_max_size = _websocket_message_max_size;
 		}
 
 		/**

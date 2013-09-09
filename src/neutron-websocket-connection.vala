@@ -20,6 +20,8 @@
 /* This code will only work on little-endian-architectures. */
 
 public class Neutron.Websocket.Connection : Object {
+	public static uint message_max_size = 1048576;
+
 	public signal void on_message(string message, Connection conn);
 	public signal void on_binary_message(uint8[] message, Connection conn);
 	public signal void on_close(Connection conn);
@@ -109,7 +111,7 @@ public class Neutron.Websocket.Connection : Object {
 		}
 	}
 
-	public async uint8[]? read_frame(out bool fin, out uint8 opcode) throws WebsocketError {
+	public async uint8[]? read_frame(out bool fin, out uint8 opcode, uint max_size = 1048576) throws WebsocketError {
 		var frame_header = yield read_bytes(2);
 
 		fin = ((frame_header[0] & 0x80) == 0x80);
@@ -162,6 +164,9 @@ public class Neutron.Websocket.Connection : Object {
 		} else if(payload_len == 0) {
 			return null;
 		}
+
+		if(payload_len > max_size)
+			throw new WebsocketError.MAX_FRAME_SIZE_EXCEEDED("you need to specify a higher max_size for websocket-messages");
 
 		uint8[] payload = yield read_bytes(payload_len);
 		for(int i = 0; i < payload.length; i++) {
@@ -225,7 +230,7 @@ public class Neutron.Websocket.Connection : Object {
 			while(!fin) {
 				uint8[] frame;
 				uint8 current_opcode;
-				frame = yield read_frame(out fin, out current_opcode);
+				frame = yield read_frame(out fin, out current_opcode, (message_max_size - _message.len));
 
 				if(opcode == 0) {
 					opcode = current_opcode;
