@@ -31,4 +31,11 @@ namespace Neutron {
 			HEADERS_NOT_SENT
 		}
 	}
+
+	namespace Websocket {
+		public errordomain WebsocketError {
+			CONNECTION_CLOSED_UNEXPECTEDLY,
+			MAX_FRAME_SIZE_EXCEEDED
+		}
+	}
 }
