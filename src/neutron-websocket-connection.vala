@@ -54,6 +54,18 @@ public class Neutron.Websocket.Connection : Object {
 		read_message.begin();
 	}
 
+	private void close_internal() {
+		_alive = false;
+		on_close(this);
+		stream.close_async.begin();
+	}
+
+	private void error_internal(string errstr) {
+		_alive = false;
+		on_error(errstr, this);
+		close_internal();
+	}
+
 	public async void close() {
 		try {
 			yield send_frame(null, true, 0x8);
@@ -62,14 +74,12 @@ public class Neutron.Websocket.Connection : Object {
 			yield read_frame(out fin, out opcode);
 
 			if(fin && opcode == 8) {
-				on_close(this);
+				close_internal();
 			} else {
-				on_error("Closing handshake failed", this);
+				error_internal("Closing handshake failed");
 			}
-
-			yield stream.close_async();
 		} catch(Error e) {
-			on_error(e.message, this);
+			error_internal(e.message);
 		}
 	}
 
@@ -79,8 +89,7 @@ public class Neutron.Websocket.Connection : Object {
 		try {
 			yield send_frame(payload, true, 0x1);
 		} catch(Error e) {
-			on_error(e.message, this);
-			return;
+			error_internal(e.message);
 		}
 	}
 
@@ -89,7 +98,7 @@ public class Neutron.Websocket.Connection : Object {
 		try {
 			yield send_frame(message, true, 0x2);
 		} catch(Error e) {
-			on_error(e.message, this);
+			error_internal(e.message);
 			return;
 		}
 	}
@@ -106,7 +115,7 @@ public class Neutron.Websocket.Connection : Object {
 			}
 
 			return result.data;
-		} catch(IOError e) {
+		} catch(Error e) {
 			throw new WebsocketError.CONNECTION_CLOSED_UNEXPECTEDLY(e.message);
 		}
 	}
@@ -216,7 +225,7 @@ public class Neutron.Websocket.Connection : Object {
 			if((yield stream.output_stream.write_async(frame.data, Priority.DEFAULT, cancellable)) == 0) {
 				throw new WebsocketError.CONNECTION_CLOSED_UNEXPECTEDLY("Connection closed during write");
 			}
-		} catch(IOError e) {
+		} catch(Error e) {
 			throw new WebsocketError.CONNECTION_CLOSED_UNEXPECTEDLY(e.message);
 		}
 	}
@@ -235,7 +244,7 @@ public class Neutron.Websocket.Connection : Object {
 				if(opcode == 0) {
 					opcode = current_opcode;
 				} else if(current_opcode != 0) {
-					on_error("Expected opcode 0", this);
+					error_internal("Expected opcode 0");
 					return;
 				}
 
@@ -244,7 +253,7 @@ public class Neutron.Websocket.Connection : Object {
 
 			switch(opcode) {
 			case 0:
-				on_error("Expected opcode != 0", this);
+				error_internal("Expected opcode != 0");
 				return;
 			case 1:
 				var sb = new StringBuilder();
@@ -256,10 +265,8 @@ public class Neutron.Websocket.Connection : Object {
 				on_binary_message(_message.data, this);
 				break;
 			case 8:
-				_alive = false;
 				yield send_frame(null, true, 0x8);
-				stream.close();
-				on_close(this);
+				close_internal();
 				return;
 			case 9:
 				yield send_frame(_message.data, true, 0xA);
@@ -267,14 +274,13 @@ public class Neutron.Websocket.Connection : Object {
 			case 0xA:
 				break;
 			default:
-				on_error("Unknown opcode", this);
+				error_internal("Unknown opcode");
 				return;
 			}
 
 			read_message.begin();
 		} catch(Error e) {
-			on_error(e.message, this);
-			return;
+			error_internal(e.message);
 		}
 	}
 }
