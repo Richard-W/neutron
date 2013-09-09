@@ -57,9 +57,31 @@ void on_select_entity(Neutron.Http.Request request, Neutron.Http.EntitySelectCon
 		container.set_entity(new DisplayRequestEntity());
 		break;
 	case "/websocket":
-		container.set_entity(new Neutron.Http.WebsocketEntity());
+		container.set_entity(new Neutron.Http.FileEntity("text/html", "./websocket.html"));
+		break;
+	case "/websocket/socket":
+		var entity = new Neutron.Websocket.HttpUpgradeEntity();
+		entity.incoming.connect(on_incoming_ws);
+		container.set_entity(entity);
 		break;
 	}
+}
+
+void on_incoming_ws(Neutron.Websocket.Connection conn) {
+	conn.ref();
+
+	conn.message.connect(on_message);
+	conn.error.connect(on_error);
+	conn.start();
+}
+
+void on_message(string message, Neutron.Websocket.Connection conn) {
+	stdout.printf("%s\n", message);
+	conn.send.begin("Got line: %s\n".printf(message));
+}
+
+void on_error(string errstr, Neutron.Websocket.Connection conn) {
+	stdout.printf("Error: %s\n", errstr);
 }
 
 class DisplayRequestEntity : Neutron.Http.Entity {

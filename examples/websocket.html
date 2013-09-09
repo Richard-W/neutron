@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<script type="text/javascript" src="http://code.jquery.com/jquery-2.0.3.min.js"></script>
+	<script>
+		function ws_dialogue() {
+			$("#dialogue").innerHTML="";
+			var socket = new WebSocket("wss://localhost:8080/websocket/socket");
+			socket.onopen = function() {
+				var msg = "Some text";
+				socket.send(msg);
+			}
+			socket.onmessage = function(msg) {
+				alert(msg);
+				socket.close();
+			}
+		}
+	</script>
+</head>
+<body>
+	<h1>WS Test</h1>
+	<div id="dialogue"></div>
+	<button type="button" onclick="ws_dialogue()">Go</button>
+</body>
+</html>
