@@ -20,41 +20,22 @@
 /* This code will only work on little-endian-architectures. */
 
 public class Neutron.Websocket.Connection : Object {
-	public signal void message(string message, Connection conn);
-	public signal void binary_message(uint8[] message, Connection conn);
-	public signal void close(Connection conn);
-	public signal void error(string errstr, Connection conn);
+	public signal void on_message(string message, Connection conn);
+	public signal void on_binary_message(uint8[] message, Connection conn);
+	public signal void on_close(Connection conn);
+	public signal void on_error(string errstr, Connection conn);
 
 	private Session? _session;
 	public Session? session {
 		get { return _session; }
 	}
-
-	private bool _started = false;
-	public bool started {
-		get { return _started; }
-	}
-
-	private bool _closed = false;
-	public bool closed {
-		get { return _closed; }
-	}
-
-	private bool _has_error = false;
-	public bool has_error {
-		get { return _has_error; }
-	}
-
-	private bool _alive = true;
+	
+	private bool _alive = false;
 	public bool alive {
 		get { return _alive; }
 	}
 
-	private string? _error_string = null;
-	public string? error_string {
-		get { return _error_string; }
-	}
-
+	private bool started = false;
 	private IOStream stream;
 	private Cancellable cancellable;
 
@@ -63,45 +44,52 @@ public class Neutron.Websocket.Connection : Object {
 		this._session = session;
 
 		cancellable = new Cancellable();
-
-		this.close.connect(this.on_close);
-		this.error.connect(this.on_error);
 	}
 
 	public void start() {
-		if(_started) return;
+		if(started) return;
+		_alive = true;
 		read_message.begin();
-		_started = true;
+	}
+
+	public async void close() {
+		try {
+			yield send_frame(null, true, 0x8);
+			bool fin;
+			uint8 opcode;
+			yield read_frame(out fin, out opcode);
+
+			if(fin && opcode == 8) {
+				on_close(this);
+			} else {
+				on_error("Closing handshake failed", this);
+			}
+
+			yield stream.close_async();
+		} catch(Error e) {
+			on_error(e.message, this);
+		}
 	}
 
 	public async void send(string message) {
+		if(!_alive) return;
 		var payload = (uint8[]) message.to_utf8();
 		try {
 			yield send_frame(payload, true, 0x1);
 		} catch(Error e) {
-			error(e.message, this);
+			on_error(e.message, this);
 			return;
 		}
 	}
 
 	public async void send_binary(uint8[] message) {
+		if(!_alive) return;
 		try {
 			yield send_frame(message, true, 0x2);
 		} catch(Error e) {
-			error(e.message, this);
+			on_error(e.message, this);
 			return;
 		}
-	}
-
-	private void on_error(string errstr, Connection conn) {
-		_has_error = true;
-		_closed = true;
-		_error_string = errstr;
-		_alive = false;
-	}
-
-	private void on_close(Connection conn) {
-		_closed = true;
 	}
 
 	private async uint8[] read_bytes(uint len) throws WebsocketError {
@@ -242,7 +230,7 @@ public class Neutron.Websocket.Connection : Object {
 				if(opcode == 0) {
 					opcode = current_opcode;
 				} else if(current_opcode != 0) {
-					error("Expected opcode 0", this);
+					on_error("Expected opcode 0", this);
 					return;
 				}
 
@@ -251,18 +239,22 @@ public class Neutron.Websocket.Connection : Object {
 
 			switch(opcode) {
 			case 0:
-				error("Expected opcode != 0", this);
+				on_error("Expected opcode != 0", this);
 				return;
 			case 1:
 				var sb = new StringBuilder();
+				_message.append({0});
 				sb.append((string) _message.data);
-				message(sb.str, this);
+				on_message(sb.str, this);
 				break;
 			case 2:
-				binary_message(_message.data, this);
+				on_binary_message(_message.data, this);
 				break;
 			case 8:
-				close(this);
+				_alive = false;
+				yield send_frame(null, true, 0x8);
+				stream.close();
+				on_close(this);
 				return;
 			case 9:
 				yield send_frame(_message.data, true, 0xA);
@@ -270,13 +262,13 @@ public class Neutron.Websocket.Connection : Object {
 			case 0xA:
 				break;
 			default:
-				error("Unknown opcode", this);
+				on_error("Unknown opcode", this);
 				return;
 			}
 
 			read_message.begin();
 		} catch(Error e) {
-			error(e.message, this);
+			on_error(e.message, this);
 			return;
 		}
 	}
