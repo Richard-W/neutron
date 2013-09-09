@@ -48,7 +48,6 @@ public class Neutron.Websocket.HttpUpgradeEntity : Http.Entity {
 			yield send_header("Upgrade", "websocket");
 			yield send_header("Connection", "Upgrade");
 			yield send_header("Sec-WebSocket-Accept", acceptstring);
-			yield send_header("Sec-WebSocket-Extensions", "");
 			yield end_headers();
 
 			incoming(new Websocket.Connection(io_stream, request.session));
