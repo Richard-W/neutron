@@ -87,6 +87,16 @@ namespace Neutron {
 			get { return _http_timeout; }
 		}
 
+		/* Websocket */
+
+		private uint _websocket_message_max_size;
+		/**
+		 * Maximum size of websocket-message
+		 */
+		public uint websocket_message_max_size {
+			get { return _websocket_message_max_size; }
+		}
+
 		/* Internal */
 
 		private string _internal_config_file;
@@ -138,6 +148,7 @@ namespace Neutron {
 			parse_int(kf, out _http_session_max_lifetime, "Http", "session_max_lifetime", false, -1);
 			parse_certificate(kf, out _http_tls_certificate, "Http", "tls_cert_file", "Http", "tls_key_file", _http_use_tls);
 			parse_int(kf, out _http_timeout, "Http", "timeout", false, -1);
+			parse_uint(kf, out _websocket_message_max_size, "Websocket", "message_max_size", false, 1048576);
 		}
 
 		/**
@@ -160,6 +171,19 @@ namespace Neutron {
 			uint64 port_proto = kf.get_uint64(group, key);
 			if(port_proto > 65535) throw new ConfigurationError.INVALID_OPTION("Portnumber too high");
 			dest = (uint16) port_proto;
+		}
+
+		/**
+		 * Parse a uint from the config-file
+		 */
+		private void parse_uint(KeyFile kf, out uint dest, string group, string key, bool required, uint default_value) throws Error {
+			if(!check_option(kf, group, key, required)) {
+				dest = default_value;
+				return;
+			}
+			uint64 port_proto = kf.get_uint64(group, key);
+			if(port_proto > 0xFFFFFFFF) throw new ConfigurationError.INVALID_OPTION("number too high");
+			dest = (uint) port_proto;
 		}
 
 		/**
