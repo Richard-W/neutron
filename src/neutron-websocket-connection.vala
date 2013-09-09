@@ -45,6 +45,11 @@ public class Neutron.Websocket.Connection : Object {
 		get { return _has_error; }
 	}
 
+	private bool _alive = true;
+	public bool alive {
+		get { return _alive; }
+	}
+
 	private string? _error_string = null;
 	public string? error_string {
 		get { return _error_string; }
@@ -79,9 +84,20 @@ public class Neutron.Websocket.Connection : Object {
 		}
 	}
 
+	public async void send_binary(uint8[] message) {
+		try {
+			yield send_frame(message, true, 0x2);
+		} catch(Error e) {
+			error(e.message, this);
+			return;
+		}
+	}
+
 	private void on_error(string errstr, Connection conn) {
 		_has_error = true;
+		_closed = true;
 		_error_string = errstr;
+		_alive = false;
 	}
 
 	private void on_close(Connection conn) {
