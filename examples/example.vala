@@ -106,9 +106,7 @@ class DisplayRequestEntity : Neutron.Http.Entity {
 			""");
 
 			foreach(string header_key in request.get_header_vars()) {
-				foreach(string header_field in request.get_header_var(header_key)) {
-					yield send("%s: %s<br />\n".printf(header_key, header_field));
-				}
+				yield send("%s: %s<br />\n".printf(header_key, request.get_header_var(header_key)));
 			}
 
 			yield send("<h2>Request</h2>");

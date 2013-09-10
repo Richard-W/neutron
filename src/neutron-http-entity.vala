@@ -99,7 +99,7 @@ namespace Neutron.Http {
 
 			var accepted_encodings = request.get_header_var("accept-encoding");
 			if(accepted_encodings != null) {
-				var enc_array = accepted_encodings[0].split(",");
+				var enc_array = accepted_encodings.split(",");
 				foreach(string enc in enc_array) {
 					if(enc.strip().down() == "gzip") {
 						content_encoding = ContentEncoding.GZIP;

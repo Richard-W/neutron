@@ -26,14 +26,14 @@ public class Neutron.Websocket.HttpUpgradeEntity : Http.Entity {
 			content_encoding = Http.ContentEncoding.NONE;
 
 			var upgrade = request.get_header_var("upgrade");
-			var ws_key_arr = request.get_header_var("sec-websocket-key");
-			if(ws_key_arr == null || upgrade == null || upgrade[0].down() != "websocket") {
+			var ws_key_raw = request.get_header_var("sec-websocket-key");
+			if(ws_key_raw == null || upgrade == null || upgrade.down() != "websocket") {
 				yield send_status(400);
 				return Http.ConnectionAction.CLOSE;
 			}
 
 
-			string ws_key = "%s258EAFA5-E914-47DA-95CA-C5AB0DC85B11".printf(ws_key_arr[0]);
+			string ws_key = "%s258EAFA5-E914-47DA-95CA-C5AB0DC85B11".printf(ws_key_raw);
 
 			var checksum = new Checksum(ChecksumType.SHA1);
 			checksum.update((uchar[]) ws_key.to_utf8(), ws_key.length);

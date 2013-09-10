@@ -58,7 +58,7 @@ namespace Neutron.Http {
 		/**
 		 * Get string from header 
 		 */
-		public abstract string[]? get_header_var(string key);
+		public abstract string? get_header_var(string key);
 
 		/**
 		 * Return all set keys 

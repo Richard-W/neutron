@@ -42,7 +42,7 @@ namespace Neutron.Http {
 		 * Get the next request 
 		 */
 		public async RequestImpl? run() {
-			var headers = new HashMap<string, HashSet<string>>();
+			var headers = new HashMap<string, string>();
 			var body = new HashMap<string, string>();
 			var gets = new HashMap<string, string>();
 			var cookies = new HashMap<string, string>();
@@ -170,16 +170,14 @@ namespace Neutron.Http {
 								state = 7;
 								bufpos++;
 								var key_str = header_key.str.down();
-								if(!headers.has_key(key_str)) headers.set(key_str, new HashSet<string>());
-								headers.get(key_str).add(header_val.str);
+								headers.set(key_str, header_val.str);
 								header_key = new StringBuilder();
 								continue;
 							}
 							if(nextchar == '\n') {
 								state = 4;
 								var key_str = header_key.str.down();
-								if(!headers.has_key(key_str)) headers.set(key_str, new HashSet<string>());
-								headers.get(key_str).add(header_val.str);
+								headers.set(key_str, header_val.str);
 								header_key = new StringBuilder();
 								bufpos++;
 								continue;
@@ -210,19 +208,16 @@ namespace Neutron.Http {
 				if(urlarr.length == 2) parse_varstring(gets, urlarr[1]);
 
 				if(headers.has_key("cookie")) {
-					var cookieset = headers.get("cookie");
-					foreach(string cookiestring in cookieset) {
-						var cookiearr = cookiestring.split(";");
-						foreach(string cookie in cookiearr) {
-							var cookiesplit = cookie.split("=", 2);
-							if(cookiesplit.length != 2) continue;
-							else cookies.set(cookiesplit[0].strip(), cookiesplit[1].strip());
-						}
+					var cookiearr = headers.get("cookie").split(";");
+					foreach(string cookie in cookiearr) {
+						var cookiesplit = cookie.split("=", 2);
+						if(cookiesplit.length != 2) continue;
+						else cookies.set(cookiesplit[0].strip(), cookiesplit[1].strip());
 					}
 				}
 
 				if(headers.has_key("content-length") && method.str == "POST") {
-					var clen = uint64.parse(headers.get("content-length").to_array()[0]);
+					var clen = uint64.parse(headers.get("content-length"));
 					uint8[] bodybuffer;
 					var bodybuilder = new StringBuilder();
 					uint64 already_received = 0;

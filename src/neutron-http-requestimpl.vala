@@ -24,7 +24,7 @@ namespace Neutron.Http {
 		private HashMap<string,string>? gets;
 		private HashMap<string,string>? posts;
 		private HashMap<string,string>? cookies;
-		private HashMap<string,HashSet<string>>? headers;
+		private HashMap<string,string>? headers;
 
 		private string _path;
 		public override string path {
@@ -41,7 +41,7 @@ namespace Neutron.Http {
 			get { return _session; }
 		}
 		
-		public RequestImpl(string method, string path, HashMap<string,string>? gets, HashMap<string,string>? posts, HashMap<string,string>? cookies, HashMap<string,HashSet<string>> headers) {
+		public RequestImpl(string method, string path, HashMap<string,string>? gets, HashMap<string,string>? posts, HashMap<string,string>? cookies, HashMap<string,string> headers) {
 			this.gets = gets;
 			this.posts = posts;
 			this.cookies = cookies;
@@ -67,9 +67,8 @@ namespace Neutron.Http {
 			return get_var(cookies, key);
 		}
 
-		public override string[]? get_header_var(string key) {
-			if(headers.has_key(key)) return headers.get(key).to_array();
-			else return null;
+		public override string? get_header_var(string key) {
+			return get_var(headers, key);
 		}
 
 		public override string[]? get_post_vars() {
