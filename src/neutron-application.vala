@@ -66,6 +66,7 @@ namespace Neutron {
 			http_server.timeout = config.http_timeout;
 			http_server.session_lifetime = config.http_session_lifetime;
 			http_server.session_max_lifetime = config.http_session_max_lifetime;
+			http_server.request_max_size = config.http_request_max_size;
 		}
 
 		/**

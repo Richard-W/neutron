@@ -68,6 +68,11 @@ namespace Neutron.Http {
 		 */
 		public int session_max_lifetime = -1;
 
+		/**
+		 * Maximum size of requests.
+		 */
+		public uint request_max_size = 1048576;
+
 		private SocketService listener;
 		private HashMap<string, Session> stored_sessions;
 
@@ -132,7 +137,7 @@ namespace Neutron.Http {
 
 			/* Parser takes an IOStream-Object, so it does not care whether connection
 			 * is encrypted or not */
-			var parser = new Parser(conn, timeout);
+			var parser = new Parser(conn, timeout, request_max_size);
 			RequestImpl req;
 
 			bool keep_running = true;

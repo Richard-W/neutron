@@ -27,13 +27,15 @@ namespace Neutron.Http {
 		private int bufpos = -1;
 		private const int buflen = 80*1024;
 		private size_t reclen;
+		private uint max_size;
 
 		/**
 		 * Instantiates a Parser that reads from the supplied IOStream 
 		 */
-		public Parser(IOStream stream, int timeout) {
+		public Parser(IOStream stream, int timeout, uint max_size) {
 			this.stream = stream;
 			this.timeout = timeout;
+			this.max_size = max_size;
 		}
 
 		/**
@@ -45,6 +47,7 @@ namespace Neutron.Http {
 			var gets = new HashMap<string, string>();
 			var cookies = new HashMap<string, string>();
 			string path;
+			uint size = 0;
 
 			int state = -1;
 
@@ -67,8 +70,9 @@ namespace Neutron.Http {
 							});
 						}
 						reclen = yield stream.input_stream.read_async(buf, Priority.DEFAULT, timeout_provider);
+						size += (uint) reclen;
 						/* Connection closed */
-						if(reclen == 0) return null;
+						if(reclen == 0 || size > max_size) return null;
 						bufpos = 0;
 					}
 
