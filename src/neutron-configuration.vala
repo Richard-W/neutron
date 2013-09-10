@@ -169,8 +169,6 @@ namespace Neutron {
 			parse_string(kf, out _general_hostname, "General", "hostname", false, "localhost");
 
 			Websocket.Connection.message_max_size = _websocket_message_max_size;
-			Websocket.HttpUpgradeEntity.origin_uses_tls = _http_use_tls;
-			Websocket.HttpUpgradeEntity.origin_accept = _general_hostname;
 		}
 
 		/**
