@@ -188,6 +188,9 @@ namespace Neutron.Http {
 			case 404:
 				desc = "Not Found";
 				break;
+			case 426:
+				desc = "Upgrade Required";
+				break;
 			case 500:
 				desc = "Internal Server Error";
 				break;
