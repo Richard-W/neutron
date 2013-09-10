@@ -37,6 +37,14 @@ namespace Neutron {
 			get { return _general_worker_threads; }
 		}
 
+		private string _general_hostname;
+		/**
+		 * The hostname of this server
+		 */
+		public string general_hostname {
+			get { return _general_hostname; }
+		}
+
 		/* Http */
 
 		private uint16 _http_port;
@@ -158,8 +166,11 @@ namespace Neutron {
 			parse_int(kf, out _http_timeout, "Http", "timeout", false, -1);
 			parse_uint(kf, out _websocket_message_max_size, "Websocket", "message_max_size", false, 1048576);
 			parse_uint(kf, out _http_request_max_size, "Http", "request_max_size", false, 1048576);
+			parse_string(kf, out _general_hostname, "General", "hostname", false, "localhost");
 
 			Websocket.Connection.message_max_size = _websocket_message_max_size;
+			Websocket.HttpUpgradeEntity.origin_uses_tls = _http_use_tls;
+			Websocket.HttpUpgradeEntity.origin_accept = _general_hostname;
 		}
 
 		/**
@@ -183,6 +194,18 @@ namespace Neutron {
 			if(port_proto > 65535) throw new ConfigurationError.INVALID_OPTION("Portnumber too high");
 			dest = (uint16) port_proto;
 		}
+
+		/**
+		 * Parse a string from the config-file
+		 */
+		private void parse_string(KeyFile kf, out string dest, string group, string key, bool required, string default_value) throws Error {
+			if(!check_option(kf, group, key, required)) {
+				dest = default_value;
+				return;
+			}
+			dest = kf.get_string(group, key);
+		}
+
 
 		/**
 		 * Parse a uint from the config-file

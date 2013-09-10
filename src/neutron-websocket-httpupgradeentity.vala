@@ -20,6 +20,9 @@
 public class Neutron.Websocket.HttpUpgradeEntity : Http.Entity {
 	public signal void incoming(Websocket.Connection conn);
 
+	public static bool origin_uses_tls;
+	public static string origin_accept;
+
 	public override async Http.ConnectionAction handle_request() {
 		try {
 			transfer_encoding = Http.TransferEncoding.NONE;
@@ -32,6 +35,22 @@ public class Neutron.Websocket.HttpUpgradeEntity : Http.Entity {
 				return Http.ConnectionAction.CLOSE;
 			}
 
+			var origin_builder = new StringBuilder();
+			origin_builder.append(request.get_header_var("origin"));
+			origin_builder.append("/");
+			var origin = origin_builder.str;
+
+			var accepted_origin_builder = new StringBuilder();
+			if(origin_uses_tls) accepted_origin_builder.append("https://");
+			else accepted_origin_builder.append("http://");
+			accepted_origin_builder.append(origin_accept);
+			accepted_origin_builder.append("/");
+			var accepted_origin = accepted_origin_builder.str;
+
+			if(origin.length < accepted_origin.length || origin.substring(0, accepted_origin.length) != accepted_origin) {
+				yield send_status(403);
+				return Http.ConnectionAction.CLOSE;
+			}
 
 			string ws_key = "%s258EAFA5-E914-47DA-95CA-C5AB0DC85B11".printf(ws_key_raw);
 
