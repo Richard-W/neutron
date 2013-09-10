@@ -40,14 +40,20 @@ namespace Neutron.Http {
 		public override Session? session {
 			get { return _session; }
 		}
+
+		private bool _uses_tls;
+		public override bool uses_tls {
+			get { return _uses_tls; }
+		}
 		
-		public RequestImpl(string method, string path, HashMap<string,string>? gets, HashMap<string,string>? posts, HashMap<string,string>? cookies, HashMap<string,string> headers) {
+		public RequestImpl(string method, string path, HashMap<string,string>? gets, HashMap<string,string>? posts, HashMap<string,string>? cookies, HashMap<string,string> headers, bool uses_tls) {
 			this.gets = gets;
 			this.posts = posts;
 			this.cookies = cookies;
 			this.headers = headers;
 			this._path = path;
 			this._method = method;
+			this._uses_tls = uses_tls;
 		}
 
 		private string? get_var(HashMap<string,string> map, string key) {

@@ -28,14 +28,16 @@ namespace Neutron.Http {
 		private const int buflen = 80*1024;
 		private size_t reclen;
 		private uint max_size;
+		private bool uses_tls;
 
 		/**
 		 * Instantiates a Parser that reads from the supplied IOStream 
 		 */
-		public Parser(IOStream stream, int timeout, uint max_size) {
+		public Parser(IOStream stream, int timeout, uint max_size, bool uses_tls) {
 			this.stream = stream;
 			this.timeout = timeout;
 			this.max_size = max_size;
+			this.uses_tls = uses_tls;
 		}
 
 		/**
@@ -262,7 +264,7 @@ namespace Neutron.Http {
 				return null;
 			}
 
-			return new RequestImpl(method.str, path, gets, body, cookies, headers);
+			return new RequestImpl(method.str, path, gets, body, cookies, headers, uses_tls);
 		}
 
 		private void parse_varstring(HashMap<string, string> map, string varstring) {

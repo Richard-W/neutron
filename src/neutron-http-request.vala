@@ -34,6 +34,13 @@ namespace Neutron.Http {
 		}
 
 		/**
+		 * Whether an encrypted connection is used
+		 */
+		public abstract bool uses_tls {
+			get;
+		}
+
+		/**
 		 * The unique session-object
 		 */
 		public abstract Session? session {

@@ -137,7 +137,7 @@ namespace Neutron.Http {
 
 			/* Parser takes an IOStream-Object, so it does not care whether connection
 			 * is encrypted or not */
-			var parser = new Parser(conn, timeout, request_max_size);
+			var parser = new Parser(conn, timeout, request_max_size, use_tls);
 			RequestImpl req;
 
 			bool keep_running = true;
