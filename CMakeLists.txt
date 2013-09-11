@@ -3,10 +3,11 @@ project(neutron)
 
 option(INSTALL_HEADERS "Install header, vapi and pkgconfig files" ON)
 option(INSTALL_LIBRARY "Install shared library" ON)
+option(DEBIAN "Compile on debian" OFF)
 
-set(VERSION_MAJOR 0)
-set(VERSION_MINOR 1)
-set(VERSION_PATCH 0)
+set(VERSION_MAJOR "0")
+set(VERSION_MINOR "1")
+set(VERSION_PATCH "0")
 
 set(VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 
@@ -28,9 +29,20 @@ pkg_check_modules(GIO gio-2.0 REQUIRED)
 include_directories(${GIO_INCLUDE_DIRS})
 link_directories(${GIO_LIBRARY_DIRS})
 
-pkg_check_modules(GEE gee-0.8 REQUIRED)
+if(DEBIAN)
+	pkg_check_modules(GEE gee-1.0 REQUIRED)
+else(DEBIAN)
+	pkg_check_modules(GEE gee-0.8 REQUIRED)
+endif(DEBIAN)
 include_directories(${GEE_INCLUDE_DIRS})
 link_directories(${GEE_LIBRARY_DIRS})
+
+set(VALA_PACKAGES gio-2.0 posix)
+if(DEBIAN)
+	list(APPEND VALA_PACKAGES gee-1.0)
+else(DEBIAN)
+	list(APPEND VALA_PACKAGES gee-0.8)
+endif(DEBIAN)
 
 vala_precompile(C_SOURCES
 		src/neutron-application.vala
@@ -50,9 +62,7 @@ vala_precompile(C_SOURCES
 		src/neutron-websocket-httpupgradeentity.vala
 		src/neutron-websocket-connection.vala
 	PACKAGES
-		gio-2.0
-		gee-0.8
-		posix
+		${VALA_PACKAGES}
 	GENERATE_VAPI
 		neutron
 	OPTIONS
@@ -106,3 +116,12 @@ if(INSTALL_HEADERS)
 			lib/pkgconfig/
 	)
 endif(INSTALL_HEADERS)
+
+set(CPACK_GENERATOR "DEB")
+set(CPACK_PACKAGE_VERSION_MAJOR ${VERSION_MAJOR})
+set(CPACK_PACKAGE_VERSION_MINOR ${VERSION_MINOR})
+set(CPACK_PACKAGE_VERSION_PATCH ${VERSION_PATCH})
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "libglib2.0-0,libgee2,glib-networking")
+set(CPACK_PACKAGE_DESCRIPTION "Web-development library using the GObject-system")
+set(CPACK_PACKAGE_CONTACT "Richard Wiedenhöft <richard.wiedenhoeft@gmail.com>")
+include(CPack)
