@@ -6,8 +6,9 @@ A library for developing web-applications using the GObject-System.
 Installation instructions
 -------------------------
 
-Debian:
-
+<dl>
+<dt>Debian</dt>
+<dd>
 Inside the source-directory:
 ```bash
 ./configure --prefix=/usr --enable-debian
@@ -17,16 +18,17 @@ make package
 Now you have a .deb-file, which you can install using "dpkg -i"
 Currently the package compiled on debian segfaults, when worker_threads
 is set to a number greater than 0. This seems to be a bug in valac-0.16.
-
-Arch:
-
+</dd>
+<dt>Arch</dt>
+<dd>
 If you did not do it already install yaourt. Instructions for installing yaourt
 can be found here: https://wiki.archlinux.de/title/Yaourt.
 Now you can just install the package "neutron-git" from AUR.
-
-Ubuntu:
-
+</dd>
+<dt>Ubuntu</dt>
+<dd>
 Just like Debian. Note that i have not tested anything on Ubuntu.
+</dd>
 
 Usage
 -----
