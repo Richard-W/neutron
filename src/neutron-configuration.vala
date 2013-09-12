@@ -172,8 +172,6 @@ namespace Neutron {
 			parse_uint32(out _websocket_message_max_size, "Websocket", "message_max_size", false, 1048576);
 			parse_uint32(out _http_request_max_size, "Http", "request_max_size", false, 1048576);
 			parse_string(out _general_hostname, "General", "hostname", false, "localhost");
-
-			Websocket.Connection.message_max_size = _websocket_message_max_size;
 		}
 
 		/**
