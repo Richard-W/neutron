@@ -120,7 +120,7 @@ public class Neutron.Websocket.Connection : Object {
 		}
 	}
 
-	public async uint8[]? read_frame(out bool fin, out uint8 opcode, uint max_size = 1048576) throws WebsocketError {
+	private async uint8[]? read_frame(out bool fin, out uint8 opcode, uint max_size = 1048576) throws WebsocketError {
 		var frame_header = yield read_bytes(2);
 
 		fin = ((frame_header[0] & 0x80) == 0x80);
