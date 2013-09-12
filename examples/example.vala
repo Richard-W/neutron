@@ -23,10 +23,13 @@ int main(string[] argv) {
 
 	try {
 		app = new Neutron.Application(argv, "./example.conf");
-		app.enable_http();
 
-		http = app.get_http_server();
+		http = new Neutron.Http.Server(Neutron.Configuration.default.http_port);
+		http.apply_config(Neutron.Configuration.default);
+		http.thread_controller = app.thread_controller;
+
 		http.select_entity.connect(on_select_entity);
+		http.start();
 	} catch(Error e) {
 		stderr.printf("Error: %s\n", e.message);
 		return 1;

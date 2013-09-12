@@ -22,15 +22,23 @@ namespace Neutron {
 		/* General */
 		private Configuration config;
 		private MainLoop mainloop;
-		private ThreadController? tcontrol;
+
+		private ThreadController? _thread_controller;
+		/**
+		 * Default thread controller of this application
+		 */
+		public ThreadController? thread_controller {
+			get { return _thread_controller; }
+		}
 
 		public Application(string[] argv, string? configfile = null) throws Error {
 			config = new Configuration(argv, configfile);
 			mainloop = new MainLoop();
 
 			if(config.general_worker_threads > 0)
-				tcontrol = new ThreadController(config.general_worker_threads);
-			else tcontrol = null;
+				_thread_controller = new ThreadController(config.general_worker_threads);
+			else
+				_thread_controller = null;
 		}
 
 		/**
@@ -43,38 +51,8 @@ namespace Neutron {
 				Posix.setsid();
 			}
 
-			if(http_enabled) http_server.start();
 			mainloop.run();
 			return 0;
-		}
-
-		/* Http */
-		private Http.Server? http_server;
-		private bool http_enabled = false;
-
-		/**
-		 * This instantiates a Http.Server-Object using the settings from the config-file 
-		 */
-		public void enable_http() throws Error {
-			http_enabled = true;
-
-			http_server = new Http.Server(config.http_port);
-
-			http_server.thread_controller = tcontrol;
-			http_server.use_tls = config.http_use_tls;
-			http_server.tls_certificate = config.http_tls_certificate;
-			http_server.timeout = config.http_timeout;
-			http_server.session_lifetime = config.http_session_lifetime;
-			http_server.session_max_lifetime = config.http_session_max_lifetime;
-			http_server.request_max_size = config.http_request_max_size;
-		}
-
-		/**
-		 * Returns the Http.Server-Object 
-		 */
-		public Http.Server? get_http_server() {
-			if(http_enabled) return http_server;
-			else return null;
 		}
 	}
 }

@@ -20,8 +20,6 @@
 /* This code will only work on little-endian-architectures. */
 
 public class Neutron.Websocket.Connection : Object {
-	public static uint message_max_size = 1048576;
-
 	public signal void on_message(string message, Connection conn);
 	public signal void on_binary_message(uint8[] message, Connection conn);
 	public signal void on_close(Connection conn);
@@ -40,10 +38,12 @@ public class Neutron.Websocket.Connection : Object {
 	private bool started = false;
 	private IOStream stream;
 	private Cancellable cancellable;
+	public uint32 message_max_size;
 
-	public Connection(IOStream stream, Session? session) {
+	public Connection(IOStream stream, Session? session, uint32 message_max_size) {
 		this.stream = stream;
 		this._session = session;
+		this.message_max_size = message_max_size;
 
 		cancellable = new Cancellable();
 	}

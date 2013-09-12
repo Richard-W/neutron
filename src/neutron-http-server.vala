@@ -89,6 +89,18 @@ namespace Neutron.Http {
 		}
 
 		/**
+		 * Sets certain parameters of this server according to the Configuration-object
+		 */
+		public void apply_config(Configuration config) {
+			this.use_tls = config.http_use_tls;
+			this.tls_certificate = config.http_tls_certificate;
+			this.timeout = config.http_timeout;
+			this.session_lifetime = config.http_session_lifetime;
+			this.session_max_lifetime = config.http_session_max_lifetime;
+			this.request_max_size = config.http_request_max_size;
+		}
+
+		/**
 		 * Start handling connections 
 		 */
 		public void start() {
