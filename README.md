@@ -16,8 +16,6 @@ make
 make package
 ```
 Now you have a .deb-file, which you can install using "dpkg -i"
-Currently the package compiled on debian segfaults, when worker_threads
-is set to a number greater than 0. This seems to be a bug in valac-0.16.
 </dd>
 <dt>Arch</dt>
 <dd>
