@@ -147,7 +147,7 @@ namespace Neutron {
 		/**
 		 * Parses the config-file again. You can also specify a new config-file 
 		 */
-		public void reload() throws Error {
+		public virtual void reload() throws Error {
 			kf = new KeyFile();
 			kf.set_list_separator(',');
 			kf.load_from_file(_internal_config_file, KeyFileFlags.NONE);
