@@ -31,68 +31,17 @@ Just like Debian. Note that i have not tested anything on Ubuntu.
 Usage
 -----
 
-We'll start with a simple hello-world-application.
+The file example/example.vala is used by me to test changes to the library.
+You can run it in two ways:
 
-hello.vala:
-```vala
-int main(string[] argv) {
-	Neutron.Application app;
-	try {
-		app = new Neutron.Application(argv);
+* Install the library and compile example.vala with "valac example.vala --pkg neutron"
 
-		//Enable the http-server
-		app.enable_http();
+* Create directory build, run "../configure" inside build/, switch to the example directory
+and run "./run.sh".
 
-		var http = app.get_http_server();
-		http.select_entity.connect(on_select_entity);
-	} catch(Error e) {
-		stderr.printf("Caught error: %s\n", e.message);
-		return 1;
-	}
+The API is in absolutely no way stable. Expect major/breaking changes to it. I will stabilize it
+eventually (release 0.2), but not until i am sure, that it is suitable for being the core of big projects. Every kind
+of feedback is therefore appreciated.
 
-	return app.run();
-}
-
-void on_select_entity(Neutron.Http.Request request, Neutron.Http.EntitySelectContainer container) {
-	switch(request.path) {
-	case "/":
-		container.set_entity(new Neutron.Http.StaticEntity("text/html", """
-		<!DOCTYPE html>
-		<html>
-		<head>
-			<meta charset="utf-8" />
-		</head>
-		<body>
-			<h1>Hello World!</h1>
-		</body>
-		</html>
-		"""));
-		break;
-	}
-}
-//Compile with "valac hello.vala --pkg neutron" if you installed the library
-```
-
-Well... where is the port-number and all the other stuff? If you run the program without
-any changes now it will just bind to port 80 and use unencrypted http.
-
-If you want to use your own settings just create a file named hello.conf:
-```
-[Http]
-port = 8080
-```
-and start the above example with
-    ./hello -c hello.conf
-
-Note: If you really want to hardcode your settings just instantiate a Neutron.Http.Server-Object manually
-and enter a GLib.MainLoop.
-
-Now the application binds to port 8080. It is also possible to use TLS and other stuff.
-See examples/example.conf in the repository. Note that you also can hardcode a config-file
-in your application by giving the constructor of the Application class it's second argument.
-The -c option will still be first choice.
-
-Also note, that the user of your application can set worker_threads in the config-file to a value > 0 which
-will distribute the execution over several threads. You still need to use asynchronous operations because every
-thread is able to handle several connections. Also i strongly advise you to use the AsyncQueue-class to share
-data between requests.
+I am trying to comment everything that might be relevant in valadoc-format. To get up-to-date documentation just run valadoc
+over all the files in src/.
