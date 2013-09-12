@@ -18,7 +18,7 @@
  */
 
 namespace Neutron {
-	private class Configuration : Object {
+	public class Configuration : Object {
 		/* General */
 
 		private bool _general_daemon;
