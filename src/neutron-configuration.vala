@@ -124,11 +124,16 @@ namespace Neutron {
 		}
 
 		private KeyFile kf;
+		
+		private static Configuration _default;
+		public static Configuration default {
+			get { return _default; }
+		}
 
 		/**
 		 * Should be given the argv-array, to determine the location of the config-file. 
 		 */
-		public Configuration(string[] argv, string? alternative = null) throws Error {
+		public Configuration(string[] argv, string? alternative = null, bool default = true) throws Error {
 			string? config_file = null;
 			OptionEntry[] options = new OptionEntry[1];
 			options[0] = { "config", 'c', 0, OptionArg.FILENAME, ref config_file, "Configuration-file", "CONFIG" };
@@ -142,6 +147,10 @@ namespace Neutron {
 			_internal_config_file = config_file;
 
 			reload();
+
+			if(default) {
+				_default = this;
+			}
 		}
 
 		/**
