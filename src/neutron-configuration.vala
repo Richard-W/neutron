@@ -18,6 +18,13 @@
  */
 
 namespace Neutron {
+	/**
+	 * Easy access to values specified by the user of the application
+	 *
+	 * If you want to add parameters, just derive from this object and
+	 * add properties. You then have to override the reload-method and
+	 * add calls to the parse_* methods for your new properties
+	 */
 	public class Configuration : Object {
 		/* General */
 

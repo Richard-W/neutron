@@ -20,6 +20,15 @@
 using Gee;
 
 namespace Neutron.Http {
+	/**
+	 * Main class for Http-communication.
+	 *
+	 * To use it you have to connect to the select_entity-event and supply an Entity-object for
+	 * Requests you feel responsible for.
+	 *
+	 * If two handlers of select_entity feel responsible for one Request, the behaviour is determined,
+	 * by the order in which the signal-handlers are processed.
+	 */
 	public class Server : Object {
 		/**
 		 * Fired when a new Request comes in and used for selecting an appropriate Entity

@@ -18,6 +18,11 @@
  */
 
 namespace Neutron.Http {
+	/**
+	 * Entity that is only able to supply a simple file from the filesystem.
+	 *
+	 * If you seek access-control this entity is not for you.
+	 */
 	public class FileEntity : Entity {
 		private string mime_type;
 		private string filename;

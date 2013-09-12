@@ -19,6 +19,12 @@
 
 /* This code will only work on little-endian-architectures. */
 
+/**
+ * Represents a connection to a websocket-client (Typically JS)
+ *
+ * Gets emitted and constructed by a Websocket.HttpUpgradeEntity which one of your
+ * select_entity-handlers should supply.
+ */
 public class Neutron.Websocket.Connection : Object {
 	public signal void on_message(string message, Connection conn);
 	public signal void on_binary_message(uint8[] message, Connection conn);

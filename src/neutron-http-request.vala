@@ -18,7 +18,16 @@
  */
 
 namespace Neutron.Http {
+	/**
+	 * Contains all values, the parser extracted from the request
+	 */
 	public abstract class Request : Object {
+		/**
+		 * Should be constructed by the library
+		 */
+		protected Request() {
+		}
+
 		/**
 		 * The requested path 
 		 */

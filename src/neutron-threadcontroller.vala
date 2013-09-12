@@ -1,4 +1,3 @@
-
 /*
  * This file is part of the neutron project.
  * 
@@ -19,6 +18,10 @@
  */
 
 namespace Neutron {
+	/**
+	 * Starts a certain number of thread and can be supplied with Source-object,
+	 * which get executed in one of the threads.
+	 */
 	public class ThreadController : Object {
 		private Thread<bool>[] threads;
 		private MainContext[] thread_contexts;
@@ -60,7 +63,7 @@ namespace Neutron {
 			return true;
 		}
 
-		public void invoke(IdleSource isource) {
+		public void invoke(Source isource) {
 			isource.attach(thread_contexts[next]);
 			next++;
 			if(next >= num_threads) next = 0;

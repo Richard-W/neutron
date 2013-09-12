@@ -20,6 +20,9 @@
 using Gee;
 
 namespace Neutron.Http {
+	/**
+	 * Real Request-class.
+	 */
 	private class RequestImpl : Request {
 		private HashMap<string,string>? gets;
 		private HashMap<string,string>? posts;

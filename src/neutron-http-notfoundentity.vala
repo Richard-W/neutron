@@ -18,6 +18,10 @@
  */
 
 namespace Neutron.Http {
+	/**
+	 * This is the 404-Error-Page that is emitted, when no select_entity
+	 * handler feels responsible for the path
+	 */
 	public class NotFoundEntity : Entity {
 		protected async override ConnectionAction handle_request() {
 			try {

@@ -18,6 +18,9 @@
  */
 
 namespace Neutron.Http {
+	/**
+	 * Used by entities with transfer_encoding = TransferEncoding.CHUNKED
+	 */
 	private class ChunkConverter : Object, Converter {
 		private bool finished = false;
 

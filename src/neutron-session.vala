@@ -19,7 +19,7 @@
 
 namespace Neutron {
 	/**
-	 * This class represents a unique client-session which can store data between requests
+	 * Represents a unique client-session which can store data between requests
 	 *
 	 * To use it to store your data you have to derive from it and add
 	 * properties. I strongly recommend you derive only once per project.

@@ -20,6 +20,9 @@
 using Gee;
 
 namespace Neutron.Http {
+	/**
+	 * Parses http-request and body
+	 */
 	private class Parser : Object {
 		private int timeout;
 		private IOStream stream;

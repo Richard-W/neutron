@@ -18,6 +18,9 @@
  */
 
 namespace Neutron {
+	/**
+	 * Controls the global values of the application
+	 */
 	public class Application : Object {
 		/* General */
 		private Configuration config;
@@ -31,6 +34,10 @@ namespace Neutron {
 			get { return _thread_controller; }
 		}
 
+		/**
+		 * Takes the argv and an alternative configfile, to instantiate the
+		 * default Configuration-object
+		 */
 		public Application(string[] argv, string? configfile = null) throws Error {
 			config = new Configuration(argv, configfile);
 			mainloop = new MainLoop();

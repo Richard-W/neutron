@@ -18,6 +18,15 @@
  */
 
 namespace Neutron.Http {
+	/**
+	 * Serves just a simple string. Useful for static html-sites.
+	 *
+	 * Comparison to FileEntity: Pro: Uses RAM, Con: Uses RAM.
+	 *
+	 * Seriously... this is intended for small html-files, that are
+	 * always the same for everyone. Do not uses this for anything
+	 * with more than 1-2 kB
+	 */
 	public class StaticEntity : Entity {
 		private string mime_type;
 		private string content;
