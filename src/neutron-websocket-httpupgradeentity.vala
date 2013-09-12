@@ -20,6 +20,12 @@
 public class Neutron.Websocket.HttpUpgradeEntity : Http.Entity {
 	public signal void incoming(Websocket.Connection conn);
 
+	private string[]? accepted_origins;
+
+	public HttpUpgradeEntity(string[]? accepted_origins = null) {
+		this.accepted_origins = accepted_origins;
+	}
+
 	public override async Http.ConnectionAction handle_request() {
 		try {
 			transfer_encoding = Http.TransferEncoding.NONE;
@@ -49,8 +55,18 @@ public class Neutron.Websocket.HttpUpgradeEntity : Http.Entity {
 			var allowed_origin = allowed_origin_builder.str;
 			var origin = request.get_header_var("origin");
 			if(origin != null && allowed_origin != origin) {
-				yield send_status(403);
-				return Http.ConnectionAction.CLOSE;
+				var reject = true;
+				if(accepted_origins != null) {
+					foreach(string accepted_origin in accepted_origins) {
+						if(origin == accepted_origin)
+							reject = false;
+					}
+				}
+
+				if(reject) {
+					yield send_status(403);
+					return Http.ConnectionAction.CLOSE;
+				}
 			}
 
 
