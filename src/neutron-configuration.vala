@@ -123,6 +123,8 @@ namespace Neutron {
 			get { return _internal_config_file; }
 		}
 
+		private KeyFile kf;
+
 		/**
 		 * Should be given the argv-array, to determine the location of the config-file. 
 		 */
@@ -146,21 +148,21 @@ namespace Neutron {
 		 * Parses the config-file again. You can also specify a new config-file 
 		 */
 		public void reload() throws Error {
-			var kf = new KeyFile();
+			kf = new KeyFile();
 			kf.set_list_separator(',');
 			kf.load_from_file(_internal_config_file, KeyFileFlags.NONE);
 
-			parse_bool(kf, out _general_daemon, "General", "daemon", false, false);
-			parse_int(kf, out _general_worker_threads, "General", "worker_threads", false, 0);
-			parse_uint16(kf, out _http_port, "Http", "port", false, 80);
-			parse_bool(kf, out _http_use_tls, "Http", "use_tls", false, false);
-			parse_int(kf, out _http_session_lifetime, "Http", "session_lifetime", false, 3600);
-			parse_int(kf, out _http_session_max_lifetime, "Http", "session_max_lifetime", false, -1);
-			parse_certificate(kf, out _http_tls_certificate, "Http", "tls_cert_file", "Http", "tls_key_file", _http_use_tls);
-			parse_int(kf, out _http_timeout, "Http", "timeout", false, -1);
-			parse_uint32(kf, out _websocket_message_max_size, "Websocket", "message_max_size", false, 1048576);
-			parse_uint32(kf, out _http_request_max_size, "Http", "request_max_size", false, 1048576);
-			parse_string(kf, out _general_hostname, "General", "hostname", false, "localhost");
+			parse_bool(out _general_daemon, "General", "daemon", false, false);
+			parse_int(out _general_worker_threads, "General", "worker_threads", false, 0);
+			parse_uint16(out _http_port, "Http", "port", false, 80);
+			parse_bool(out _http_use_tls, "Http", "use_tls", false, false);
+			parse_int(out _http_session_lifetime, "Http", "session_lifetime", false, 3600);
+			parse_int(out _http_session_max_lifetime, "Http", "session_max_lifetime", false, -1);
+			parse_certificate(out _http_tls_certificate, "Http", "tls_cert_file", "Http", "tls_key_file", _http_use_tls);
+			parse_int(out _http_timeout, "Http", "timeout", false, -1);
+			parse_uint32(out _websocket_message_max_size, "Websocket", "message_max_size", false, 1048576);
+			parse_uint32(out _http_request_max_size, "Http", "request_max_size", false, 1048576);
+			parse_string(out _general_hostname, "General", "hostname", false, "localhost");
 
 			Websocket.Connection.message_max_size = _websocket_message_max_size;
 		}
@@ -168,7 +170,7 @@ namespace Neutron {
 		/**
 		 * Parses an uint16 
 		 */
-		private void parse_uint16(KeyFile kf, out uint16 dest, string group, string key, bool required, uint16 default_value) throws Error {
+		protected void parse_uint16(out uint16 dest, string group, string key, bool required, uint16 default_value) throws Error {
 			if(!check_option(kf, group, key, required)) {
 				dest = default_value;
 				return;
@@ -181,7 +183,7 @@ namespace Neutron {
 		/**
 		 * Parse a uint32 from the config-file
 		 */
-		private void parse_uint32(KeyFile kf, out uint32 dest, string group, string key, bool required, uint32 default_value) throws Error {
+		protected void parse_uint32(out uint32 dest, string group, string key, bool required, uint32 default_value) throws Error {
 			if(!check_option(kf, group, key, required)) {
 				dest = default_value;
 				return;
@@ -195,7 +197,7 @@ namespace Neutron {
 		 **
 		 * Parse a uint64 from the config-file
 		 *
-		private void parse_uint64(KeyFile kf, out uint64 dest, string group, string key, bool required, uint64 default_value) throws Error {
+		protected void parse_uint64(out uint64 dest, string group, string key, bool required, uint64 default_value) throws Error {
 			if(!check_option(kf, group, key, required)) {
 				dest = default_value;
 				return;
@@ -207,7 +209,7 @@ namespace Neutron {
 		/**
 		 * Parse a string from the config-file
 		 */
-		private void parse_string(KeyFile kf, out string dest, string group, string key, bool required, string default_value) throws Error {
+		protected void parse_string(out string dest, string group, string key, bool required, string default_value) throws Error {
 			if(!check_option(kf, group, key, required)) {
 				dest = default_value;
 				return;
@@ -218,7 +220,7 @@ namespace Neutron {
 		/**
 		 * Parses a boolean from the config-file 
 		 */
-		private void parse_bool(KeyFile kf, out bool dest, string group, string key, bool required, bool default_value) throws Error {
+		protected void parse_bool(out bool dest, string group, string key, bool required, bool default_value) throws Error {
 			if(!check_option(kf, group, key, required)) {
 				dest = default_value;
 				return;
@@ -229,7 +231,7 @@ namespace Neutron {
 		/**
 		 * Parses an integer from the config-file 
 		 */
-		private void parse_int(KeyFile kf, out int dest, string group, string key, bool required, int default_value) throws Error {
+		protected void parse_int(out int dest, string group, string key, bool required, int default_value) throws Error {
 			if(!check_option(kf, group, key, required)) {
 				dest = default_value;
 				return;
@@ -240,7 +242,7 @@ namespace Neutron {
 		/**
 		 * Parses a TlsCertificate from the config-file 
 		 */
-		private void parse_certificate(KeyFile kf, out TlsCertificate cert, string cert_group, string cert_key, string key_group, string key_key, bool required) throws Error {
+		protected void parse_certificate(out TlsCertificate cert, string cert_group, string cert_key, string key_group, string key_key, bool required) throws Error {
 			if((!check_option(kf, cert_group, cert_key, required)) || (!check_option(kf, key_group, key_key, required))) {
 				cert = null;
 				return;
