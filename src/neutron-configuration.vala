@@ -145,13 +145,7 @@ namespace Neutron {
 		/**
 		 * Parses the config-file again. You can also specify a new config-file 
 		 */
-		public void reload(string? new_config = null) throws Error {
-			if(new_config != null) _internal_config_file = new_config;
-			if(_internal_config_file == null) {
-				set_defaults();
-				return;
-			}
-
+		public void reload() throws Error {
 			var kf = new KeyFile();
 			kf.set_list_separator(',');
 			kf.load_from_file(_internal_config_file, KeyFileFlags.NONE);
@@ -169,15 +163,6 @@ namespace Neutron {
 			parse_string(kf, out _general_hostname, "General", "hostname", false, "localhost");
 
 			Websocket.Connection.message_max_size = _websocket_message_max_size;
-		}
-
-		/**
-		 * Set the default values 
-		 */
-		public void set_defaults() {
-			_general_daemon = false;
-			_http_port = 80;
-			_http_use_tls = false;
 		}
 
 		/**
@@ -271,7 +256,7 @@ namespace Neutron {
 		 * Checks if option is set in the config-file. Throws an error if it is not set, but required 
 		 */
 		private bool check_option(KeyFile kf, string group, string key, bool required) throws Error {
-			if(!kf.has_group(group) || !kf.has_key(group, key)) {
+			if(kf == null || !kf.has_group(group) || !kf.has_key(group, key)) {
 				if(required)
 					throw new ConfigurationError.REQUIRED_OPTION_MISSING("Required option missing");
 				return false;
