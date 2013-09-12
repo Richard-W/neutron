@@ -25,6 +25,7 @@ namespace Neutron {
 		private MainLoop[] thread_loops;
 		private int num_threads;
 		private int next = 0;
+		private int i;
 
 		public ThreadController(int num_threads) {
 			assert(num_threads > 0);
@@ -35,16 +36,8 @@ namespace Neutron {
 			thread_loops = new MainLoop[num_threads];
 
 			for(int i = 0; i < num_threads; i++) {
-				var thread = new Thread<bool>(null, () => {
-					var context = new MainContext();
-					context.push_thread_default();
-					thread_contexts[i] = context;
-
-					var loop = new MainLoop(context);
-					thread_loops[i] = loop;
-					loop.run();
-					return true;
-				});
+				this.i = i;
+				var thread = new Thread<bool>(null, this.thread_function);
 				threads[i] = thread;
 			}
 		}
@@ -54,6 +47,17 @@ namespace Neutron {
 				thread_loops[i].quit();
 				threads[i].join();
 			}
+		}
+
+		private bool thread_function() {
+			var context = new MainContext();
+			context.push_thread_default();
+			thread_contexts[i] = context;
+
+			var loop = new MainLoop(context);
+			thread_loops[i] = loop;
+			loop.run();
+			return true;
 		}
 
 		public void invoke(IdleSource isource) {
