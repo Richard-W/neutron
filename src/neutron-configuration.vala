@@ -158,14 +158,14 @@ namespace Neutron {
 
 			parse_bool(kf, out _general_daemon, "General", "daemon", false, false);
 			parse_int(kf, out _general_worker_threads, "General", "worker_threads", false, 0);
-			parse_port(kf, out _http_port, "Http", "port", false, 80);
+			parse_uint16(kf, out _http_port, "Http", "port", false, 80);
 			parse_bool(kf, out _http_use_tls, "Http", "use_tls", false, false);
 			parse_int(kf, out _http_session_lifetime, "Http", "session_lifetime", false, 3600);
 			parse_int(kf, out _http_session_max_lifetime, "Http", "session_max_lifetime", false, -1);
 			parse_certificate(kf, out _http_tls_certificate, "Http", "tls_cert_file", "Http", "tls_key_file", _http_use_tls);
 			parse_int(kf, out _http_timeout, "Http", "timeout", false, -1);
-			parse_uint(kf, out _websocket_message_max_size, "Websocket", "message_max_size", false, 1048576);
-			parse_uint(kf, out _http_request_max_size, "Http", "request_max_size", false, 1048576);
+			parse_uint32(kf, out _websocket_message_max_size, "Websocket", "message_max_size", false, 1048576);
+			parse_uint32(kf, out _http_request_max_size, "Http", "request_max_size", false, 1048576);
 			parse_string(kf, out _general_hostname, "General", "hostname", false, "localhost");
 
 			Websocket.Connection.message_max_size = _websocket_message_max_size;
@@ -181,17 +181,43 @@ namespace Neutron {
 		}
 
 		/**
-		 * This basically just parses a uint16 
+		 * Parses an uint16 
 		 */
-		private void parse_port(KeyFile kf, out uint16 dest, string group, string key, bool required, uint16 default_value) throws Error {
+		private void parse_uint16(KeyFile kf, out uint16 dest, string group, string key, bool required, uint16 default_value) throws Error {
 			if(!check_option(kf, group, key, required)) {
 				dest = default_value;
 				return;
 			}
 			uint64 port_proto = kf.get_uint64(group, key);
-			if(port_proto > 65535) throw new ConfigurationError.INVALID_OPTION("Portnumber too high");
+			if(port_proto > 0xFFFF) throw new ConfigurationError.INVALID_OPTION("uint too big");
 			dest = (uint16) port_proto;
 		}
+
+		/**
+		 * Parse a uint32 from the config-file
+		 */
+		private void parse_uint32(KeyFile kf, out uint32 dest, string group, string key, bool required, uint32 default_value) throws Error {
+			if(!check_option(kf, group, key, required)) {
+				dest = default_value;
+				return;
+			}
+			uint64 port_proto = kf.get_uint64(group, key);
+			if(port_proto > 0xFFFFFFFF) throw new ConfigurationError.INVALID_OPTION("uint too big");
+			dest = (uint32) port_proto;
+		}
+
+		/*
+		 **
+		 * Parse a uint64 from the config-file
+		 *
+		private void parse_uint64(KeyFile kf, out uint64 dest, string group, string key, bool required, uint64 default_value) throws Error {
+			if(!check_option(kf, group, key, required)) {
+				dest = default_value;
+				return;
+			}
+			dest = kf.get_uint64(group, key);
+		}
+		*/
 
 		/**
 		 * Parse a string from the config-file
@@ -202,20 +228,6 @@ namespace Neutron {
 				return;
 			}
 			dest = kf.get_string(group, key);
-		}
-
-
-		/**
-		 * Parse a uint from the config-file
-		 */
-		private void parse_uint(KeyFile kf, out uint dest, string group, string key, bool required, uint default_value) throws Error {
-			if(!check_option(kf, group, key, required)) {
-				dest = default_value;
-				return;
-			}
-			uint64 port_proto = kf.get_uint64(group, key);
-			if(port_proto > 0xFFFFFFFF) throw new ConfigurationError.INVALID_OPTION("number too high");
-			dest = (uint) port_proto;
 		}
 
 		/**
