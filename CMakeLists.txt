@@ -21,6 +21,16 @@ pkg_check_modules(GLIB glib-2.0 REQUIRED)
 include_directories(${GLIB_INCLUDE_DIRS})
 link_directories(${GLIB_LIBRARY_DIRS})
 
+if(GLIB_VERSION VERSION_LESS 2.32)
+	message(FATAL_ERROR "Glib version 2.32 required. Found version ${GLIB_VERSION}")
+endif(GLIB_VERSION VERSION_LESS 2.32)
+
+if(GLIB_VERSION VERSION_GREATER 2.36 OR GLIB_VERSION VERSION_EQUAL 2.36)
+	set(TARGET_GLIB 2.36)
+elseif(GLIB_VERSION VERSION_GREATER 2.36 OR GLIB_VERSION VERSION_EQUAL 2.36)
+	set(TARGET_GLIB 2.32)
+endif(GLIB_VERSION VERSION_GREATER 2.36 OR GLIB_VERSION VERSION_EQUAL 2.36)
+
 pkg_check_modules(GOBJECT gobject-2.0 REQUIRED)
 include_directories(${GOBJECT_INCLUDE_DIRS})
 link_directories(${GOBJECT_LIBRARY_DIRS})
@@ -66,7 +76,7 @@ vala_precompile(C_SOURCES
 	GENERATE_VAPI
 		neutron
 	OPTIONS
-		--target-glib=2.32
+		--target-glib=${TARGET_GLIB}
 		--thread
 )
 
