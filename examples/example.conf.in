@@ -6,8 +6,8 @@
 [Http]
 	port = 8080
 	use_tls = true
-	tls_cert_file = ./tlscert.crt
-	tls_key_file = ./tlscert.key
+	tls_cert_file = @CMAKE_CURRENT_SOURCE_DIR@/examples/tlscert.crt
+	tls_key_file = @CMAKE_CURRENT_SOURCE_DIR@/examples/tlscert.key
 	session_lifetime = 3600
 	session_max_lifetime = -1
 	timeout = 15

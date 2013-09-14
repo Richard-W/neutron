@@ -31,13 +31,8 @@ Just like Debian. Note that i have not tested anything on Ubuntu.
 Usage
 -----
 
-The file example/example.vala is used by me to test changes to the library.
-You can run it in two ways:
-
-* Install the library and compile example.vala with "valac example.vala --pkg neutron"
-
-* Create directory build, run "../configure" inside build/, switch to the example directory
-and run "./run.sh".
+You will find some vala-files (among a few others) in the examples-directory. They are automatically build to build-dir/examples
+and should give you a basic overview of the capabilities of this library.
 
 The API is in absolutely no way stable. Expect major/breaking changes to it. I will stabilize it
 eventually (release 0.2), but not until i am sure, that it is suitable for being the core of big projects. Every kind

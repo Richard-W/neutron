@@ -1,0 +1,2 @@
+const string cmake_current_source_dir = "@CMAKE_CURRENT_SOURCE_DIR@";
+const string cmake_current_binary_dir = "@CMAKE_CURRENT_BINARY_DIR@";

@@ -49,22 +49,27 @@ else(DEBIAN)
 endif(DEBIAN)
 
 vala_precompile(C_SOURCES
-		src/neutron-application.vala
-		src/neutron-configuration.vala
-		src/neutron-errors.vala
-		src/neutron-http-server.vala
-		src/neutron-http-parser.vala
-		src/neutron-session.vala
-		src/neutron-http-request.vala
-		src/neutron-http-requestimpl.vala
-		src/neutron-threadcontroller.vala
-		src/neutron-http-entity.vala
-		src/neutron-http-staticentity.vala
-		src/neutron-http-fileentity.vala
-		src/neutron-http-chunkconverter.vala
-		src/neutron-http-notfoundentity.vala
-		src/neutron-websocket-httpupgradeentity.vala
-		src/neutron-websocket-connection.vala
+	SOURCES
+		neutron-application.vala
+		neutron-configuration.vala
+		neutron-errors.vala
+		neutron-http-server.vala
+		neutron-http-parser.vala
+		neutron-session.vala
+		neutron-http-request.vala
+		neutron-http-requestimpl.vala
+		neutron-threadcontroller.vala
+		neutron-http-entity.vala
+		neutron-http-staticentity.vala
+		neutron-http-fileentity.vala
+		neutron-http-chunkconverter.vala
+		neutron-http-notfoundentity.vala
+		neutron-websocket-httpupgradeentity.vala
+		neutron-websocket-connection.vala
+	SOURCE_DIRECTORY
+		${CMAKE_CURRENT_SOURCE_DIR}/src
+	DIRECTORY
+		${CMAKE_CURRENT_BINARY_DIR}/src
 	PACKAGES
 		${VALA_PACKAGES}
 	GENERATE_VAPI
@@ -82,6 +87,70 @@ target_link_libraries(neutron
 	${GEE_LIBRARIES}
 )
 
+configure_file(
+	"${CMAKE_CURRENT_SOURCE_DIR}/examples/example.conf.in"
+	"${CMAKE_CURRENT_BINARY_DIR}/examples/example.conf"
+	@ONLY
+)
+
+configure_file(
+	"${CMAKE_CURRENT_SOURCE_DIR}/examples/example_vars.vala.in"
+	"${CMAKE_CURRENT_BINARY_DIR}/examples/example_vars.vala"
+	@ONLY
+)
+
+set(NEUTRON_DEPS gio-2.0)
+
+message(${CMAKE_CURRENT_BINARY_DIR}/examples/example_vars.vala)
+
+vala_precompile(EXAMPLE_DISPLAY_REQUEST_C
+	SOURCES
+		display_request.vala
+	SOURCE_DIRECTORY
+		${CMAKE_CURRENT_SOURCE_DIR}/examples
+	DIRECTORY
+		${CMAKE_CURRENT_BINARY_DIR}/examples
+	PACKAGES
+		${NEUTRON_DEPS}
+	CUSTOM_VAPIS
+		${CMAKE_CURRENT_BINARY_DIR}/src/neutron.vapi
+		${CMAKE_CURRENT_BINARY_DIR}/examples/example_vars.vala
+	OPTIONS
+		--thread
+		--target-glib=${GLIB_VERSION}
+)
+add_executable(examples/display_request ${EXAMPLE_DISPLAY_REQUEST_C})
+target_link_libraries(examples/display_request
+	${GLIB_LIBRARIES}
+	${GOBJECT_LIBRARIES}
+	${GIO_LIBRARIES}
+	neutron
+)
+
+vala_precompile(EXAMPLE_WEBSOCKET_C
+	SOURCES
+		websocket.vala
+	SOURCE_DIRECTORY
+		${CMAKE_CURRENT_SOURCE_DIR}/examples
+	DIRECTORY
+		${CMAKE_CURRENT_BINARY_DIR}/examples
+	PACKAGES
+		${NEUTRON_DEPS}
+	CUSTOM_VAPIS
+		${CMAKE_CURRENT_BINARY_DIR}/src/neutron.vapi
+		${CMAKE_CURRENT_BINARY_DIR}/examples/example_vars.vala
+	OPTIONS
+		--thread
+		--target-glib=${GLIB_VERSION}
+)
+add_executable(examples/websocket ${EXAMPLE_WEBSOCKET_C})
+target_link_libraries(examples/websocket
+	${GLIB_LIBRARIES}
+	${GOBJECT_LIBRARIES}
+	${GIO_LIBRARIES}
+	neutron
+)
+
 if(INSTALL_LIBRARY)
 	install(
 		TARGETS
@@ -95,14 +164,14 @@ if(INSTALL_HEADERS)
 	install(
 		FILES
 			${CMAKE_CURRENT_SOURCE_DIR}/vapi/neutron.deps
-			${CMAKE_CURRENT_BINARY_DIR}/neutron.vapi
+			${CMAKE_CURRENT_BINARY_DIR}/src/neutron.vapi
 		DESTINATION
 			share/vala/vapi/
 	)
 
 	install(
 		FILES
-			${CMAKE_CURRENT_BINARY_DIR}/neutron.h
+			${CMAKE_CURRENT_BINARY_DIR}/src/neutron.h
 		DESTINATION
 			include/
 	)

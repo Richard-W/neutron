@@ -106,14 +106,19 @@
 include(CMakeParseArguments)
 
 function(vala_precompile output)
-    cmake_parse_arguments(ARGS "" "DIRECTORY;GENERATE_HEADER;GENERATE_VAPI"
+    cmake_parse_arguments(ARGS "" "SOURCE_DIRECTORY;DIRECTORY;GENERATE_HEADER;GENERATE_VAPI"
         "SOURCES;PACKAGES;OPTIONS;CUSTOM_VAPIS" ${ARGN})
 
     if(ARGS_DIRECTORY)
-        set(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/${ARGS_DIRECTORY})
+        set(DIRECTORY ${ARGS_DIRECTORY})
     else(ARGS_DIRECTORY)
         set(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
     endif(ARGS_DIRECTORY)
+    if(ARGS_SOURCE_DIRECTORY)
+        set(SOURCE_DIRECTORY ${ARGS_SOURCE_DIRECTORY})
+    else(ARGS_SOURCE_DIRECTORY)
+        set(SOURCE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+    endif(ARGS_SOURCE_DIRECTORY)
     include_directories(${DIRECTORY})
     set(vala_pkg_opts "")
     foreach(pkg ${ARGS_PACKAGES})
@@ -122,7 +127,7 @@ function(vala_precompile output)
     set(in_files "")
     set(out_files "")
     foreach(src ${ARGS_SOURCES} ${ARGS_UNPARSED_ARGUMENTS})
-        list(APPEND in_files "${CMAKE_CURRENT_SOURCE_DIR}/${src}")
+        list(APPEND in_files "${SOURCE_DIRECTORY}/${src}")
         string(REPLACE ".vala" ".c" src ${src})
         string(REPLACE ".gs" ".c" src ${src})
         set(out_file "${DIRECTORY}/${src}")
@@ -166,8 +171,8 @@ function(vala_precompile output)
         "-C" 
         ${header_arguments} 
         ${vapi_arguments}
-        "-b" ${CMAKE_CURRENT_SOURCE_DIR} 
-        "-d" ${DIRECTORY} 
+        "-b" ${SOURCE_DIRECTORY}
+        "-d" ${DIRECTORY}
         ${vala_pkg_opts} 
         ${ARGS_OPTIONS} 
         ${in_files} 

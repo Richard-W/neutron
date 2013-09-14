@@ -22,7 +22,7 @@ int main(string[] argv) {
 	Neutron.Http.Server http;
 
 	try {
-		app = new Neutron.Application(argv, "./example.conf");
+		app = new Neutron.Application(argv, "%s/examples/example.conf".printf(cmake_current_binary_dir));
 
 		http = new Neutron.Http.Server(Neutron.Configuration.default.http_port);
 		http.apply_config(Neutron.Configuration.default);
@@ -41,50 +41,9 @@ int main(string[] argv) {
 void on_select_entity(Neutron.Http.Request request, Neutron.Http.EntitySelectContainer container) {
 	switch(request.path) {
 	case "/":
-		container.set_entity(new Neutron.Http.StaticEntity("text/html", """
-		<html>
-                <head>
-                        <meta charset="utf-8" />
-                </head>
-                <body>
-                        <h1>Neutron testpage</h1>
-                        <br><a href="/request">Request</a>
-                        <br><a href="/file">Filetest</a>
-			<br><a href="/websocket">Websocket</a>
-                </body>
-                </html>"""));
-		break;
-	case "/file":
-		container.set_entity(new Neutron.Http.FileEntity("text/html", "./file.html"));
-		break;
-	case "/request":
 		container.set_entity(new DisplayRequestEntity());
 		break;
-	case "/websocket":
-		container.set_entity(new Neutron.Http.FileEntity("text/html", "./websocket.html"));
-		break;
-	case "/websocket/socket":
-		var entity = new Neutron.Websocket.HttpUpgradeEntity();
-		entity.incoming.connect(on_incoming_ws);
-		container.set_entity(entity);
-		break;
 	}
-}
-
-void on_incoming_ws(Neutron.Websocket.Connection conn) {
-	conn.ref();
-
-	conn.on_message.connect(on_message);
-	conn.on_close.connect(on_close);
-	conn.start();
-}
-
-void on_message(string message, Neutron.Websocket.Connection conn) {
-	conn.send.begin("Got line: %s".printf(message));
-}
-
-void on_close(Neutron.Websocket.Connection conn) {
-	conn.unref();
 }
 
 class DisplayRequestEntity : Neutron.Http.Entity {
