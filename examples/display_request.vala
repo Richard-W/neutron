@@ -90,7 +90,7 @@ class DisplayRequestEntity : Neutron.Http.Entity {
 
 			yield send("""
 			<h2>Form</h2>
-			<form method="post" action="/request">
+			<form method="post" action="/">
 			<table border=0>
 			<tr>
 				<td>input1</td>
