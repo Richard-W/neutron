@@ -97,53 +97,9 @@ configure_file(
 	@ONLY
 )
 
-set(NEUTRON_DEPS gio-2.0)
-
-message(${CMAKE_CURRENT_BINARY_DIR}/examples/example_vars.vala)
-
-vala_precompile(EXAMPLE_DISPLAY_REQUEST_C
-	SOURCES
-		display_request.vala
-	SOURCE_DIRECTORY
-		examples
-	PACKAGES
-		${NEUTRON_DEPS}
-	CUSTOM_VAPIS
-		${CMAKE_CURRENT_BINARY_DIR}/src/neutron.vapi
-		${CMAKE_CURRENT_BINARY_DIR}/examples/example_vars.vala
-	OPTIONS
-		--thread
-		--target-glib=${GLIB_VERSION}
-)
-add_executable(examples/display_request ${EXAMPLE_DISPLAY_REQUEST_C})
-target_link_libraries(examples/display_request
-	${GLIB_LIBRARIES}
-	${GOBJECT_LIBRARIES}
-	${GIO_LIBRARIES}
-	neutron
-)
-
-vala_precompile(EXAMPLE_WEBSOCKET_C
-	SOURCES
-		websocket.vala
-	SOURCE_DIRECTORY
-		examples
-	PACKAGES
-		${NEUTRON_DEPS}
-	CUSTOM_VAPIS
-		${CMAKE_CURRENT_BINARY_DIR}/src/neutron.vapi
-		${CMAKE_CURRENT_BINARY_DIR}/examples/example_vars.vala
-	OPTIONS
-		--thread
-		--target-glib=${GLIB_VERSION}
-)
-add_executable(examples/websocket ${EXAMPLE_WEBSOCKET_C})
-target_link_libraries(examples/websocket
-	${GLIB_LIBRARIES}
-	${GOBJECT_LIBRARIES}
-	${GIO_LIBRARIES}
-	neutron
-)
+include(NeutronExample)
+add_neutron_example(display_request display_request.vala)
+add_neutron_example(websocket websocket.vala)
 
 if(INSTALL_LIBRARY)
 	install(
