@@ -38,9 +38,13 @@ namespace Neutron {
 		 * Takes the argv and an alternative configfile, to instantiate the
 		 * default Configuration-object
 		 */
-		public Application(string[] argv, string? configfile = null) throws Error {
+		public Application(string[] argv, string? configfile = null, MainLoop? custom_mainloop = null) throws Error {
 			config = new Configuration(argv, configfile);
-			mainloop = new MainLoop();
+
+			if(custom_mainloop == null)
+				mainloop = new MainLoop();
+			else
+				mainloop = custom_mainloop;
 
 			if(config.general_worker_threads > 0)
 				_thread_controller = new ThreadController(config.general_worker_threads);
