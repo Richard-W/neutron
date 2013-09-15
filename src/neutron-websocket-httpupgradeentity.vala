@@ -43,7 +43,10 @@ public class Neutron.Websocket.HttpUpgradeEntity : Http.Entity {
 			var upgrade = request.get_header_var("upgrade");
 			var ws_key_raw = request.get_header_var("sec-websocket-key");
 			if(ws_key_raw == null || upgrade == null || upgrade.down() != "websocket") {
-				yield send_status(400);
+				yield send_status(426);
+				yield send_header("Upgrade", "websocket");
+				yield send_header("Connection", "close");
+				yield send_header("Sec-WebSocket-Version", "13");
 				return Http.ConnectionAction.CLOSE;
 			}
 
