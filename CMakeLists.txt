@@ -157,7 +157,7 @@ endif(INSTALL_LIBRARY)
 if(INSTALL_HEADERS)
 	install(
 		FILES
-			${CMAKE_CURRENT_SOURCE_DIR}/vapi/neutron.deps
+			${CMAKE_CURRENT_SOURCE_DIR}/neutron.deps
 			${CMAKE_CURRENT_BINARY_DIR}/src/neutron.vapi
 		DESTINATION
 			share/vala/vapi/
