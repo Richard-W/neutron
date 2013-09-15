@@ -52,6 +52,22 @@ namespace Neutron {
 			get { return _general_hostname; }
 		}
 
+		private int _general_uid;
+		/**
+		 * Run under this uid
+		 */
+		public int general_uid {
+			get { return _general_uid; }
+		}
+
+		private int _general_gid;
+		/**
+		 * Run under this gid
+		 */
+		public int general_gid {
+			get { return _general_gid; }
+		}
+
 		/* Http */
 
 		private uint16 _http_port;
@@ -179,6 +195,8 @@ namespace Neutron {
 			parse_uint32(out _websocket_message_max_size, "Websocket", "message_max_size", false, 1048576);
 			parse_uint32(out _http_request_max_size, "Http", "request_max_size", false, 1048576);
 			parse_string(out _general_hostname, "General", "hostname", false, "localhost");
+			parse_int(out _general_uid, "General", "uid", false, 0);
+			parse_int(out _general_gid, "General", "gid", false, 0);
 		}
 
 		/**

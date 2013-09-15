@@ -2,6 +2,8 @@
 	daemon = false
 	worker_threads = 4
 	hostname = localhost:8080
+	uid = 99
+	gid = 99
 
 [Http]
 	port = 8080

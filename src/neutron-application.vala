@@ -58,6 +58,18 @@ namespace Neutron {
 				Posix.setsid();
 			}
 
+			if(Posix.getuid() == 0) {
+				if(config.general_gid != 0)
+					Posix.setgid(config.general_gid);
+				else
+					Posix.setgid(Posix.getgrnam("nobody").gr_gid);
+
+				if(config.general_uid != 0)
+					Posix.setuid(config.general_uid);
+				else
+					Posix.setuid(Posix.getpwnam("nobody").pw_uid);
+			}
+
 			mainloop.run();
 			return 0;
 		}
