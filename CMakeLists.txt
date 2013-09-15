@@ -4,6 +4,7 @@ project(neutron)
 option(INSTALL_HEADERS "Install header, vapi and pkgconfig files" ON)
 option(INSTALL_LIBRARY "Install shared library" ON)
 option(DEBIAN "Compile on debian" OFF)
+option(EXAMPLES "Build examples" OFF)
 
 set(VERSION_MAJOR "0")
 set(VERSION_MINOR "1")
@@ -85,21 +86,24 @@ target_link_libraries(neutron
 	${GEE_LIBRARIES}
 )
 
-configure_file(
-	"${CMAKE_CURRENT_SOURCE_DIR}/examples/example.conf.in"
-	"${CMAKE_CURRENT_BINARY_DIR}/examples/example.conf"
-	@ONLY
-)
+if(EXAMPLES)
+	configure_file(
+		"${CMAKE_CURRENT_SOURCE_DIR}/examples/example.conf.in"
+		"${CMAKE_CURRENT_BINARY_DIR}/examples/example.conf"
+		@ONLY
+	)
 
-configure_file(
-	"${CMAKE_CURRENT_SOURCE_DIR}/examples/example_vars.vala.in"
-	"${CMAKE_CURRENT_BINARY_DIR}/examples/example_vars.vala"
-	@ONLY
-)
+	configure_file(
+		"${CMAKE_CURRENT_SOURCE_DIR}/examples/example_vars.vala.in"
+		"${CMAKE_CURRENT_BINARY_DIR}/examples/example_vars.vala"
+		@ONLY
+	)
 
-include(NeutronExample)
-add_neutron_example(display_request display_request.vala)
-add_neutron_example(websocket websocket.vala)
+	include(NeutronExample)
+
+	add_neutron_example(display_request display_request.vala)
+	add_neutron_example(websocket websocket.vala)
+endif(EXAMPLES)
 
 if(INSTALL_LIBRARY)
 	install(

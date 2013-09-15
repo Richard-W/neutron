@@ -32,7 +32,7 @@ Usage
 -----
 
 You will find some vala-files (among a few others) in the examples-directory. They are automatically build to build-dir/examples
-and should give you a basic overview of the capabilities of this library.
+if you specify --enable-examples and should give you a basic overview of the capabilities of this library.
 
 The API is in absolutely no way stable. Expect major/breaking changes to it. I will stabilize it
 eventually (release 0.2), but not until i am sure, that it is suitable for being the core of big projects. Every kind
