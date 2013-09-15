@@ -67,9 +67,7 @@ vala_precompile(C_SOURCES
 		neutron-websocket-httpupgradeentity.vala
 		neutron-websocket-connection.vala
 	SOURCE_DIRECTORY
-		${CMAKE_CURRENT_SOURCE_DIR}/src
-	DIRECTORY
-		${CMAKE_CURRENT_BINARY_DIR}/src
+		src
 	PACKAGES
 		${VALA_PACKAGES}
 	GENERATE_VAPI
@@ -107,9 +105,7 @@ vala_precompile(EXAMPLE_DISPLAY_REQUEST_C
 	SOURCES
 		display_request.vala
 	SOURCE_DIRECTORY
-		${CMAKE_CURRENT_SOURCE_DIR}/examples
-	DIRECTORY
-		${CMAKE_CURRENT_BINARY_DIR}/examples
+		examples
 	PACKAGES
 		${NEUTRON_DEPS}
 	CUSTOM_VAPIS
@@ -131,9 +127,7 @@ vala_precompile(EXAMPLE_WEBSOCKET_C
 	SOURCES
 		websocket.vala
 	SOURCE_DIRECTORY
-		${CMAKE_CURRENT_SOURCE_DIR}/examples
-	DIRECTORY
-		${CMAKE_CURRENT_BINARY_DIR}/examples
+		examples
 	PACKAGES
 		${NEUTRON_DEPS}
 	CUSTOM_VAPIS

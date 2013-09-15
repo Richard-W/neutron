@@ -33,7 +33,7 @@
 #   them in the system.
 #
 # GENERATE_VAPI
-#   Pass all the needed flags to the compiler to create an internal vapi for
+#   Pass all the needed flags to the compiler to create a vapi for
 #   the compiled library. The provided name will be used for this and a
 #   <provided_name>.vapi file will be created.
 #
@@ -109,17 +109,19 @@ function(vala_precompile output)
     cmake_parse_arguments(ARGS "" "SOURCE_DIRECTORY;DIRECTORY;GENERATE_HEADER;GENERATE_VAPI"
         "SOURCES;PACKAGES;OPTIONS;CUSTOM_VAPIS" ${ARGN})
 
-    if(ARGS_DIRECTORY)
-        set(DIRECTORY ${ARGS_DIRECTORY})
-    else(ARGS_DIRECTORY)
-        set(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-    endif(ARGS_DIRECTORY)
     if(ARGS_SOURCE_DIRECTORY)
-        set(SOURCE_DIRECTORY ${ARGS_SOURCE_DIRECTORY})
+        set(SOURCE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/${ARGS_SOURCE_DIRECTORY})
+	set(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${ARGS_SOURCE_DIRECTORY})
     else(ARGS_SOURCE_DIRECTORY)
         set(SOURCE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+	set(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
     endif(ARGS_SOURCE_DIRECTORY)
+
+    if(ARGS_DIRECTORY)
+        set(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/${ARGS_DIRECTORY})
+    endif(ARGS_DIRECTORY)
     include_directories(${DIRECTORY})
+
     set(vala_pkg_opts "")
     foreach(pkg ${ARGS_PACKAGES})
         list(APPEND vala_pkg_opts "--pkg=${pkg}")
