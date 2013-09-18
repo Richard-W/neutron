@@ -17,25 +17,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-namespace Neutron {
-	public errordomain ConfigurationError {
-		REQUIRED_OPTION_MISSING,
-		INVALID_OPTION
-	}
+public errordomain Neutron.ConfigurationError {
+	REQUIRED_OPTION_MISSING,
+	INVALID_OPTION
+}
 
-	namespace Http {
-		public errordomain HttpError {
-			STATUS_ALREADY_SENT,
-			STATUS_NOT_SENT,
-			HEADERS_ALREADY_SENT,
-			HEADERS_NOT_SENT
-		}
-	}
+public errordomain Neutron.Http.HttpError {
+	STATUS_ALREADY_SENT,
+	STATUS_NOT_SENT,
+	HEADERS_ALREADY_SENT,
+	HEADERS_NOT_SENT
+}
 
-	namespace Websocket {
-		public errordomain WebsocketError {
-			CONNECTION_CLOSED_UNEXPECTEDLY,
-			MAX_FRAME_SIZE_EXCEEDED
-		}
-	}
+public errordomain Neutron.Websocket.WebsocketError {
+	CONNECTION_CLOSED_UNEXPECTEDLY,
+	MAX_FRAME_SIZE_EXCEEDED
 }
