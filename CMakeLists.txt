@@ -10,9 +10,12 @@ set(VERSION_MAJOR "0")
 set(VERSION_MINOR "1")
 set(VERSION_PATCH "0")
 
+#needed for example for pkgconfig
 set(VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 
+#include project-specific cmake-files
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+
 find_package(Vala REQUIRED)
 include(UseVala)
 
@@ -34,6 +37,7 @@ pkg_check_modules(GIO gio-2.0 REQUIRED)
 include_directories(${GIO_INCLUDE_DIRS})
 link_directories(${GIO_LIBRARY_DIRS})
 
+#debian and ubuntu ship only ship gee-1.0 pc files
 if(DEBIAN)
 	pkg_check_modules(GEE gee-1.0 REQUIRED)
 else(DEBIAN)
