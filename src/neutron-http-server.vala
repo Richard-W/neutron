@@ -58,7 +58,7 @@ public class Neutron.Http.Server : Object {
 	/**
 	 * Used to distribute requests over threads
 	 */
-	public ThreadController? thread_controller = null;
+	public ThreadController? thread_controller = ThreadController.default;
 
 	/**
 	 * The time in seconds the server will wait for new requests before it

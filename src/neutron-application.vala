@@ -25,14 +25,6 @@ public class Neutron.Application : Object {
 	private Configuration config;
 	private MainLoop mainloop;
 
-	private ThreadController? _thread_controller;
-	/**
-	 * Default thread controller of this application
-	 */
-	public ThreadController? thread_controller {
-		get { return _thread_controller; }
-	}
-
 	/**
 	 * Takes the argv and an alternative configfile, to instantiate the
 	 * default Configuration-object
@@ -45,10 +37,10 @@ public class Neutron.Application : Object {
 		else
 			mainloop = custom_mainloop;
 
-		if(config.general_worker_threads > 0)
-			_thread_controller = new ThreadController(config.general_worker_threads);
-		else
-			_thread_controller = null;
+		if(config.general_worker_threads > 0) {
+			var thread_controller = new ThreadController(config.general_worker_threads);
+			thread_controller.push_default();
+		}
 	}
 
 	/**

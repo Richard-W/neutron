@@ -23,6 +23,17 @@ namespace Neutron {
 	 * which get executed in one of the threads.
 	 */
 	public class ThreadController : Object {
+		private static ThreadController? _default;
+		public static ThreadController? default {
+			get { return _default; }
+		}
+
+		public static ThreadController? pop_default() {
+			var result = _default;
+			_default = null;
+			return result;
+		}
+
 		private Thread<bool>[] threads;
 		private MainContext[] thread_contexts;
 		private MainLoop[] thread_loops;
@@ -67,6 +78,10 @@ namespace Neutron {
 			isource.attach(thread_contexts[next]);
 			next++;
 			if(next >= num_threads) next = 0;
+		}
+
+		public void push_default() {
+			ThreadController._default = this;
 		}
 	}
 }
