@@ -24,9 +24,7 @@ int main(string[] argv) {
 	try {
 		app = new Neutron.Application(argv, "%s/examples/example.conf".printf(cmake_current_binary_dir));
 
-		http = new Neutron.Http.Server(Neutron.Configuration.default.http_port);
-		http.apply_config(Neutron.Configuration.default);
-		http.thread_controller = app.thread_controller;
+		http = new Neutron.Http.Server();
 
 		http.select_entity.connect(on_select_entity);
 		http.start();

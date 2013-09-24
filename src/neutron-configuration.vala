@@ -147,15 +147,21 @@ public class Neutron.Configuration : Object {
 
 	private KeyFile kf;
 	
-	private static Configuration _default;
-	public static Configuration default {
+	private static Configuration? _default = null;
+	public static Configuration? default {
 		get { return _default; }
+	}
+
+	public static Configuration? pop_default() {
+		var result = _default;
+		_default = null;
+		return result;
 	}
 
 	/**
 	 * Should be given the argv-array, to determine the location of the config-file. 
 	 */
-	public Configuration(string[] argv, string? alternative = null, bool default = true) throws Error {
+	public Configuration(string[] argv, string? alternative = null) throws Error {
 		string? config_file = null;
 		OptionEntry[] options = new OptionEntry[1];
 		options[0] = { "config", 'c', 0, OptionArg.FILENAME, ref config_file, "Configuration-file", "CONFIG" };
@@ -169,10 +175,6 @@ public class Neutron.Configuration : Object {
 		_internal_config_file = config_file;
 
 		reload();
-
-		if(default) {
-			_default = this;
-		}
 	}
 
 	/**
@@ -295,6 +297,10 @@ public class Neutron.Configuration : Object {
 			return false;
 		}
 		return true;
+	}
+
+	public void push_default() {
+		Configuration._default = this;
 	}
 }
 

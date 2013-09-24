@@ -31,6 +31,7 @@ public class Neutron.Application : Object {
 	 */
 	public Application(string[] argv, string? configfile = null, MainLoop? custom_mainloop = null) throws Error {
 		config = new Configuration(argv, configfile);
+		config.push_default();
 
 		if(custom_mainloop == null)
 			mainloop = new MainLoop();

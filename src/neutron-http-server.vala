@@ -84,22 +84,27 @@ public class Neutron.Http.Server : Object {
 	private SocketService listener;
 	private HashMap<string, Session> stored_sessions;
 
-	public Server(uint16 port) throws Error {
-		assert(port != 0);
-		this._port = port;
+	public Server(uint16 port = 0) throws Error {
+		if(port == 0)
+			this._port = Configuration.default.http_port;
+		else
+			this._port = port;
 
 		/* Define listener */
 		listener = new SocketService();
-		listener.add_inet_port(port, null);
+		listener.add_inet_port(this._port, null);
 		listener.incoming.connect(on_incoming);
 
 		stored_sessions = new HashMap<string, Session>();
+		apply_config(Configuration.default);
 	}
 
 	/**
 	 * Sets certain parameters of this server according to the Configuration-object
 	 */
-	public void apply_config(Configuration config) {
+	private void apply_config(Configuration? config) {
+		if(config == null) return;
+
 		this.use_tls = config.http_use_tls;
 		this.tls_certificate = config.http_tls_certificate;
 		this.timeout = config.http_timeout;
