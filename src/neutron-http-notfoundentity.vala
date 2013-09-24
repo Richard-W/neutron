@@ -17,33 +17,32 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-namespace Neutron.Http {
-	/**
-	 * This is the 404-Error-Page that is emitted, when no select_entity
-	 * handler feels responsible for the path
-	 */
-	public class NotFoundEntity : Entity {
-		protected async override ConnectionAction handle_request() {
-			try {
-				yield send_status(404);
-				yield send_header("Content-type", "text/html");
-				yield end_headers();
-				yield send("""
-				<!DOCTYPE html>
-				<html>
-				<head>
-					<meta charset="utf-8" />
-				</head>
-				<body>
-					<h1>404 - Not Found</h1>
-				</body>
-				</html>
-				""");
-				yield end_body();
-				return ConnectionAction.KEEP_ALIVE;
-			} catch(Error e) {
-				return ConnectionAction.CLOSE;
-			}
+/**
+ * This is the 404-Error-Page that is emitted, when no select_entity
+ * handler feels responsible for the path
+ */
+public class Neutron.Http.NotFoundEntity : Entity {
+	protected async override ConnectionAction handle_request() {
+		try {
+			yield send_status(404);
+			yield send_header("Content-type", "text/html");
+			yield end_headers();
+			yield send("""
+			<!DOCTYPE html>
+			<html>
+			<head>
+				<meta charset="utf-8" />
+			</head>
+			<body>
+				<h1>404 - Not Found</h1>
+			</body>
+			</html>
+			""");
+			yield end_body();
+			return ConnectionAction.KEEP_ALIVE;
+		} catch(Error e) {
+			return ConnectionAction.CLOSE;
 		}
 	}
 }
+

@@ -17,65 +17,63 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-namespace Neutron {
+/**
+ * Controls the global values of the application
+ */
+public class Neutron.Application : Object {
+	/* General */
+	private Configuration config;
+	private MainLoop mainloop;
+
+	private ThreadController? _thread_controller;
 	/**
-	 * Controls the global values of the application
+	 * Default thread controller of this application
 	 */
-	public class Application : Object {
-		/* General */
-		private Configuration config;
-		private MainLoop mainloop;
+	public ThreadController? thread_controller {
+		get { return _thread_controller; }
+	}
 
-		private ThreadController? _thread_controller;
-		/**
-		 * Default thread controller of this application
-		 */
-		public ThreadController? thread_controller {
-			get { return _thread_controller; }
+	/**
+	 * Takes the argv and an alternative configfile, to instantiate the
+	 * default Configuration-object
+	 */
+	public Application(string[] argv, string? configfile = null, MainLoop? custom_mainloop = null) throws Error {
+		config = new Configuration(argv, configfile);
+
+		if(custom_mainloop == null)
+			mainloop = new MainLoop();
+		else
+			mainloop = custom_mainloop;
+
+		if(config.general_worker_threads > 0)
+			_thread_controller = new ThreadController(config.general_worker_threads);
+		else
+			_thread_controller = null;
+	}
+
+	/**
+	 * This runs the GLib.MainLoop and daemonizes the process if it is specified in the config 
+	 */
+	public int run() {
+		if(config.general_daemon) {
+			var pid = Posix.fork();
+			if(pid != 0) Posix.exit(0);
+			Posix.setsid();
 		}
 
-		/**
-		 * Takes the argv and an alternative configfile, to instantiate the
-		 * default Configuration-object
-		 */
-		public Application(string[] argv, string? configfile = null, MainLoop? custom_mainloop = null) throws Error {
-			config = new Configuration(argv, configfile);
-
-			if(custom_mainloop == null)
-				mainloop = new MainLoop();
+		if(Posix.getuid() == 0) {
+			if(config.general_gid != 0)
+				Posix.setgid(config.general_gid);
 			else
-				mainloop = custom_mainloop;
+				Posix.setgid(Posix.getgrnam("nobody").gr_gid);
 
-			if(config.general_worker_threads > 0)
-				_thread_controller = new ThreadController(config.general_worker_threads);
+			if(config.general_uid != 0)
+				Posix.setuid(config.general_uid);
 			else
-				_thread_controller = null;
+				Posix.setuid(Posix.getpwnam("nobody").pw_uid);
 		}
 
-		/**
-		 * This runs the GLib.MainLoop and daemonizes the process if it is specified in the config 
-		 */
-		public int run() {
-			if(config.general_daemon) {
-				var pid = Posix.fork();
-				if(pid != 0) Posix.exit(0);
-				Posix.setsid();
-			}
-
-			if(Posix.getuid() == 0) {
-				if(config.general_gid != 0)
-					Posix.setgid(config.general_gid);
-				else
-					Posix.setgid(Posix.getgrnam("nobody").gr_gid);
-
-				if(config.general_uid != 0)
-					Posix.setuid(config.general_uid);
-				else
-					Posix.setuid(Posix.getpwnam("nobody").pw_uid);
-			}
-
-			mainloop.run();
-			return 0;
-		}
+		mainloop.run();
+		return 0;
 	}
 }

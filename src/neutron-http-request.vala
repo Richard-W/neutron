@@ -17,83 +17,82 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-namespace Neutron.Http {
+/**
+ * Contains all values, the parser extracted from the request
+ */
+public abstract class Neutron.Http.Request : Object {
 	/**
-	 * Contains all values, the parser extracted from the request
+	 * Should be constructed by the library
 	 */
-	public abstract class Request : Object {
-		/**
-		 * Should be constructed by the library
-		 */
-		protected Request() {
-		}
-
-		/**
-		 * The requested path 
-		 */
-		public abstract string path {
-			get;
-		}
-
-		/**
-		 * Http-Method (e.g. GET, POST, PROPFIND)
-		 */
-		public abstract string method {
-			get;
-		}
-
-		/**
-		 * Whether an encrypted connection is used
-		 */
-		public abstract bool uses_tls {
-			get;
-		}
-
-		/**
-		 * The unique session-object
-		 */
-		public abstract Session? session {
-			get;
-		}
-
-		/**
-		 * Get string from POST-body 
-		 */
-		public abstract string? get_post_var(string key);
-
-		/**
-		 * Get string from Request (e.g. /index.html?foo=bar) 
-		 */
-		public abstract string? get_request_var(string key);
-
-		/**
-		 * Get string from Cookie 
-		 */
-		public abstract string? get_cookie_var(string key);
-
-		/**
-		 * Get string from header 
-		 */
-		public abstract string? get_header_var(string key);
-
-		/**
-		 * Return all set keys 
-		 */
-		public abstract string[]? get_post_vars();
-
-		/**
-		 * Return all set keys 
-		 */
-		public abstract string[]? get_request_vars();
-
-		/**
-		 * Return all set keys 
-		 */
-		public abstract string[]? get_cookie_vars();
-
-		/**
-		 * Return all set keys 
-		 */
-		public abstract string[]? get_header_vars();
+	protected Request() {
 	}
+
+	/**
+	 * The requested path 
+	 */
+	public abstract string path {
+		get;
+	}
+
+	/**
+	 * Http-Method (e.g. GET, POST, PROPFIND)
+	 */
+	public abstract string method {
+		get;
+	}
+
+	/**
+	 * Whether an encrypted connection is used
+	 */
+	public abstract bool uses_tls {
+		get;
+	}
+
+	/**
+	 * The unique session-object
+	 */
+	public abstract Session? session {
+		get;
+	}
+
+	/**
+	 * Get string from POST-body 
+	 */
+	public abstract string? get_post_var(string key);
+
+	/**
+	 * Get string from Request (e.g. /index.html?foo=bar) 
+	 */
+	public abstract string? get_request_var(string key);
+
+	/**
+	 * Get string from Cookie 
+	 */
+	public abstract string? get_cookie_var(string key);
+
+	/**
+	 * Get string from header 
+	 */
+	public abstract string? get_header_var(string key);
+
+	/**
+	 * Return all set keys 
+	 */
+	public abstract string[]? get_post_vars();
+
+	/**
+	 * Return all set keys 
+	 */
+	public abstract string[]? get_request_vars();
+
+	/**
+	 * Return all set keys 
+	 */
+	public abstract string[]? get_cookie_vars();
+
+	/**
+	 * Return all set keys 
+	 */
+	public abstract string[]? get_header_vars();
 }
+
