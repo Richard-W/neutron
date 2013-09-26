@@ -31,5 +31,6 @@ public errordomain Neutron.Http.HttpError {
 
 public errordomain Neutron.Websocket.WebsocketError {
 	CONNECTION_CLOSED_UNEXPECTEDLY,
-	MAX_FRAME_SIZE_EXCEEDED
+	MAX_FRAME_SIZE_EXCEEDED,
+	PROTOCOL_ERROR
 }

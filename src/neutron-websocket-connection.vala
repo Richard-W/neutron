@@ -130,11 +130,11 @@ public class Neutron.Websocket.Connection : Object {
 		var frame_header = yield read_bytes(2);
 
 		fin = ((frame_header[0] & 0x80) == 0x80);
-		/* Maybe we need this code in the future
 		bool rsv1 = ((frame_header[0] & 0x40) == 0x40);
 		bool rsv2 = ((frame_header[0] & 0x20) == 0x20);
 		bool rsv3 = ((frame_header[0] & 0x10) == 0x10);
-		*/
+		if(rsv1 || rsv2 || rsv3) throw new WebsocketError.PROTOCOL_ERROR("unexpected positive rsv-flag in frame-header");
+
 		opcode = (frame_header[0] & 0xF);
 
 		bool masked = ((frame_header[1] & 0x80) == 0x80);
