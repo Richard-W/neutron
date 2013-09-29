@@ -34,3 +34,8 @@ public errordomain Neutron.Websocket.WebsocketError {
 	MAX_FRAME_SIZE_EXCEEDED,
 	PROTOCOL_ERROR
 }
+
+public errordomain Neutron.EDB.EDBError {
+	NOT_SERIALIZABLE,
+	NOT_UNSERIALIZABLE
+}

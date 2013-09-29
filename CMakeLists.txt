@@ -78,6 +78,7 @@ vala_precompile(C_SOURCES
 		neutron-http-notfoundentity.vala
 		neutron-websocket-httpupgradeentity.vala
 		neutron-websocket-connection.vala
+		neutron-edb-serializable.vala
 	SOURCE_DIRECTORY
 		src
 	PACKAGES
@@ -114,6 +115,7 @@ if(EXAMPLES)
 
 	add_neutron_example(display_request display_request.vala)
 	add_neutron_example(websocket websocket.vala)
+	add_neutron_example(serial serial.vala)
 endif(EXAMPLES)
 
 if(INSTALL_LIBRARY)
