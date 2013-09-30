@@ -42,6 +42,7 @@ void main() {
 	
 	try {
 		var serial = foo1.serialize();
+		stdout.printf("Serial: %s\n\n", Base64.encode((uchar[]) serial));
 		foo2 = (Foo) Neutron.EDB.Serializable.unserialize(serial);
 	} catch(Error e) {
 		stderr.printf("Caught error: %s\n", e.message);
