@@ -42,7 +42,7 @@ public interface Neutron.EDB.Serializable : Object {
 		serial.append(class_name_len);
 		serial.append(class_name);
 
-		spec_list = serializable_get_property_list();
+		spec_list = this.get_class().list_properties();
 		foreach(ParamSpec spec in spec_list) {
 			Value val;
 			uint8[] data;
@@ -212,7 +212,7 @@ public interface Neutron.EDB.Serializable : Object {
 		size_t identsum_len;
 
 		object_type = this.get_type();
-		spec_list = serializable_get_property_list();
+		spec_list = this.get_class().list_properties();
 		property_list = new Gee.ArrayList<string>();
 		identsumb = new Checksum(ChecksumType.SHA256);
 		identsum_len = 32;
@@ -235,9 +235,5 @@ public interface Neutron.EDB.Serializable : Object {
 		assert(identsum_len == 32);
 
 		return identsum;
-	}
-
-	private ParamSpec[] serializable_get_property_list() {
-		return this.get_class().list_properties();
 	}
 }
