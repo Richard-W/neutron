@@ -47,17 +47,8 @@ public interface Neutron.EDB.Serializable : Object {
 		spec_list = this.get_class().list_properties();
 		foreach(ParamSpec spec in spec_list) {
 			var specname = spec.get_name();
-			if(excluded_properties != null) {
-				var cont = false;
-				foreach(string excluded_property in excluded_properties) {
-					if(specname == excluded_property) {
-						cont = true;
-						break;
-					}
-				}
-				if(cont)
-					continue;
-			}
+			if(serializable_string_array_contains(excluded_properties, specname))
+				continue;
 
 			Value val;
 			uint8[] data;
@@ -226,6 +217,7 @@ public interface Neutron.EDB.Serializable : Object {
 		uint8[] identsum;
 		size_t identsum_len;
 		string[]? excluded_properties;
+		string[]? optional_properties;
 
 		object_type = this.get_type();
 		spec_list = this.get_class().list_properties();
@@ -233,20 +225,14 @@ public interface Neutron.EDB.Serializable : Object {
 		identsumb = new Checksum(ChecksumType.SHA256);
 		identsum_len = 32;
 		excluded_properties = serializable_exclude_properties();
+		optional_properties = serializable_optional_properties();
 
 		foreach(ParamSpec spec in spec_list) {
 			var specname = spec.get_name();
-			if(excluded_properties != null) {
-				var cont = false;
-				foreach(string excluded_property in excluded_properties) {
-					if(specname == excluded_property) {
-						cont = true;
-						break;
-					}
-				}
-				if(cont)
-					continue;
-			}
+			if(serializable_string_array_contains(excluded_properties, specname))
+				continue;
+			if(serializable_string_array_contains(optional_properties, specname))
+				continue;
 			property_list.add("%s:%s".printf(specname, spec.value_type.name()));
 		}
 		property_list.sort();
@@ -268,5 +254,20 @@ public interface Neutron.EDB.Serializable : Object {
 
 	public virtual string[]? serializable_exclude_properties() {
 		return null;
+	}
+
+	public virtual string[]? serializable_optional_properties() {
+		return null;
+	}
+
+	private static bool serializable_string_array_contains(string[]? arr, string str) {
+		if(arr == null) return false;
+
+		foreach(string str2 in arr) {
+			if(str == str2)
+				return true;
+		}
+
+		return false;
 	}
 }
