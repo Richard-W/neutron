@@ -18,6 +18,10 @@ public class Foo : Object, Neutron.EDB.Serializable {
 		get;
 		set;
 	}
+
+	public string[]? serializable_exclude_properties() {
+		return { "bar" };
+	}
 }
 
 public class Bar : Object, Neutron.EDB.Serializable{

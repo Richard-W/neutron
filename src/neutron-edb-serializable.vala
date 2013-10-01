@@ -28,9 +28,11 @@ public interface Neutron.EDB.Serializable : Object {
 		uint8[] class_name;
 		uint8[] class_name_len;
 		int *intptr;
+		string[]? excluded_properties;
 
 		serial = new ByteArray();
 		object_type = this.get_type();
+		excluded_properties = serializable_exclude_properties();
 
 		class_name = (uint8[]) object_type.name().to_utf8();
 		intptr = &class_name.length;
@@ -44,6 +46,19 @@ public interface Neutron.EDB.Serializable : Object {
 
 		spec_list = this.get_class().list_properties();
 		foreach(ParamSpec spec in spec_list) {
+			var specname = spec.get_name();
+			if(excluded_properties != null) {
+				var cont = false;
+				foreach(string excluded_property in excluded_properties) {
+					if(specname == excluded_property) {
+						cont = true;
+						break;
+					}
+				}
+				if(cont)
+					continue;
+			}
+
 			Value val;
 			uint8[] data;
 			uint8[] type = new uint8[1];
@@ -85,7 +100,7 @@ public interface Neutron.EDB.Serializable : Object {
 				throw new EDBError.NOT_SERIALIZABLE("Type %s is not supported".printf(spec.value_type.name()));
 			}
 
-			uint8[] property_name = (uint8[]) spec.get_name().to_utf8();
+			uint8[] property_name = (uint8[]) specname.to_utf8();
 			intptr = &property_name.length;
 			uint8[] property_name_len = new uint8[sizeof(int)];
 			Memory.copy((void*) property_name_len, (void*) intptr, sizeof(int));
@@ -210,15 +225,29 @@ public interface Neutron.EDB.Serializable : Object {
 		Checksum identsumb;
 		uint8[] identsum;
 		size_t identsum_len;
+		string[]? excluded_properties;
 
 		object_type = this.get_type();
 		spec_list = this.get_class().list_properties();
 		property_list = new Gee.ArrayList<string>();
 		identsumb = new Checksum(ChecksumType.SHA256);
 		identsum_len = 32;
+		excluded_properties = serializable_exclude_properties();
 
 		foreach(ParamSpec spec in spec_list) {
-			property_list.add("%s:%s".printf(spec.get_name(),spec.value_type.name()));
+			var specname = spec.get_name();
+			if(excluded_properties != null) {
+				var cont = false;
+				foreach(string excluded_property in excluded_properties) {
+					if(specname == excluded_property) {
+						cont = true;
+						break;
+					}
+				}
+				if(cont)
+					continue;
+			}
+			property_list.add("%s:%s".printf(specname, spec.value_type.name()));
 		}
 		property_list.sort();
 
@@ -235,5 +264,9 @@ public interface Neutron.EDB.Serializable : Object {
 		assert(identsum_len == 32);
 
 		return identsum;
+	}
+
+	public virtual string[]? serializable_exclude_properties() {
+		return null;
 	}
 }
