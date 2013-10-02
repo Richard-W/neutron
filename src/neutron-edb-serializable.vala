@@ -18,77 +18,51 @@
  */
 
 public interface Neutron.EDB.Serializable : Object {
+	private static Gee.HashMap<Type, SerializeFunctionContainer> serialize_functions;
+	private static Gee.HashMap<Type, UnserializeFunctionContainer> unserialize_functions;
+	private static bool type_maps_initialized = false;
+
+	private static void init_type_maps() {
+		if(type_maps_initialized) return;
+
+		serialize_functions = new Gee.HashMap<Type, SerializeFunctionContainer>();
+		unserialize_functions = new Gee.HashMap<Type, UnserializeFunctionContainer>();
+
+		type_maps_initialized = true;
+
+		register_property_type(typeof(string), serialize_string, unserialize_string);
+		register_property_type(typeof(int), serialize_int, unserialize_int);
+		register_property_type(typeof(bool), serialize_bool, unserialize_bool);
+	}
+
 	/**
 	 * Serializes the properties of this object so it can be stored in a file.
 	 */
 	public uint8[] serialize() throws EDBError {
-		ParamSpec[] spec_list;
-		ByteArray serial;
-		Type object_type;
-		uint8[] class_name;
-		uint8[] class_name_len;
-		int *intptr;
-		string[]? excluded_properties;
-
-		serial = new ByteArray();
-		object_type = this.get_type();
-		excluded_properties = serializable_exclude_properties();
-
-		class_name = (uint8[]) object_type.name().to_utf8();
-		intptr = &class_name.length;
-		class_name_len = new uint8[sizeof(int)];
-		Memory.copy((void*) class_name_len, (void*) intptr, sizeof(int));
-		
+		if(!type_maps_initialized) init_type_maps();
+		var serial = new ByteArray();
 		serial.append(serializable_get_class_identifier());
+
+		var object_type = this.get_type();
+		var class_name = (uint8[]) object_type.name().to_utf8();
+		var class_name_len = new uint8[sizeof(int)];
+		var intptr = &class_name.length;
+		Memory.copy((void*) class_name_len, (void*) intptr, sizeof(int));
 
 		serial.append(class_name_len);
 		serial.append(class_name);
 
-		spec_list = this.get_class().list_properties();
+		var spec_list = this.get_class().list_properties();
+		var excluded_properties = serializable_exclude_properties();
+
 		foreach(ParamSpec spec in spec_list) {
 			var specname = spec.get_name();
+			var typename = spec.value_type.name();
+
 			if(serializable_string_array_contains(excluded_properties, specname))
 				continue;
-
-			Value val;
-			uint8[] data;
-			uint8[] type = new uint8[1];
-			
-			val = Value(spec.value_type);
-			this.get_property(spec.get_name(), ref val);
-
-			if(spec.value_type.is_a(typeof(string))) {
-				data = (uint8[]) val.get_string().to_utf8();
-				type[0] = 0;
-			}
-			else if(spec.value_type.is_a(typeof(int))) {
-				var intval = val.get_int();
-				var tmp = &intval;
-				data = new uint8[sizeof(int)];
-				Memory.copy((void*) data, tmp, sizeof(int));
-				type[0] = 1;
-			}
-			else if(spec.value_type.is_a(typeof(uint))) {
-				var uintval = val.get_uint();
-				var tmp = &uintval;
-				data = new uint8[sizeof(uint)];
-				Memory.copy((void*) data, tmp, sizeof(uint));
-				type[0] = 2;
-			}
-			else if(spec.value_type.is_a(typeof(bool))) {
-				data = new uint8[1];
-				type[0] = 3;
-				if(val.get_boolean())
-					data[0] = 1;
-				else
-					data[0] = 0;
-			}
-			else if(spec.value_type.is_a(typeof(Serializable))) {
-				data = ((Serializable) val.get_object()).serialize();
-				type[0] = 4;
-			}
-			else {
-				throw new EDBError.NOT_SERIALIZABLE("Type %s is not supported".printf(spec.value_type.name()));
+			if(!serialize_functions.has_key(spec.value_type)) {
+				throw new EDBError.NOT_SERIALIZABLE("No serialize function defined for type %s\n".printf(typename));
 			}
 
 			uint8[] property_name = (uint8[]) specname.to_utf8();
@@ -96,16 +70,27 @@ public interface Neutron.EDB.Serializable : Object {
 			uint8[] property_name_len = new uint8[sizeof(int)];
 			Memory.copy((void*) property_name_len, (void*) intptr, sizeof(int));
 
-			intptr = &data.length;
-			uint8[] datalen = new uint8[sizeof(int)];
-			Memory.copy((void*) datalen, (void*) intptr, sizeof(int));
-
 			serial.append(property_name_len);
 			serial.append(property_name);
 
+			var type = (uint8[]) typename.to_utf8();
+			var type_len = new uint8[sizeof(int)];
+			intptr = &type.length;
+			Memory.copy((void*) type_len, (void*) intptr, sizeof(int));
+
+			serial.append(type_len);
 			serial.append(type);
 
-			serial.append(datalen);
+			var val = Value(spec.value_type);
+			this.get_property(specname, ref val);
+
+			var serialize_function = serialize_functions.get(spec.value_type);
+			var data = serialize_function.func(val);
+			intptr = &data.length;
+			uint8[] data_len = new uint8[sizeof(int)];
+			Memory.copy((void*) data_len, (void*) intptr, sizeof(int));
+
+			serial.append(data_len);
 			serial.append(data);
 		}
 		
@@ -115,7 +100,9 @@ public interface Neutron.EDB.Serializable : Object {
 	/**
 	 * Creates a new Serializable from a serial created with the serialize-method
 	 */
-	public static Serializable unserialize(uint8[] serial) throws EDBError {
+	public void unserialize(uint8[] serial) throws EDBError {
+		if(!type_maps_initialized) init_type_maps();
+
 		int current = 0;
 		int len = 32;
 		uint8[] class_ident = new uint8[32];
@@ -124,25 +111,24 @@ public interface Neutron.EDB.Serializable : Object {
 			class_ident[current-start] = serial[current];
 		}
 
-		len = *((int*) ((char*) serial + current));
-		current += 4;
-		StringBuilder strb = new StringBuilder();
-		for(int start = current; (current - start) < len && current < serial.length; current++) {
-			strb.append_c((char) serial[current]);
-		}
-
-		string typename = strb.str;
-		Serializable obj = (Serializable) Object.new(Type.from_name(typename));
-
-		uint8[] class_ident2 = obj.serializable_get_class_identifier();
-
+		uint8[] class_ident2 = this.serializable_get_class_identifier();
 		for(int c = 0; c < 32; c++) {
 			if(class_ident[c] != class_ident2[c])
 				throw new EDBError.NOT_UNSERIALIZABLE("Class identifiers do not match");
 		}
 
+		len = *((int*) ((char*) serial + current));
+		current += (len+4);
+
 		while(current < serial.length) {
-			Value val;
+			len = *((int*) ((char*) serial + current));
+			var strb = new StringBuilder();
+			current += 4;
+
+			for(int start = current; (current - start) < len && current < serial.length; current++) {
+				strb.append_c((char) serial[current]);
+			}
+			string property_name = strb.str;
 
 			len = *((int*) ((char*) serial + current));
 			strb = new StringBuilder();
@@ -151,10 +137,8 @@ public interface Neutron.EDB.Serializable : Object {
 			for(int start = current; (current - start) < len && current < serial.length; current++) {
 				strb.append_c((char) serial[current]);
 			}
-			string property_name = strb.str;
-
-			uint8 type = serial[current];
-			current++;
+			string property_type_name = strb.str;
+			var property_type = Type.from_name(property_type_name);
 
 			len = *((int*) ((char*) serial + current));
 			current += 4;
@@ -163,39 +147,16 @@ public interface Neutron.EDB.Serializable : Object {
 				data[current - start] = serial[current];
 			}
 
-			switch(type) {
-			case 0:
-				val = Value(typeof(string));
-				val.set_string((string) data);
-				break;
-			case 1:
-				val = Value(typeof(int));
-				val.set_int(*((int*) data));
-				break;
-			case 2:
-				val = Value(typeof(uint));
-				val.set_uint(*((uint*) data));
-				break;
-			case 3:
-				val = Value(typeof(bool));
-				if(data[0] == 1)
-					val.set_boolean(true);
-				else
-					val.set_boolean(false);
-				break;
-			case 4:
-				var inline_obj = unserialize(data);
-				val = Value(typeof(Object));
-				val.set_object(inline_obj);
-				break;
-			default:
-				throw new EDBError.NOT_UNSERIALIZABLE("unknown type");
+			if(!unserialize_functions.has_key(property_type)) {
+				throw new EDBError.NOT_UNSERIALIZABLE("Unserialize-function not defined for property-type %s".printf(property_type_name));
 			}
 
-			obj.set_property(property_name, val);
-		}
+			var unserialize_function = unserialize_functions.get(property_type);
 
-		return obj;
+			Value val = unserialize_function.func(data);
+
+			this.set_property(property_name, val);
+		}
 	}
 
 	/**
@@ -260,6 +221,12 @@ public interface Neutron.EDB.Serializable : Object {
 		return null;
 	}
 
+	public static void register_property_type(Type type, owned SerializeFunction serialize_func, owned UnserializeFunction unserialize_func) {
+		if(!type_maps_initialized) init_type_maps();
+		serialize_functions.set(type, new SerializeFunctionContainer((owned) serialize_func));
+		unserialize_functions.set(type, new UnserializeFunctionContainer((owned) unserialize_func));
+	}
+
 	private static bool serializable_string_array_contains(string[]? arr, string str) {
 		if(arr == null) return false;
 
@@ -270,4 +237,78 @@ public interface Neutron.EDB.Serializable : Object {
 
 		return false;
 	}
+
+	private class SerializeFunctionContainer {
+		public SerializeFunction func;
+
+		public SerializeFunctionContainer(owned SerializeFunction func) {
+			this.func = (owned) func;
+		}
+	}
+
+	private class UnserializeFunctionContainer {
+		public UnserializeFunction func;
+
+		public UnserializeFunctionContainer(owned UnserializeFunction func) {
+			this.func = (owned) func;
+		}
+	}
+
+	private static uint8[] serialize_string(Value val) {
+		return (uint8[]) val.get_string().to_utf8();
+	}
+
+	private static Value unserialize_string(uint8[] serial) {
+		Value val = Value(typeof(string));
+		val.set_string((string) serial);
+
+		return val;
+	}
+
+	private static uint8[] serialize_int(Value val) {
+		var data = new uint8[sizeof(int)];
+		var integer = val.get_int();
+		int *intptr = &integer;
+
+		Memory.copy((void*) data, (void*) intptr, sizeof(int));
+
+		return data;
+	}
+
+	private static Value unserialize_int(uint8[] serial) {
+		Value val = Value(typeof(int));
+		int integer = 0;
+		int *intptr = &integer;
+
+		Memory.copy((void*) intptr, (void*) serial, sizeof(int));
+
+		val.set_int(integer);
+
+		return val;
+	}
+
+	private static uint8[] serialize_bool(Value val) {
+		var data = new uint8[1];
+
+		if(val.get_boolean())
+			data[0] = 1;
+		else
+			data[0] = 0;
+
+		return data;
+	}
+
+	private static Value unserialize_bool(uint8[] serial) {
+		Value val = Value(typeof(bool));
+
+		if(serial[0] == 1)
+			val.set_boolean(true);
+		else
+			val.set_boolean(false);
+
+		return val;
+	}
 }
+
+public delegate uint8[] Neutron.EDB.SerializeFunction(Value val);
+public delegate Value Neutron.EDB.UnserializeFunction(uint8[] serial);

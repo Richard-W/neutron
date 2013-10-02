@@ -13,26 +13,6 @@ public class Foo : Object, Neutron.EDB.Serializable {
 		get;
 		set;
 	}
-
-	public Bar foobar {
-		get;
-		set;
-	}
-
-	public string[]? serializable_exclude_properties() {
-		return { "bar" };
-	}
-
-	public string[]? serializable_optional_properties() {
-		return { "foobar" };
-	}
-}
-
-public class Bar : Object, Neutron.EDB.Serializable{
-	public string foobar {
-		get;
-		set;
-	}
 }
 
 void main() {
@@ -43,15 +23,11 @@ void main() {
 	foo1.baz = "Hello World!";
 	foo1.bay = true;
 
-	Bar bar = new Bar();
-	bar.foobar = "Goodbye World!";
-
-	foo1.foobar = bar;
-	
 	try {
 		var serial = foo1.serialize();
 		stdout.printf("Serial: %s\n\n", Base64.encode((uchar[]) serial));
-		foo2 = (Foo) Neutron.EDB.Serializable.unserialize(serial);
+		foo2 = new Foo();
+		foo2.unserialize(serial);
 	} catch(Error e) {
 		stderr.printf("Caught error: %s\n", e.message);
 		return;
@@ -61,5 +37,4 @@ void main() {
 		stdout.printf("Bay: true\n");
 	else
 		stdout.printf("Bay: false\n");
-	stdout.printf("Foobar: %s\n", foo2.foobar.foobar);
 }
