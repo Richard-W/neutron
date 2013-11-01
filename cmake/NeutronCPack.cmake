@@ -1,8 +1,0 @@
-set(CPACK_GENERATOR "DEB")
-set(CPACK_PACKAGE_VERSION_MAJOR ${VERSION_MAJOR})
-set(CPACK_PACKAGE_VERSION_MINOR ${VERSION_MINOR})
-set(CPACK_PACKAGE_VERSION_PATCH ${VERSION_PATCH})
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "libglib2.0-0,libgee2,glib-networking")
-set(CPACK_PACKAGE_DESCRIPTION "Web-development library using the GObject-system")
-set(CPACK_PACKAGE_CONTACT "Richard Wiedenhöft <richard.wiedenhoeft@gmail.com>")
-include(CPack)
