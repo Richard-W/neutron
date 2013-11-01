@@ -3,6 +3,7 @@ project(neutron)
 
 option(DEBIAN "Compile on debian" OFF)
 option(EXAMPLES "Build examples" OFF)
+option(TESTS "Build tests" OFF)
 
 set(VERSION_MAJOR "0")
 set(VERSION_MINOR "1")
@@ -87,3 +88,8 @@ install(
 if(EXAMPLES)
 	add_subdirectory(examples)
 endif(EXAMPLES)
+
+if(TESTS)
+	enable_testing()
+	add_subdirectory(tests)
+endif(TESTS)
