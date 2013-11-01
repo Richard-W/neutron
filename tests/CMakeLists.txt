@@ -21,3 +21,5 @@ function(neutron_test test)
 
 	add_test(NAME ${test} COMMAND ${test})
 endfunction(neutron_test)
+
+neutron_test(serializable-values)
