@@ -1,4 +1,4 @@
-public class Foo : Object, Neutron.EDB.Serializable {
+public class Foo : Object, Neutron.Serializable {
 	public int bar {
 		get;
 		set;

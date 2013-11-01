@@ -35,7 +35,7 @@ public errordomain Neutron.Websocket.WebsocketError {
 	PROTOCOL_ERROR
 }
 
-public errordomain Neutron.EDB.EDBError {
+public errordomain Neutron.SerializeError {
 	NOT_SERIALIZABLE,
 	NOT_UNSERIALIZABLE
 }

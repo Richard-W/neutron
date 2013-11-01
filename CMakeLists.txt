@@ -43,7 +43,7 @@ vala_precompile(C_SOURCES
 		neutron-http-notfoundentity.vala
 		neutron-websocket-httpupgradeentity.vala
 		neutron-websocket-connection.vala
-		neutron-edb-serializable.vala
+		neutron-serializable.vala
 	SOURCE_DIRECTORY
 		src
 	PACKAGES

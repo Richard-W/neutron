@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-public interface Neutron.EDB.Serializable : Object {
+public interface Neutron.Serializable : Object {
 	private static Gee.HashMap<Type, SerializeFunctionContainer> serialize_functions;
 	private static Gee.HashMap<Type, UnserializeFunctionContainer> unserialize_functions;
 	private static bool type_maps_initialized = false;
@@ -38,7 +38,7 @@ public interface Neutron.EDB.Serializable : Object {
 	/**
 	 * Serializes the properties of this object so it can be stored in a file.
 	 */
-	public uint8[] serialize() throws EDBError {
+	public uint8[] serialize() throws SerializeError {
 		if(!type_maps_initialized) init_type_maps();
 		var serial = new ByteArray();
 		serial.append(serializable_get_class_identifier());
@@ -62,7 +62,7 @@ public interface Neutron.EDB.Serializable : Object {
 			if(serializable_string_array_contains(excluded_properties, specname))
 				continue;
 			if(!serialize_functions.has_key(spec.value_type)) {
-				throw new EDBError.NOT_SERIALIZABLE("No serialize function defined for type %s\n".printf(typename));
+				throw new SerializeError.NOT_SERIALIZABLE("No serialize function defined for type %s\n".printf(typename));
 			}
 
 			uint8[] property_name = (uint8[]) specname.to_utf8();
@@ -100,7 +100,7 @@ public interface Neutron.EDB.Serializable : Object {
 	/**
 	 * Creates a new Serializable from a serial created with the serialize-method
 	 */
-	public void unserialize(uint8[] serial) throws EDBError {
+	public void unserialize(uint8[] serial) throws SerializeError {
 		if(!type_maps_initialized) init_type_maps();
 
 		int current = 0;
@@ -114,7 +114,7 @@ public interface Neutron.EDB.Serializable : Object {
 		uint8[] class_ident2 = this.serializable_get_class_identifier();
 		for(int c = 0; c < 32; c++) {
 			if(class_ident[c] != class_ident2[c])
-				throw new EDBError.NOT_UNSERIALIZABLE("Class identifiers do not match");
+				throw new SerializeError.NOT_UNSERIALIZABLE("Class identifiers do not match");
 		}
 
 		len = *((int*) ((char*) serial + current));
@@ -148,7 +148,7 @@ public interface Neutron.EDB.Serializable : Object {
 			}
 
 			if(!unserialize_functions.has_key(property_type)) {
-				throw new EDBError.NOT_UNSERIALIZABLE("Unserialize-function not defined for property-type %s".printf(property_type_name));
+				throw new SerializeError.NOT_UNSERIALIZABLE("Unserialize-function not defined for property-type %s".printf(property_type_name));
 			}
 
 			var unserialize_function = unserialize_functions.get(property_type);
@@ -310,5 +310,5 @@ public interface Neutron.EDB.Serializable : Object {
 	}
 }
 
-public delegate uint8[] Neutron.EDB.SerializeFunction(Value val);
-public delegate Value Neutron.EDB.UnserializeFunction(uint8[] serial);
+public delegate uint8[] Neutron.SerializeFunction(Value val);
+public delegate Value Neutron.UnserializeFunction(uint8[] serial);
