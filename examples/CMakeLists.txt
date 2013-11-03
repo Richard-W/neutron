@@ -37,4 +37,3 @@ configure_file(
 
 add_neutron_example(display_request display_request.vala)
 add_neutron_example(websocket websocket.vala)
-add_neutron_example(serial serial.vala)
