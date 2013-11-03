@@ -18,22 +18,25 @@
  */
 
 int main(string[] argv) {
-	Neutron.Application app;
+	Neutron.Configuration config;
 	Neutron.Http.Server http;
 
 	try {
-		app = new Neutron.Application(argv, "%s/example.conf".printf(cmake_current_binary_dir));
+		config = new Neutron.Configuration(argv, "%s/example.conf".printf(cmake_current_binary_dir));
+		config.push_default();
 
 		http = new Neutron.Http.Server();
 
 		http.select_entity.connect(on_select_entity);
 		http.start();
+
+		new MainLoop().run();
 	} catch(Error e) {
 		stderr.printf("Error: %s\n", e.message);
 		return 1;
 	}
 
-	return app.run();
+	return 0;
 }
 
 void on_select_entity(Neutron.Http.Request request, Neutron.Http.EntitySelectContainer container) {

@@ -7,7 +7,6 @@ endif(DEBIAN)
 
 vala_precompile(C_SOURCES
 	SOURCES
-		neutron-application.vala
 		neutron-configuration.vala
 		neutron-errors.vala
 		neutron-http-server.vala
