@@ -22,7 +22,8 @@ int main(string[] argv) {
 	Neutron.Http.Server http;
 
 	try {
-		config = new Neutron.Configuration(argv, "%s/example.conf".printf(cmake_current_binary_dir));
+		config = new Neutron.Configuration();
+		config.load_file("%s/example.conf".printf(cmake_current_binary_dir));
 		config.push_default();
 
 		http = new Neutron.Http.Server();

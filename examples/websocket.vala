@@ -22,7 +22,8 @@ int main(string[] argv) {
 	Neutron.Http.Server http;
 
 	try {
-		config = new Neutron.Configuration(argv, "%s/example.conf".printf(cmake_current_binary_dir));
+		config = new Neutron.Configuration();
+		config.load_file("%s/example.conf".printf(cmake_current_binary_dir));
 		config.push_default();
 
 		http = new Neutron.Http.Server();
@@ -43,7 +44,7 @@ void on_select_entity(Neutron.Http.Request request, Neutron.Http.EntitySelectCon
 	switch(request.path) {
 	case "/":
 		string protocol = null;
-		if(Neutron.Configuration.default.http_use_tls)
+		if(Neutron.Configuration.default.get_bool("http", "use_tls", false))
 			protocol = "wss";
 		else
 			protocol = "ws";

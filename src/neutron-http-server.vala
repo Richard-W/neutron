@@ -100,7 +100,7 @@ public class Neutron.Http.Server : Object {
 	/**
 	 * Maximum size of requests.
 	 */
-	public uint request_max_size {
+	public int request_max_size {
 		get;
 		set;
 		default = 1048576;
@@ -110,10 +110,18 @@ public class Neutron.Http.Server : Object {
 	private HashMap<string, Session> stored_sessions;
 
 	public Server(uint16 port = 0) throws Error {
-		if(port == 0)
-			this.port = Configuration.default.http_port;
-		else
+		if(port == 0) {
+			if(Configuration.default == null || !Configuration.default.has("http", "port"))
+				throw new HttpError.INVALID_PORT("Port is missing");
+
+			var port_raw = uint64.parse(Configuration.default.get("http", "port"));
+			if(port_raw > 0xFFFF) throw new HttpError.INVALID_PORT("Port number too high");
+
+			this.port = (uint16) port_raw;
+		}
+		else {
 			this.port = port;
+		}
 
 		/* Define listener */
 		listener = new SocketService();
@@ -127,15 +135,24 @@ public class Neutron.Http.Server : Object {
 	/**
 	 * Sets certain parameters of this server according to the Configuration-object
 	 */
-	private void apply_config(Configuration? config) {
+	private void apply_config(Configuration? config) throws Error {
 		if(config == null) return;
 
-		this.use_tls = config.http_use_tls;
-		this.tls_certificate = config.http_tls_certificate;
-		this.timeout = config.http_timeout;
-		this.session_lifetime = config.http_session_lifetime;
-		this.session_max_lifetime = config.http_session_max_lifetime;
-		this.request_max_size = config.http_request_max_size;
+		this.use_tls = config.get_bool("http", "use_tls", false);
+
+		var cert_file = config.get("http", "tls_cert_file");
+		var key_file = config.get("http", "tls_key_file");
+		if(cert_file != null && key_file != null) {
+			this.tls_certificate = new TlsCertificate.from_files(cert_file, key_file);
+		}
+
+		this.timeout = config.get_int("http", "timeout", -1);
+
+		this.session_lifetime = config.get_int("http", "session_lifetime", 3600);
+
+		this.session_max_lifetime = config.get_int("http", "session_max_lifetime", -1);
+
+		this.request_max_size = config.get_int("http", "request_max_size", 1048576);
 	}
 
 	/**
@@ -177,7 +194,7 @@ public class Neutron.Http.Server : Object {
 		if(use_tls) {
 			try {
 				/* Wrap the connection in a TlsServerConnection */
-				var tlsconn = TlsServerConnection.new(conn, _tls_certificate);
+				var tlsconn = TlsServerConnection.new(conn, tls_certificate);
 				yield tlsconn.handshake_async();
 				conn = (IOStream) tlsconn;
 			} catch(Error e) {
