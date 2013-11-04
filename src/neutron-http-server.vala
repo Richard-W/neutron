@@ -249,7 +249,11 @@ public class Neutron.Http.Server : Object {
 				stored_sessions.unset(server_action.old_session.session_id);
 			}
 
-			if(server_action.connection_action == ConnectionAction.CLOSE)
+			var connection_header = req.get_header_var("connection");
+			if(connection_header != null)
+				connection_header = connection_header.down();
+
+			if(server_action.connection_action == ConnectionAction.CLOSE || connection_header != "close")
 				break;
 			else if(server_action.connection_action == ConnectionAction.RELEASE)
 				return;
