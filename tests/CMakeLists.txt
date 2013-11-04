@@ -23,3 +23,4 @@ function(neutron_test test)
 endfunction(neutron_test)
 
 neutron_test(serializable-values)
+neutron_test(http-server-simplerequest)
