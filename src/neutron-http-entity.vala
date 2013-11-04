@@ -45,36 +45,38 @@
 	 */
 	private OutputStream outstream;
 	
-	private IOStream _io_stream;
 	/**
 	 * Direct connection to the client.
 	 *
 	 * May be useful for protocol-upgrades
 	 */
 	protected IOStream io_stream {
-		get { return _io_stream; }
+		get;
+		private set;
 	}
 
-	private bool _status_sent = false;
 	protected bool status_sent {
-		get { return _status_sent; }
+		get;
+		private set;
+		default = false;
 	}
 
-	private bool _headers_sent = false;
 	protected bool headers_sent {
-		get { return _headers_sent; }
+		get;
+		private set;
+		default = false;
 	}
 
-	private Request _request;
 	protected Request request {
-		get { return _request; }
+		get;
+		private set;
 	}
 
 	private TransferEncoding _transfer_encoding = TransferEncoding.CHUNKED;
 	protected TransferEncoding transfer_encoding {
 		get { return _transfer_encoding; }
 		set {
-			if(!_status_sent) _transfer_encoding = value;
+			if(!status_sent) _transfer_encoding = value;
 			else assert_not_reached();
 		}
 	}
@@ -83,7 +85,7 @@
 	protected ContentEncoding content_encoding {
 		get { return _content_encoding; }
 		set {
-			if(!_headers_sent) _content_encoding = value;
+			if(!headers_sent) _content_encoding = value;
 			else assert_not_reached();
 		}
 	}
@@ -92,8 +94,8 @@
 	 * Called by the server. Initializes this class somewhat
 	 */
 	public async ServerAction server_callback(Request request, IOStream io_stream) {
-		this._request = request;
-		this._io_stream = io_stream;
+		this.request = request;
+		this.io_stream = io_stream;
 		this.outstream = io_stream.output_stream;
 
 		var accepted_encodings = request.get_header_var("accept-encoding");
@@ -125,7 +127,7 @@
 	 * Send the contents of data to the client
 	 */
 	protected async void send_bytes(uint8[] data) throws Error {
-		if(!_headers_sent) throw new HttpError.HEADERS_NOT_SENT("You have to call end_headers() before calling send() or send_bytes()");
+		if(!headers_sent) throw new HttpError.HEADERS_NOT_SENT("You have to call end_headers() before calling send() or send_bytes()");
 		else yield real_send(data);
 	}
 
@@ -197,7 +199,7 @@
 
 		if(description != null) desc = description;
 		yield real_send((uint8[]) "HTTP/1.1 %d %s\r\n".printf(code, desc).to_utf8());
-		_status_sent = true;
+		status_sent = true;
 		yield send_default_headers();
 	}
 
@@ -227,7 +229,7 @@
 	 */
 	protected async void end_headers() throws Error {
 		yield real_send((uint8[]) "\r\n".to_utf8());
-		_headers_sent = true;
+		headers_sent = true;
 
 		if(_transfer_encoding == TransferEncoding.CHUNKED) {
 			chunk_converter = new ChunkConverter();
