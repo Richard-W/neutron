@@ -34,65 +34,90 @@ public class Neutron.Http.Server : Object {
 	 */
 	public signal void select_entity(Request request, EntitySelectContainer container);
 
-	private uint16 _port;
 	/**
 	 * The port the Http-Server is currently listening on
 	 */
 	public uint16 port {
-		get { return _port; }
+		get;
+		private set;
 	}
 
-	private TlsCertificate? _tls_certificate = null;
 	/**
 	 * Certificate used when use_tls == true. You can only set this.
 	 */
 	public TlsCertificate? tls_certificate {
-		set { _tls_certificate = value; }
+		get;
+		set;
+		default = null;
 	}
 
 	/**
 	 * Whether the server uses TLS
 	 */
-	public bool use_tls = false;
+	public bool use_tls { 
+		get;
+		set;
+		default = false;
+	}
 
 	/**
 	 * Used to distribute requests over threads
 	 */
-	public ThreadController? thread_controller = ThreadController.default;
+	public ThreadController? thread_controller {
+		get;
+		set;
+		default = ThreadController.default;
+	}
 
 	/**
 	 * The time in seconds the server will wait for new requests before it
 	 * disconnects from the client
 	 */
-	public int timeout = -1;
+	public int timeout {
+		get;
+		set;
+		default = -1;
+	}
 
 	/**
 	 * The time a session is stored when no new request claim it
 	 */
-	public int session_lifetime = 3600;
+	public int session_lifetime {
+		get;
+		set;
+		default = 3600;
+	}
 
 	/**
 	 * The time after which a session is deleted unconditionally.
 	 */
-	public int session_max_lifetime = -1;
+	public int session_max_lifetime {
+		get;
+		set;
+		default = -1;
+	}
 
 	/**
 	 * Maximum size of requests.
 	 */
-	public uint request_max_size = 1048576;
+	public uint request_max_size {
+		get;
+		set;
+		default = 1048576;
+	}
 
 	private SocketService listener;
 	private HashMap<string, Session> stored_sessions;
 
 	public Server(uint16 port = 0) throws Error {
 		if(port == 0)
-			this._port = Configuration.default.http_port;
+			this.port = Configuration.default.http_port;
 		else
-			this._port = port;
+			this.port = port;
 
 		/* Define listener */
 		listener = new SocketService();
-		listener.add_inet_port(this._port, null);
+		listener.add_inet_port(this.port, null);
 		listener.incoming.connect(on_incoming);
 
 		stored_sessions = new HashMap<string, Session>();
