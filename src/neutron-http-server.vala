@@ -205,7 +205,7 @@ public class Neutron.Http.Server : Object {
 					session.set_last_request_time();
 
 					/* Add the session to the request-object */
-					req._session = session;
+					req.set_session(session);
 				}
 			}
 

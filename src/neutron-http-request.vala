@@ -32,6 +32,7 @@ public abstract class Neutron.Http.Request : Object {
 	 */
 	public abstract string path {
 		get;
+		protected set;
 	}
 
 	/**
@@ -39,6 +40,7 @@ public abstract class Neutron.Http.Request : Object {
 	 */
 	public abstract string method {
 		get;
+		protected set;
 	}
 
 	/**
@@ -46,6 +48,7 @@ public abstract class Neutron.Http.Request : Object {
 	 */
 	public abstract bool uses_tls {
 		get;
+		protected set;
 	}
 
 	/**
@@ -53,6 +56,7 @@ public abstract class Neutron.Http.Request : Object {
 	 */
 	public abstract Session? session {
 		get;
+		protected set;
 	}
 
 	/**

@@ -28,24 +28,25 @@ private class Neutron.Http.RequestImpl : Request {
 	private HashMap<string,string>? cookies;
 	private HashMap<string,string>? headers;
 
-	private string _path;
 	public override string path {
-		get { return _path; }
+		get;
+		private set;
 	}
 
-	private string _method;
 	public override string method {
-		get { return _method; }
+		get;
+		private set;
 	}
 
-	public Session? _session = null;
 	public override Session? session {
-		get { return _session; }
+		get;
+		private set;
+		default = null;
 	}
 
-	private bool _uses_tls;
 	public override bool uses_tls {
-		get { return _uses_tls; }
+		get;
+		private set;
 	}
 	
 	public RequestImpl(string method, string path, HashMap<string,string>? gets, HashMap<string,string>? posts, HashMap<string,string>? cookies, HashMap<string,string> headers, bool uses_tls) {
@@ -53,9 +54,16 @@ private class Neutron.Http.RequestImpl : Request {
 		this.posts = posts;
 		this.cookies = cookies;
 		this.headers = headers;
-		this._path = path;
-		this._method = method;
-		this._uses_tls = uses_tls;
+		this.path = path;
+		this.method = method;
+		this.uses_tls = uses_tls;
+	}
+
+	/**
+	 * Helper function for setting session after construction
+	 */
+	public void set_session(Session session) {
+		this.session = session;
 	}
 
 	private string? get_var(HashMap<string,string> map, string key) {
