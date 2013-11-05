@@ -24,3 +24,4 @@ endfunction(neutron_test)
 
 neutron_test(serializable-values)
 neutron_test(http-server-simplerequest)
+neutron_test(http-server-maxsize)
