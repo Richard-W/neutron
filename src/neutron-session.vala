@@ -25,29 +25,29 @@ namespace Neutron {
 	 * properties. I strongly recommend you derive only once per project.
 	 */	 
 	public class Session : Object {
-		private string _session_id;
 		public string session_id {
-			get { return _session_id; }
+			get;
+			private set;
 		}
 
-		private DateTime _last_request_time;
 		public DateTime last_request_time {
-			get { return _last_request_time; }
+			get;
+			private set;
 		}
 
-		private DateTime _creation_time;
 		public DateTime creation_time {
-			get { return _creation_time; }
+			get;
+			private set;
 		}
 
 		public Session() {
-			_session_id = generate_session_id();
-			_creation_time = new DateTime.now_local();
-			_last_request_time = new DateTime.now_local();
+			session_id = generate_session_id();
+			creation_time = new DateTime.now_local();
+			last_request_time = new DateTime.now_local();
 		}
 
-		public void set_last_request_time() {
-			_last_request_time = new DateTime.now_local();
+		public void reset_last_request_time() {
+			last_request_time = new DateTime.now_local();
 		}
 
 		private string generate_session_id() {

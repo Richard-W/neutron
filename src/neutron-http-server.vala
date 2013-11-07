@@ -219,7 +219,7 @@ public class Neutron.Http.Server : Object {
 					var session = stored_sessions.get(session_id);
 
 					/* Reset last_request-DateTime so the session does not get cleaned up */
-					session.set_last_request_time();
+					session.reset_last_request_time();
 
 					/* Add the session to the request-object */
 					req.set_session(session);
