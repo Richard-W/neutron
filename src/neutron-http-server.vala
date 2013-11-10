@@ -251,17 +251,17 @@ public class Neutron.Http.Server : Object {
 				entity = new NotFoundEntity();
 
 			/* Call handler */
-			var server_action = yield entity.server_callback(this, req, conn);
+			var connection_action = yield entity.server_callback(this, req, conn);
 
 			var connection_header = req.get_header_var("connection");
 			if(connection_header != null)
 				connection_header = connection_header.down();
 
-			if(server_action.connection_action == ConnectionAction.CLOSE || connection_header != "close")
+			if(connection_action == ConnectionAction.CLOSE || connection_header != "close")
 				break;
-			else if(server_action.connection_action == ConnectionAction.RELEASE)
+			else if(connection_action == ConnectionAction.RELEASE)
 				return;
-			else if(server_action.connection_action != ConnectionAction.KEEP_ALIVE)
+			else if(connection_action != ConnectionAction.KEEP_ALIVE)
 				assert_not_reached();
 		}
 
@@ -308,14 +308,6 @@ public enum Neutron.Http.ConnectionAction {
 	 * Stop handling the connection but leave it open
 	 */
 	RELEASE
-}
-
-public class Neutron.Http.ServerAction : Object {
-	public ConnectionAction connection_action;
-
-	public ServerAction(ConnectionAction a) {
-		connection_action = a;
-	}
 }
 
 public class Neutron.Http.EntitySelectContainer : Object {

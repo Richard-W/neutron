@@ -86,7 +86,7 @@
 	/**
 	 * Called by the server. Initializes this class somewhat
 	 */
-	public async ServerAction server_callback(Server server, Request request, IOStream io_stream) {
+	public async ConnectionAction server_callback(Server server, Request request, IOStream io_stream) {
 		this.request = request;
 		this.io_stream = io_stream;
 		this.outstream = io_stream.output_stream;
@@ -103,8 +103,7 @@
 			}
 		}
 
-		var action = yield handle_request();
-		return new ServerAction(action);
+		return yield handle_request();
 	}
 
 	/**
