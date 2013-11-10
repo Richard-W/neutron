@@ -25,20 +25,13 @@
  * such a gzip-compression or chunk-encoding.
  */
  public abstract class Neutron.Http.Entity : Object {
-	/**
-	 * Will be stored within the server
-	 */
-	private Session? session_set = null;
-	/**
-	 * Will be deleted from the server
-	 */
-	private Session? session_delete = null;
-
 	private ZlibCompressor gzip_converter;
 	private ConverterOutputStream gzip_stream;
 
 	private ChunkConverter chunk_converter;
 	private ConverterOutputStream chunk_stream;
+
+	private Server server;
 
 	/**
 	 * Always write to this stream. It applies chunk-encoding and/or gzip-compression where necessary
@@ -93,10 +86,11 @@
 	/**
 	 * Called by the server. Initializes this class somewhat
 	 */
-	public async ServerAction server_callback(Request request, IOStream io_stream) {
+	public async ServerAction server_callback(Server server, Request request, IOStream io_stream) {
 		this.request = request;
 		this.io_stream = io_stream;
 		this.outstream = io_stream.output_stream;
+		this.server = server;
 
 		var accepted_encodings = request.get_header_var("accept-encoding");
 		if(accepted_encodings != null) {
@@ -110,7 +104,7 @@
 		}
 
 		var action = yield handle_request();
-		return new ServerAction(action, session_set, session_delete);
+		return new ServerAction(action);
 	}
 
 	/**
@@ -274,13 +268,13 @@
 	 */
 	protected async void set_session(Session? session) throws Error {
 		if(session != null) {
+			server.store_session(session);
 			yield set_cookie("neutron_session_id", session.session_id, 24*3600, "/");
-			session_set = session;
 		} else {
 			yield set_cookie("neutron_session_id", "deleted", -1);
 		}
 
-		if(request.session != null) session_delete = request.session;
+		if(request.session != null) server.delete_session(request.session);
 	}
 
 	/**

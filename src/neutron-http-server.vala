@@ -188,6 +188,20 @@ public class Neutron.Http.Server : Object {
 	}
 
 	/**
+	 * Stores a session in this server
+	 */
+	public void store_session(Session session) {
+		stored_sessions.set(session.session_id, session);
+	}
+
+	/**
+	 * Deletes a session from this server
+	 */
+	public void delete_session(Session session) {
+		stored_sessions.unset(session.session_id);
+	}
+
+	/**
 	 * Handle the incoming connection asynchronously 
 	 */
 	private async void handle_connection(IOStream conn) {
@@ -237,17 +251,7 @@ public class Neutron.Http.Server : Object {
 				entity = new NotFoundEntity();
 
 			/* Call handler */
-			var server_action = yield entity.server_callback(req, conn);
-
-			/* Store new session */
-			if(server_action.new_session != null) {
-				stored_sessions.set(server_action.new_session.session_id, server_action.new_session);
-			}
-
-			/* Delete old session */
-			if(server_action.old_session != null) {
-				stored_sessions.unset(server_action.old_session.session_id);
-			}
+			var server_action = yield entity.server_callback(this, req, conn);
 
 			var connection_header = req.get_header_var("connection");
 			if(connection_header != null)
@@ -308,13 +312,9 @@ public enum Neutron.Http.ConnectionAction {
 
 public class Neutron.Http.ServerAction : Object {
 	public ConnectionAction connection_action;
-	public Session? new_session;
-	public Session? old_session;
 
-	public ServerAction(ConnectionAction a, Session? b, Session? c) {
+	public ServerAction(ConnectionAction a) {
 		connection_action = a;
-		new_session = b;
-		old_session = c;
 	}
 }
 
