@@ -26,3 +26,5 @@ neutron_test(serializable-values)
 neutron_test(http-server-simplerequest)
 neutron_test(http-server-maxsize)
 neutron_test(http-server-session)
+neutron_test(http-server-sessioncleanup)
+
