@@ -245,8 +245,7 @@ public class Neutron.Http.Server : Object {
 		var parser = new Parser(conn, timeout, request_max_size, use_tls);
 		RequestImpl req;
 
-		bool keep_running = true;
-		while((req = yield parser.run()) != null && keep_running) {
+		while((req = yield parser.run()) != null) {
 			/* cleanup sessions */
 			cleanup_sessions();
 
