@@ -114,12 +114,17 @@ void on_incoming_ws(Neutron.Websocket.Connection conn) {
 	conn.ref();
 
 	conn.on_message.connect(on_message);
+	conn.on_error.connect(on_error);
 	conn.on_close.connect(on_close);
 	conn.start();
 }
 
 void on_message(string message, Neutron.Websocket.Connection conn) {
 	conn.send.begin("Got line: %s".printf(message));
+}
+
+void on_error(string msg, Neutron.Websocket.Connection conn) {
+	message(msg);
 }
 
 void on_close(Neutron.Websocket.Connection conn) {
