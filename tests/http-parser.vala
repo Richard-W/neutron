@@ -35,6 +35,7 @@ int main() {
 
 void on_select_entity(Http.Request req, Http.EntitySelectContainer cont) {
 	Globals.request = req;
+	cont.set_entity(new Http.StaticEntity("text/html", "empty"));
 }
 
 async int test() {
@@ -52,13 +53,30 @@ async int test() {
 
 		var req = Globals.request;
 		if(req.path != "/") return 1;
-		if(req.method != "GET") return 1;
-		if(req.uses_tls) return 1;
-		if(req.get_header_var("host") != "localhost") return 1;
-		if(req.get_header_var("connection") != "keep-alive") return 1;
-		if(req.get_request_vars() != null) return 1;
-		if(req.get_post_vars() != null) return 1;
-		if(!conn.is_connected()) return 1;
+		if(req.method != "GET") return 2;
+		if(req.uses_tls) return 3;
+		if(req.get_header_var("host") != "localhost") return 4;
+		if(req.get_header_var("connection") != "keep-alive") return 5;
+		if(req.get_request_vars() != null) return 6;
+		if(req.get_post_vars() != null) return 7;
+		if(!conn.is_connected()) return 8;
+
+		message = "POST /?key=value HTTP/1.1\r\nHost: localhost\r\nConnection: keep-alive\r\nContent-Length: 19\r\n\r\nkey1=val1&key2=val2\r\n";
+		stdout.printf(message);
+		yield conn.output_stream.write_async(message.data);
+		retval = yield read_response(dis);
+		if(retval != 0) return 1;
+
+		req = Globals.request;
+		if(req.path != "/") return 1;
+		if(req.method != "POST") return 2;
+		if(req.uses_tls) return 3;
+		if(req.get_header_var("host") != "localhost") return 4;
+		if(req.get_header_var("connection") != "keep-alive") return 5;
+		if(req.get_request_var("key") != "value") return 6;
+		if(req.get_post_var("key1") != "val1") return 7;
+		if(req.get_post_var("key2") != "val2") return 8;
+		if(!conn.is_connected()) return 9;
 
 		conn.close();
 
@@ -72,9 +90,10 @@ async int test() {
 
 async int read_response(DataInputStream dis) {
 	var cancel = new Cancellable();
+	Thread<void*> timeout_thread;
 	stdout.printf("---- Response start ----\n");
 	try {
-		var timeout_thread = new Thread<void*>(null, () => {
+		timeout_thread = new Thread<void*>(null, () => {
 			Thread.usleep(200000);
 			cancel.cancel();
 			return null;
