@@ -30,6 +30,7 @@ vala_precompile(C_SOURCES
 	OPTIONS
 		--target-glib=${GLIB_VERSION}
 		--thread
+		${VALA_FLAGS}
 )
 
 add_library(neutron SHARED ${C_SOURCES})

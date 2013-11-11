@@ -110,6 +110,9 @@ public class Neutron.Http.Server : Object {
 	private HashMap<string, Session> stored_sessions;
 
 	public Server(uint16 port = 0) throws Error {
+		#if VERBOSE
+			message("constructor called");
+		#endif
 		if(port == 0) {
 			if(Configuration.default == null || !Configuration.default.has("http", "port"))
 				throw new HttpError.INVALID_PORT("Port is missing");
@@ -136,6 +139,9 @@ public class Neutron.Http.Server : Object {
 	 * Sets certain parameters of this server according to the Configuration-object
 	 */
 	private void apply_config(Configuration? config) throws Error {
+		#if VERBOSE
+			message("apply_config called");
+		#endif
 		if(config == null) return;
 
 		this.use_tls = config.get_bool("http", "use_tls", false);
@@ -159,6 +165,9 @@ public class Neutron.Http.Server : Object {
 	 * Start handling connections 
 	 */
 	public void start() {
+		#if VERBOSE
+			message("start called");
+		#endif
 		listener.start();
 	}
 
@@ -166,6 +175,9 @@ public class Neutron.Http.Server : Object {
 	 * Stop handling connections 
 	 */
 	public void stop() {
+		#if VERBOSE
+			message("stop called");
+		#endif
 		listener.stop();
 	}
 
@@ -173,6 +185,9 @@ public class Neutron.Http.Server : Object {
 	 * Gets the connections from listener 
 	 */
 	private bool on_incoming(SocketConnection conn, Object? source_object) {
+		#if VERBOSE
+			message("on_incoming called");
+		#endif
 		if(thread_controller == null)
 			handle_connection.begin((IOStream) conn);
 		else {
@@ -191,6 +206,9 @@ public class Neutron.Http.Server : Object {
 	 * Stores a session in this server
 	 */
 	public void store_session(Session session) {
+		#if VERBOSE
+			message("store_session called");
+		#endif
 		stored_sessions.set(session.session_id, session);
 	}
 
@@ -198,6 +216,9 @@ public class Neutron.Http.Server : Object {
 	 * Deletes a session from this server
 	 */
 	public void delete_session(Session session) {
+		#if VERBOSE
+			message("delete_session called");
+		#endif
 		stored_sessions.unset(session.session_id);
 	}
 
@@ -205,6 +226,9 @@ public class Neutron.Http.Server : Object {
 	 * Handle the incoming connection asynchronously 
 	 */
 	private async void handle_connection(IOStream conn) {
+		#if VERBOSE
+			message("handle_connection called");
+		#endif
 		if(use_tls) {
 			try {
 				/* Wrap the connection in a TlsServerConnection */
@@ -266,6 +290,9 @@ public class Neutron.Http.Server : Object {
 		}
 
 		try {
+			#if VERBOSE
+				message("handle_connection: closed connection");
+			#endif
 			/* Close connection */
 			yield conn.close_async();
 		} catch(Error e) {
@@ -274,6 +301,9 @@ public class Neutron.Http.Server : Object {
 	}
 
 	private void cleanup_sessions() {
+		#if VERBOSE
+			message("cleanup_sessions called");
+		#endif
 		var now = new DateTime.now_local();
 		var to_delete = new HashSet<string>();
 
