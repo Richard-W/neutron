@@ -25,10 +25,7 @@ using Gee;
 private class Neutron.Http.Parser : Object {
 	private int timeout;
 	private IOStream stream;
-	private uint8[] buf;
-	private int bufpos = -1;
-	private const int buflen = 80*1024;
-	private size_t reclen;
+	ByteArray buffer;
 	private uint max_size;
 	private bool uses_tls;
 
@@ -40,6 +37,47 @@ private class Neutron.Http.Parser : Object {
 		this.timeout = timeout;
 		this.max_size = max_size;
 		this.uses_tls = uses_tls;
+		buffer = new ByteArray();
+	}
+
+	private async void refill_buffer() throws Error{
+		var buf = new uint8[1024];
+
+		Cancellable? timeout_provider = null;
+		if(timeout > 0) {
+			timeout_provider = new Cancellable();
+			Timeout.add_seconds((uint) timeout, () => {
+				timeout_provider.cancel();
+				return true;
+			});
+		}
+
+		var reclen = yield stream.input_stream.read_async(buf, Priority.DEFAULT, timeout_provider);
+		#if VERBOSE
+			message("refill_buffer: %d bytes received".printf((int) reclen));
+		#endif
+		if(reclen == 0) throw new HttpError.CONNECTION_CLOSED("Connection closed");
+
+		buffer.append(buf[0:reclen]);
+	}
+
+	private async char get_char() throws Error {
+		while(buffer.len == 0) yield refill_buffer();
+		var result = buffer.data[0];
+		buffer.remove_index(0);
+
+		#if VERBOSE
+			message("get_char: %d bytes left in the buffer".printf((int) buffer.len));
+		#endif
+
+		return (char) result;
+	}
+
+	private async char[] get_chars(uint size) throws Error {
+		while(buffer.len < size) yield refill_buffer();
+		var result = buffer.data[0:size];
+		buffer.remove_range(0,size);
+		return (char[]) result;
 	}
 
 	/**
@@ -62,184 +100,204 @@ private class Neutron.Http.Parser : Object {
 		StringBuilder header_val = null;
 		
 		try {
+			var get_next_char = true;
+			char nextchar = '\r';
 			while(state < 9) {
-				if(bufpos == -1) {
-					buf = new uint8[buflen];
-					Cancellable? timeout_provider = null;
-					if(timeout > 0) {
-						timeout_provider = new Cancellable();
-						Timeout.add_seconds((uint) timeout, () => {
-							timeout_provider.cancel();
-							return true;
-						});
-					}
-					reclen = yield stream.input_stream.read_async(buf, Priority.DEFAULT, timeout_provider);
-					size += (uint) reclen;
-					/* Connection closed */
-					if(reclen == 0 || size > max_size) return null;
-					bufpos = 0;
+				if(size >= max_size) return null;
+
+				if(get_next_char) {
+					nextchar = yield get_char();
+					size++;
 				}
+				else get_next_char = true;
 
-				while(bufpos < reclen && state < 9) {
-					char nextchar = (char) buf[bufpos];
-					#if VERBOSE
-						if(nextchar != '\r' && nextchar != '\n') message("nextchar = %c".printf(nextchar));
-						else message("nextchar = %d".printf((int) nextchar));
-					#endif
+				#if VERBOSE
+					if(nextchar != '\r' && nextchar != '\n') message("nextchar = %d/%c".printf((int) nextchar, nextchar));
+					else message("nextchar = %d".printf((int) nextchar));
+				#endif
 
-					switch(state) {
-					case -1:
-						if(nextchar != '\r' && nextchar != '\n') {
-							#if VERBOSE
-								message("state -1: switching state, char=%c".printf(nextchar));
-							#endif
-							state = 0;
-							continue;
-						}
-						break;
-					case 0:
-						if(nextchar == ' ') {
-							state = 1;
-							bufpos++;
-							continue;
-						}
-						if(nextchar == '\r' || nextchar == '\n') {
-							#if VERBOSE
-								message("state 0: unexpected char: %d".printf((int) nextchar));
-							#endif
-							return null;
-						}
-
-						method.append_c(nextchar);
-						break;
-					case 1:
-						if(nextchar == ' ') {
-							state = 2;
-							bufpos++;
-							continue;
-						}
-						if(nextchar == '\r' || nextchar == '\n') {
-							#if VERBOSE
-								message("state 1: unexpected char: %d".printf((int) nextchar));
-							#endif
-							return null;
-						}
-
-						url.append_c(nextchar);
-						break;
-					case 2:
-						if(nextchar == '\r') {
-							state = 3;
-							bufpos++;
-							continue;
-						}
-						if(nextchar == '\n') {
-							state = 4;
-							header_key = new StringBuilder();
-							bufpos++;
-							continue;
-						}
-						if(nextchar == ' ') {
-							#if VERBOSE
-								message("state 2: unexpected char: %d".printf((int) nextchar));
-							#endif
-							return null;
-						}
-
-						httpver.append_c(nextchar);
-						break;
-					case 3:
-						if(nextchar != '\n') {
-							#if VERBOSE
-								message("state 3: unexpected char: %d".printf((int) nextchar));
-							#endif
-							return null;
-						} else {
-							state = 4;
-							header_key = new StringBuilder();
-						}
-						break;
-					case 4:
-						if(nextchar == ':') {
-							state = 5;
-							bufpos++;
-							continue;
-						}
-						if(nextchar == ' ') {
-							#if VERBOSE
-								message("state 4: unexpected char: %d".printf((int) nextchar));
-							#endif
-							return null;
-						}
-						if(nextchar == '\r') {
-							state = 8;
-							bufpos++;
-							continue;
-						}
-						if(nextchar == '\n') {
-							state = 9;
-							bufpos++;
-							continue;
-						}
-
-						header_key.append_c(nextchar);
-						break;
-					case 5:
-						if(nextchar == ' ') {
-							state = 6;
-							header_val = new StringBuilder();
-							bufpos++;
-							continue;
-						} else {
-							#if VERBOSE
-								message("state 5: unexpected char: %d".printf((int) nextchar));
-							#endif
-							return null;
-						}
-					case 6:
-						if(nextchar == '\r') {
-							state = 7;
-							bufpos++;
-							var key_str = header_key.str.down();
-							headers.set(key_str, header_val.str);
-							header_key = new StringBuilder();
-							continue;
-						}
-						if(nextchar == '\n') {
-							state = 4;
-							var key_str = header_key.str.down();
-							headers.set(key_str, header_val.str);
-							header_key = new StringBuilder();
-							bufpos++;
-							continue;
-						}
-
-						header_val.append_c(nextchar);
-						break;
-					case 7:
-						if(nextchar == '\n') state = 4;
-						else {
-							#if VERBOSE
-								message("state 7: unexpected char: %d".printf((int) nextchar));
-							#endif
-							return null;
-						}
-						break;
-					case 8:
-						if(nextchar == '\n') state = 9;
-						else {
-							#if VERBOSE
-								message("state 8: unexpected char: %d".printf((int) nextchar));
-							#endif
-							return null;
-						}
-						break;
+				switch(state) {
+				case -1:
+					if(nextchar != '\r' && nextchar != '\n') {
+						#if VERBOSE
+							message("state -1: switching state, char=%c".printf(nextchar));
+						#endif
+						state = 0;
+						get_next_char = false;
+						continue;
 					}
-					bufpos++;
-				}
+					break;
+				case 0:
+					if(nextchar == ' ') {
+						state = 1;
+						#if VERBOSE
+							message("state 0: setting state 1");
+						#endif
+						continue;
+					}
+					if(nextchar == '\r' || nextchar == '\n') {
+						#if VERBOSE
+							message("state 0: unexpected char: %d".printf((int) nextchar));
+						#endif
+						return null;
+					}
 
-				assert(reclen >= bufpos);
-				if(bufpos == reclen) bufpos = -1;
+					method.append_c(nextchar);
+					break;
+				case 1:
+					if(nextchar == ' ') {
+						state = 2;
+						#if VERBOSE
+							message("state 1: setting state 2");
+						#endif
+						continue;
+					}
+					if(nextchar == '\r' || nextchar == '\n') {
+						#if VERBOSE
+							message("state 1: unexpected char: %d".printf((int) nextchar));
+						#endif
+						return null;
+					}
+
+					url.append_c(nextchar);
+					break;
+				case 2:
+					if(nextchar == '\r') {
+						state = 3;
+						#if VERBOSE
+							message("state 2: setting state 3");
+						#endif
+						continue;
+					}
+					if(nextchar == '\n') {
+						state = 4;
+						#if VERBOSE
+							message("state 2: setting state 4");
+						#endif
+						header_key = new StringBuilder();
+						continue;
+					}
+					if(nextchar == ' ') {
+						#if VERBOSE
+							message("state 2: unexpected char: %d".printf((int) nextchar));
+						#endif
+						return null;
+					}
+
+					httpver.append_c(nextchar);
+					break;
+				case 3:
+					if(nextchar != '\n') {
+						#if VERBOSE
+							message("state 3: unexpected char: %d".printf((int) nextchar));
+						#endif
+						return null;
+					} else {
+						state = 4;
+						#if VERBOSE
+							message("state 3: setting state 4");
+						#endif
+						header_key = new StringBuilder();
+					}
+					break;
+				case 4:
+					if(nextchar == ':') {
+						state = 5;
+						#if VERBOSE
+							message("state 4: setting state 5");
+						#endif
+						continue;
+					}
+					if(nextchar == ' ') {
+						#if VERBOSE
+							message("state 4: unexpected char: %d".printf((int) nextchar));
+						#endif
+						return null;
+					}
+					if(nextchar == '\r') {
+						state = 8;
+						#if VERBOSE
+							message("state 4: setting state 8");
+						#endif
+						continue;
+					}
+					if(nextchar == '\n') {
+						#if VERBOSE
+							message("state 4: setting state 9");
+						#endif
+						state = 9;
+						continue;
+					}
+
+					header_key.append_c(nextchar);
+					break;
+				case 5:
+					if(nextchar == ' ') {
+						state = 6;
+						#if VERBOSE
+							message("state 5: setting state 6");
+						#endif
+						header_val = new StringBuilder();
+						continue;
+					} else {
+						#if VERBOSE
+							message("state 5: unexpected char: %d".printf((int) nextchar));
+						#endif
+						return null;
+					}
+				case 6:
+					if(nextchar == '\r') {
+						state = 7;
+						#if VERBOSE
+							message("state 6: setting state 7");
+						#endif
+						var key_str = header_key.str.down();
+						headers.set(key_str, header_val.str);
+						header_key = new StringBuilder();
+						continue;
+					}
+					if(nextchar == '\n') {
+						state = 4;
+						#if VERBOSE
+							message("state 6: setting state 4");
+						#endif
+						var key_str = header_key.str.down();
+						headers.set(key_str, header_val.str);
+						header_key = new StringBuilder();
+						continue;
+					}
+
+					header_val.append_c(nextchar);
+					break;
+				case 7:
+					if(nextchar == '\n') {
+						state = 4;
+						#if VERBOSE
+							message("state 7: setting state 4");
+						#endif
+					}
+					else {
+						#if VERBOSE
+							message("state 7: unexpected char: %d".printf((int) nextchar));
+						#endif
+						return null;
+					}
+					break;
+				case 8:
+					if(nextchar == '\n') {
+						state = 9;
+						#if VERBOSE
+							message("state 8: setting state 9");
+						#endif
+					}
+					else {
+						#if VERBOSE
+							message("state 8: unexpected char: %d".printf((int) nextchar));
+						#endif
+						return null;
+					}
+					break;
+				}
 			}
 
 			var urlarr = url.str.split("?",2);
@@ -261,45 +319,13 @@ private class Neutron.Http.Parser : Object {
 				#if VERBOSE
 					message("content-length > 0");
 				#endif
-				var clen = uint64.parse(headers.get("content-length"));
-				uint8[] bodybuffer;
+				var clen = (uint) uint64.parse(headers.get("content-length"));
 				var bodybuilder = new StringBuilder();
-				uint64 already_received = 0;
-				size_t recved;
 
-				if(bufpos != -1) {
-					while(bufpos < reclen && already_received < reclen) {
-						bodybuilder.append_c((char) buf[bufpos]);
-						bufpos++;
-						already_received++;
-					}
-					if(bufpos >= reclen) bufpos = -1;
-				}
+				size += clen;
+				if(size > max_size) return null;
 
-				if(already_received < clen) {
-					Cancellable? timeout_provider = null;
-					if(timeout > 0) {
-						timeout_provider = new Cancellable();
-						Timeout.add_seconds((uint) timeout, () => {
-							timeout_provider.cancel();
-							return true;
-						});
-					}
-					while(clen > already_received) {
-						bodybuffer = new uint8[clen - already_received];
-						recved = yield stream.input_stream.read_async(bodybuffer, Priority.DEFAULT, timeout_provider);
-						if(recved == 0) return null;
-						already_received += recved;
-						bodybuilder.append((string) bodybuffer);
-						if(timeout > 0) {
-							timeout_provider = new Cancellable();
-							Timeout.add_seconds((uint) timeout, () => {
-								timeout_provider.cancel();
-								return true;
-							});
-						}
-					}
-				}
+				bodybuilder.append((string) yield get_chars(clen));
 				parse_varstring(body, bodybuilder.str);
 			}
 		} catch(Error e) {
