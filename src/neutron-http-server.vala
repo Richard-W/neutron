@@ -281,7 +281,7 @@ public class Neutron.Http.Server : Object {
 			if(connection_header != null)
 				connection_header = connection_header.down();
 
-			if(connection_action == ConnectionAction.CLOSE || connection_header != "close")
+			if(connection_action == ConnectionAction.CLOSE || connection_header == "close")
 				break;
 			else if(connection_action == ConnectionAction.RELEASE)
 				return;
