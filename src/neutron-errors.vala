@@ -27,7 +27,8 @@ public errordomain Neutron.Http.HttpError {
 	STATUS_NOT_SENT,
 	HEADERS_ALREADY_SENT,
 	HEADERS_NOT_SENT,
-	INVALID_PORT
+	INVALID_PORT,
+	CONNECTION_CLOSED
 }
 
 public errordomain Neutron.Websocket.WebsocketError {
