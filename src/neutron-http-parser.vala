@@ -82,10 +82,17 @@ private class Neutron.Http.Parser : Object {
 
 				while(bufpos < reclen && state < 9) {
 					char nextchar = (char) buf[bufpos];
+					#if VERBOSE
+						if(nextchar != '\r' && nextchar != '\n') message("nextchar = %c".printf(nextchar));
+						else message("nextchar = %d".printf((int) nextchar));
+					#endif
 
 					switch(state) {
 					case -1:
 						if(nextchar != '\r' && nextchar != '\n') {
+							#if VERBOSE
+								message("state -1: switching state, char=%c".printf(nextchar));
+							#endif
 							state = 0;
 							continue;
 						}
@@ -97,6 +104,9 @@ private class Neutron.Http.Parser : Object {
 							continue;
 						}
 						if(nextchar == '\r' || nextchar == '\n') {
+							#if VERBOSE
+								message("state 0: unexpected char: %d".printf((int) nextchar));
+							#endif
 							return null;
 						}
 
@@ -109,6 +119,9 @@ private class Neutron.Http.Parser : Object {
 							continue;
 						}
 						if(nextchar == '\r' || nextchar == '\n') {
+							#if VERBOSE
+								message("state 1: unexpected char: %d".printf((int) nextchar));
+							#endif
 							return null;
 						}
 
@@ -127,6 +140,9 @@ private class Neutron.Http.Parser : Object {
 							continue;
 						}
 						if(nextchar == ' ') {
+							#if VERBOSE
+								message("state 2: unexpected char: %d".printf((int) nextchar));
+							#endif
 							return null;
 						}
 
@@ -134,6 +150,9 @@ private class Neutron.Http.Parser : Object {
 						break;
 					case 3:
 						if(nextchar != '\n') {
+							#if VERBOSE
+								message("state 3: unexpected char: %d".printf((int) nextchar));
+							#endif
 							return null;
 						} else {
 							state = 4;
@@ -147,6 +166,9 @@ private class Neutron.Http.Parser : Object {
 							continue;
 						}
 						if(nextchar == ' ') {
+							#if VERBOSE
+								message("state 4: unexpected char: %d".printf((int) nextchar));
+							#endif
 							return null;
 						}
 						if(nextchar == '\r') {
@@ -168,7 +190,12 @@ private class Neutron.Http.Parser : Object {
 							header_val = new StringBuilder();
 							bufpos++;
 							continue;
-						} else return null;
+						} else {
+							#if VERBOSE
+								message("state 5: unexpected char: %d".printf((int) nextchar));
+							#endif
+							return null;
+						}
 					case 6:
 						if(nextchar == '\r') {
 							state = 7;
@@ -191,11 +218,21 @@ private class Neutron.Http.Parser : Object {
 						break;
 					case 7:
 						if(nextchar == '\n') state = 4;
-						else return null;
+						else {
+							#if VERBOSE
+								message("state 7: unexpected char: %d".printf((int) nextchar));
+							#endif
+							return null;
+						}
 						break;
 					case 8:
 						if(nextchar == '\n') state = 9;
-						else return null;
+						else {
+							#if VERBOSE
+								message("state 8: unexpected char: %d".printf((int) nextchar));
+							#endif
+							return null;
+						}
 						break;
 					}
 					bufpos++;
@@ -221,6 +258,9 @@ private class Neutron.Http.Parser : Object {
 			}
 
 			if(headers.has_key("content-length") && method.str == "POST") {
+				#if VERBOSE
+					message("content-length > 0");
+				#endif
 				var clen = uint64.parse(headers.get("content-length"));
 				uint8[] bodybuffer;
 				var bodybuilder = new StringBuilder();
@@ -270,6 +310,9 @@ private class Neutron.Http.Parser : Object {
 	}
 
 	private void parse_varstring(HashMap<string, string> map, string varstring) {
+		#if VERBOSE
+			message("parse_varstring called");
+		#endif
 		var reqarr = varstring.split("&");
 		foreach(string reqpair in reqarr) {
 			var reqparr = reqpair.split("=", 2);
@@ -282,6 +325,9 @@ private class Neutron.Http.Parser : Object {
 			if(ue_key == null) return;
 			if(ue_val == null) ue_val = "";
 			map.set(ue_key, ue_val);
+			#if VERBOSE
+				message("map.set(%s, %s)".printf(ue_key, ue_val));
+			#endif
 		}
 	}
 }

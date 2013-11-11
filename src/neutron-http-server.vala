@@ -281,8 +281,13 @@ public class Neutron.Http.Server : Object {
 			if(connection_header != null)
 				connection_header = connection_header.down();
 
-			if(connection_action == ConnectionAction.CLOSE || connection_header == "close")
+			if(connection_action == ConnectionAction.CLOSE || connection_header == "close") {
+				#if VERBOSE
+					if(connection_action == ConnectionAction.CLOSE) message("connection_action is CLOSE");
+					else message("connection_header is close");
+				#endif
 				break;
+			}
 			else if(connection_action == ConnectionAction.RELEASE)
 				return;
 			else if(connection_action != ConnectionAction.KEEP_ALIVE)
@@ -291,6 +296,7 @@ public class Neutron.Http.Server : Object {
 
 		try {
 			#if VERBOSE
+				if(req == null) message("req is null");
 				message("handle_connection: closed connection");
 			#endif
 			/* Close connection */
