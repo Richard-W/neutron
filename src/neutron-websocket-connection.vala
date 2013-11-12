@@ -31,27 +31,32 @@ public class Neutron.Websocket.Connection : Object {
 	public signal void on_close(Connection conn);
 	public signal void on_error(string errstr, Connection conn);
 
-	private Session? _session;
 	public Session? session {
-		get { return _session; }
+		get;
+		private set;
 	}
 	
-	private bool _alive = false;
 	public bool alive {
-		get { return _alive; }
+		get;
+		private set;
+		default = false;
+	}
+
+	public uint32 message_max_size {
+		get;
+		set;
 	}
 
 	private bool started = false;
 	private IOStream stream;
 	private Cancellable cancellable;
-	public uint32 message_max_size;
 
 	public Connection(IOStream stream, Session? session, uint32 message_max_size) {
 		#if VERBOSE
 			message("constructor called");
 		#endif
 		this.stream = stream;
-		this._session = session;
+		this.session = session;
 		this.message_max_size = message_max_size;
 
 		cancellable = new Cancellable();
@@ -62,7 +67,7 @@ public class Neutron.Websocket.Connection : Object {
 			message("start called");
 		#endif
 		if(started) return;
-		_alive = true;
+		alive = true;
 		read_message.begin();
 	}
 
@@ -70,7 +75,7 @@ public class Neutron.Websocket.Connection : Object {
 		#if VERBOSE
 			message("close_internal called");
 		#endif
-		_alive = false;
+		alive = false;
 		on_close(this);
 		stream.close_async.begin();
 	}
@@ -79,7 +84,7 @@ public class Neutron.Websocket.Connection : Object {
 		#if VERBOSE
 			message("error_internal called");
 		#endif
-		_alive = false;
+		alive = false;
 		on_error(errstr, this);
 		close_internal();
 	}
@@ -108,7 +113,7 @@ public class Neutron.Websocket.Connection : Object {
 		#if VERBOSE
 			message("send called");
 		#endif
-		if(!_alive) return;
+		if(!alive) return;
 		var payload = (uint8[]) msg.to_utf8();
 		try {
 			yield send_frame(payload, true, 0x1);
@@ -121,7 +126,7 @@ public class Neutron.Websocket.Connection : Object {
 		#if VERBOSE
 			message("send_binary called");
 		#endif
-		if(!_alive) return;
+		if(!alive) return;
 		try {
 			yield send_frame(msg, true, 0x2);
 		} catch(Error e) {
