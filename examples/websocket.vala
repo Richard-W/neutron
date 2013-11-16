@@ -1,5 +1,5 @@
 /*
- * This file is part of the webcon project.
+ * This file is part of the neutron project.
  * 
  * Copyright 2013 Richard Wiedenhöft <richard.wiedenhoeft@gmail.com>
  *
