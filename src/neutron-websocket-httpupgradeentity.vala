@@ -51,7 +51,11 @@ public class Neutron.Websocket.HttpUpgradeEntity : Http.Entity {
 			}
 
 			var allowed_origin_builder = new StringBuilder();
-			allowed_origin_builder.append("http://");
+			if(request.get_header_var("x-forwarded-proto") == "https") {
+				allowed_origin_builder.append("https://");
+			} else {
+				allowed_origin_builder.append("http://");
+			}
 
 			var host = request.get_header_var("host");
 			if(host == null) {
