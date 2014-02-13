@@ -22,89 +22,83 @@
  */
 public class Neutron.Websocket.HttpUpgradeEntity : Http.Entity {
 	public signal void incoming(Websocket.Connection conn);
-	
-	private string[]? accepted_origins;
 
+	/**
+	 * Maximum size of a websocket message
+	 */
 	public uint message_max_size {
 		get;
 		set;
 		default = 1048576;
 	}
 
-	public HttpUpgradeEntity(string[]? accepted_origins = null) {
-		this.accepted_origins = accepted_origins;
-	}
-
 	public override async Http.ConnectionAction handle_request() {
-		try {
-			transfer_encoding = Http.TransferEncoding.NONE;
-			content_encoding = Http.ContentEncoding.NONE;
+		/* Unset transfer- and content-encoding */
+		transfer_encoding = Http.TransferEncoding.NONE;
+		content_encoding = Http.ContentEncoding.NONE;
 
-			var upgrade = request.get_header_var("upgrade");
-			var ws_key_raw = request.get_header_var("sec-websocket-key");
-			if(ws_key_raw == null || upgrade == null || upgrade.down() != "websocket") {
+		/* Check headers */
+		bool headers_ok = true;
+		if(request.get_header_var("upgrade").down() != "websocket") {
+			headers_ok = false;
+		}
+		string? ws_key_raw = request.get_header_var("sec-websocket-key");
+		if(ws_key_raw == null) {
+			headers_ok = false;
+		}
+		string? host = request.get_header_var("host");
+		if(host == null) {
+			headers_ok = false;
+		}
+		string? origin = request.get_header_var("origin");
+		if(origin == null) {
+			headers_ok = false;
+		}
+		if(!headers_ok) {
+			/* Upgrade required */
+			try {
 				yield send_status(426);
 				yield send_header("Upgrade", "websocket");
 				yield send_header("Connection", "close");
 				yield send_header("Sec-WebSocket-Version", "13");
-				return Http.ConnectionAction.CLOSE;
-			}
+			} catch(Error e) { }
+			return Http.ConnectionAction.CLOSE;
+		}
 
-			var allowed_origin_builder = new StringBuilder();
-			if(request.get_header_var("x-forwarded-proto") == "https") {
-				allowed_origin_builder.append("https://");
-			} else {
-				allowed_origin_builder.append("http://");
-			}
+		/* Check if origin matches allowed_origin */
+		string allowed_origin;
+		if(request.get_header_var("x-forwarded-proto") == "https") {
+			allowed_origin = "https://%s".printf(host);
+		} else {
+			allowed_origin = "http://%s".printf(host);
+		}
+		if(allowed_origin != origin) {
+			try {
+				yield send_status(403);
+			} catch(Error e) { }
+			return Http.ConnectionAction.CLOSE;
+		}
 
-			var host = request.get_header_var("host");
-			if(host == null) {
-				yield send_status(400);
-				return Http.ConnectionAction.CLOSE;
-			}
+		/* Compute checksum for the Sec-WebSocket-Accept header */
+		string ws_key = "%s258EAFA5-E914-47DA-95CA-C5AB0DC85B11".printf(ws_key_raw);
+		var checksum = new Checksum(ChecksumType.SHA1);
+		checksum.update((uchar[]) ws_key.data, ws_key.length);
+		uint8[] checksumbuffer = new uint8[20];
+		size_t dig_len = 20;
+		checksum.get_digest(checksumbuffer, ref dig_len);
+		var acceptstring = Base64.encode((uchar[]) checksumbuffer);
 
-			allowed_origin_builder.append(host);
-
-			var allowed_origin = allowed_origin_builder.str;
-			var origin = request.get_header_var("origin");
-			if(origin != null && allowed_origin != origin) {
-				var reject = true;
-				if(accepted_origins != null) {
-					foreach(string accepted_origin in accepted_origins) {
-						if(origin == accepted_origin)
-							reject = false;
-					}
-				}
-
-				if(reject) {
-					yield send_status(403);
-					return Http.ConnectionAction.CLOSE;
-				}
-			}
-
-
-			string ws_key = "%s258EAFA5-E914-47DA-95CA-C5AB0DC85B11".printf(ws_key_raw);
-
-			var checksum = new Checksum(ChecksumType.SHA1);
-			checksum.update((uchar[]) ws_key.to_utf8(), ws_key.length);
-			uint8[] checksumbuffer = new uint8[20];
-			size_t dig_len = 20;
-			checksum.get_digest(checksumbuffer, ref dig_len);
-			assert(dig_len == 20);
-
-			var acceptstring = Base64.encode((uchar[]) checksumbuffer);
-
+		/* Send status "Switching protocols" and release connection */
+		try {
 			yield send_status(101);
 			yield send_header("Upgrade", "websocket");
 			yield send_header("Connection", "Upgrade");
 			yield send_header("Sec-WebSocket-Accept", acceptstring);
 			yield end_headers();
-
-			incoming(new Websocket.Connection(io_stream, request.session, message_max_size));
-			
-			return Http.ConnectionAction.RELEASE;
 		} catch(Error e) {
 			return Http.ConnectionAction.CLOSE;
 		}
+		incoming(new Websocket.Connection(io_stream, request.session, message_max_size));
+		return Http.ConnectionAction.RELEASE;
 	}
 }
