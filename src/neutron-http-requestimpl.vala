@@ -44,19 +44,13 @@ private class Neutron.Http.RequestImpl : Request {
 		default = null;
 	}
 
-	public override bool uses_tls {
-		get;
-		private set;
-	}
-	
-	public RequestImpl(string method, string path, HashMap<string,string>? gets, HashMap<string,string>? posts, HashMap<string,string>? cookies, HashMap<string,string> headers, bool uses_tls) {
+	public RequestImpl(string method, string path, HashMap<string,string>? gets, HashMap<string,string>? posts, HashMap<string,string>? cookies, HashMap<string,string> headers) {
 		this.gets = gets;
 		this.posts = posts;
 		this.cookies = cookies;
 		this.headers = headers;
 		this.path = path;
 		this.method = method;
-		this.uses_tls = uses_tls;
 	}
 
 	/**

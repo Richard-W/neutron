@@ -54,7 +54,6 @@ async int test() {
 		var req = Globals.request;
 		if(req.path != "/") return 1;
 		if(req.method != "GET") return 2;
-		if(req.uses_tls) return 3;
 		if(req.get_header_var("host") != "localhost") return 4;
 		if(req.get_header_var("connection") != "keep-alive") return 5;
 		if(req.get_request_vars() != null) return 6;
@@ -69,7 +68,6 @@ async int test() {
 		req = Globals.request;
 		if(req.path != "/") return 1;
 		if(req.method != "POST") return 2;
-		if(req.uses_tls) return 3;
 		if(req.get_header_var("host") != "localhost") return 4;
 		if(req.get_header_var("connection") != "keep-alive") return 5;
 		if(req.get_request_var("key") != "value") return 6;
@@ -85,7 +83,6 @@ async int test() {
 		req = Globals.request;
 		if(req.path != "/") return 1;
 		if(req.method != "GET") return 2;
-		if(req.uses_tls) return 3;
 		if(req.get_header_var("host") != "localhost") return 4;
 		if(req.get_header_var("connection") != "close") return 5;
 		if(req.get_request_vars() != null) return 6;

@@ -44,10 +44,7 @@ void on_select_entity(Neutron.Http.Request request, Neutron.Http.EntitySelectCon
 	switch(request.path) {
 	case "/":
 		string protocol = null;
-		if(Neutron.Configuration.default.get_bool("http", "use_tls", false))
-			protocol = "wss";
-		else
-			protocol = "ws";
+		protocol = "ws";
 
 		container.set_entity(new Neutron.Http.StaticEntity("text/html", """
 <!DOCTYPE html>

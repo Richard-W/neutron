@@ -44,14 +44,6 @@ public abstract class Neutron.Http.Request : Object {
 	}
 
 	/**
-	 * Whether an encrypted connection is used
-	 */
-	public abstract bool uses_tls {
-		get;
-		protected set;
-	}
-
-	/**
 	 * The unique session-object
 	 */
 	public abstract Session? session {

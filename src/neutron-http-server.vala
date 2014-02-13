@@ -43,24 +43,6 @@ public class Neutron.Http.Server : Object {
 	}
 
 	/**
-	 * Certificate used when use_tls == true. You can only set this.
-	 */
-	public TlsCertificate? tls_certificate {
-		get;
-		set;
-		default = null;
-	}
-
-	/**
-	 * Whether the server uses TLS
-	 */
-	public bool use_tls { 
-		get;
-		set;
-		default = false;
-	}
-
-	/**
 	 * Used to distribute requests over threads
 	 */
 	public ThreadController? thread_controller {
@@ -144,14 +126,6 @@ public class Neutron.Http.Server : Object {
 		#endif
 		if(config == null) return;
 
-		this.use_tls = config.get_bool("http", "use_tls", false);
-
-		var cert_file = config.get("http", "tls_cert_file");
-		var key_file = config.get("http", "tls_key_file");
-		if(cert_file != null && key_file != null) {
-			this.tls_certificate = new TlsCertificate.from_files(cert_file, key_file);
-		}
-
 		this.timeout = config.get_int("http", "timeout", -1);
 
 		this.session_lifetime = config.get_int("http", "session_lifetime", 3600);
@@ -229,20 +203,8 @@ public class Neutron.Http.Server : Object {
 		#if VERBOSE
 			message("handle_connection called");
 		#endif
-		if(use_tls) {
-			try {
-				/* Wrap the connection in a TlsServerConnection */
-				var tlsconn = TlsServerConnection.new(conn, tls_certificate);
-				yield tlsconn.handshake_async();
-				conn = (IOStream) tlsconn;
-			} catch(Error e) {
-				return;
-			}
-		}
 
-		/* Parser takes an IOStream-Object, so it does not care whether connection
-		 * is encrypted or not */
-		var parser = new Parser(conn, timeout, request_max_size, use_tls);
+		var parser = new Parser(conn, timeout, request_max_size);
 		RequestImpl req;
 
 		while((req = yield parser.run()) != null) {

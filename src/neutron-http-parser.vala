@@ -27,16 +27,14 @@ private class Neutron.Http.Parser : Object {
 	private IOStream stream;
 	ByteArray buffer;
 	private uint max_size;
-	private bool uses_tls;
 
 	/**
 	 * Instantiates a Parser that reads from the supplied IOStream 
 	 */
-	public Parser(IOStream stream, int timeout, uint max_size, bool uses_tls) {
+	public Parser(IOStream stream, int timeout, uint max_size) {
 		this.stream = stream;
 		this.timeout = timeout;
 		this.max_size = max_size;
-		this.uses_tls = uses_tls;
 		buffer = new ByteArray();
 	}
 
@@ -332,7 +330,7 @@ private class Neutron.Http.Parser : Object {
 			return null;
 		}
 
-		return new RequestImpl(method.str, path, gets, body, cookies, headers, uses_tls);
+		return new RequestImpl(method.str, path, gets, body, cookies, headers);
 	}
 
 	private void parse_varstring(HashMap<string, string> map, string varstring) {

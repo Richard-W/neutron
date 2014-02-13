@@ -1,6 +1,7 @@
 Makefile
 CMakeCache.txt
 CMakeFiles/
+Testing/
 CTestTestfile.cmake
 cmake_install.cmake
 config.status
