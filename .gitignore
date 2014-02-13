@@ -1,0 +1,11 @@
+Makefile
+CMakeCache.txt
+CMakeFiles/
+CTestTestfile.cmake
+cmake_install.cmake
+config.status
+neutron.pc
+*.vapi
+*.c
+*.h
+*.so
