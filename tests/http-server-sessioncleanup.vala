@@ -34,9 +34,6 @@ class TestEntity : Http.Entity {
 }
 
 int main() {
-	var config = new Configuration();
-	config.push_default();
-
 	var http_server = new Http.Server();
 	http_server.select_entity.connect(on_select_entity);
 	http_server.session_lifetime = 1;
@@ -48,14 +45,11 @@ int main() {
 
 	var loop = new MainLoop();
 	var retval = 1;
-	
 	test.begin(http_server, (obj, res) => {
 		retval = test.end(res);
 		loop.quit();
 	});
-
 	loop.run();
-
 	return retval;
 }
 

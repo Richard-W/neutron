@@ -3,10 +3,6 @@ using Neutron;
 const string request_string = "GET / HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n";
 
 int main() {
-	var config = new Configuration();
-	config.push_default();
-
-
 	var http_server = new Http.Server();
 	http_server.select_entity.connect(on_select_entity);
 	http_server.request_max_size = request_string.length;
@@ -14,12 +10,10 @@ int main() {
 
 	var loop = new MainLoop();
 	var retval1 = 1;
-	
 	test.begin(8080, (obj, res) => {
 		retval1 = test.end(res);
 		loop.quit();
 	});
-
 	loop.run();
 
 	http_server = new Http.Server();
@@ -29,14 +23,12 @@ int main() {
 
 	loop = new MainLoop();
 	var retval2 = 1;
-
 	test.begin(8081, (obj, res) => {
 		retval2 = test.end(res);
 		if(retval2 == 1) retval2 = 0;
 		else retval2 = 2;
 		loop.quit();
 	});
-
 	loop.run();
 
 	return retval1+retval2;

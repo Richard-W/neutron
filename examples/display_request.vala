@@ -18,25 +18,11 @@
  */
 
 int main(string[] argv) {
-	Neutron.Configuration config;
-	Neutron.Http.Server http;
+	var http = new Neutron.Http.Server();
+	http.select_entity.connect(on_select_entity);
+	http.port = 8080;
 
-	try {
-		config = new Neutron.Configuration();
-		config.load_file("%s/example.conf".printf(cmake_current_binary_dir));
-		config.push_default();
-
-		http = new Neutron.Http.Server();
-
-		http.select_entity.connect(on_select_entity);
-		http.port = 8080;
-
-		new MainLoop().run();
-	} catch(Error e) {
-		stderr.printf("Error: %s\n", e.message);
-		return 1;
-	}
-
+	new MainLoop().run();
 	return 0;
 }
 

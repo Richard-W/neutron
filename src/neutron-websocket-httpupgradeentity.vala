@@ -24,15 +24,15 @@ public class Neutron.Websocket.HttpUpgradeEntity : Http.Entity {
 	public signal void incoming(Websocket.Connection conn);
 	
 	private string[]? accepted_origins;
-	private uint32 message_max_size;
 
-	public HttpUpgradeEntity(string[]? accepted_origins = null, uint32 message_max_size = 0) {
+	public uint message_max_size {
+		get;
+		set;
+		default = 1048576;
+	}
+
+	public HttpUpgradeEntity(string[]? accepted_origins = null) {
 		this.accepted_origins = accepted_origins;
-
-		if(message_max_size == 0)
-			this.message_max_size = (uint32) Configuration.default.get_int("websocket", "message_max_size", 1048576);
-		else
-			this.message_max_size = message_max_size;
 	}
 
 	public override async Http.ConnectionAction handle_request() {
