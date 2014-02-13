@@ -29,7 +29,7 @@ int main(string[] argv) {
 		http = new Neutron.Http.Server();
 
 		http.select_entity.connect(on_select_entity);
-		http.start();
+		http.port = 8080;
 
 		new MainLoop().run();
 	} catch(Error e) {

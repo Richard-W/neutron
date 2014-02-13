@@ -34,12 +34,31 @@ public class Neutron.Http.Server : Object {
 	 */
 	public signal void select_entity(Request request, EntitySelectContainer container);
 
+	private SocketService? listener = null;
+	private uint16 _port;
 	/**
 	 * The port the Http-Server is currently listening on
 	 */
 	public uint16 port {
-		get;
-		private set;
+		get {
+			return this._port;
+		}
+		set {
+			this._port = value;
+			if(listener != null) {
+				listener.stop();
+			}
+			this.listener = new SocketService();
+			try {
+				this.listener.add_inet_port(this._port, null);
+				this.listener.incoming.connect(this.on_incoming);
+				this.listener.start();
+			} catch(Error e) {
+				_port = 0;
+				warning(e.message);
+				this.listener = null;
+			}
+		}
 	}
 
 	/**
@@ -61,6 +80,7 @@ public class Neutron.Http.Server : Object {
 		default = -1;
 	}
 
+	private HashMap<string, Session> stored_sessions = new HashMap<string, Session>();
 	/**
 	 * The time a session is stored when no new request claim it
 	 */
@@ -88,71 +108,11 @@ public class Neutron.Http.Server : Object {
 		default = 1048576;
 	}
 
-	private SocketService listener;
-	private HashMap<string, Session> stored_sessions;
 
-	public Server(uint16 port = 0) throws Error {
+	public Server() {
 		#if VERBOSE
 			message("constructor called");
 		#endif
-		if(port == 0) {
-			if(Configuration.default == null || !Configuration.default.has("http", "port"))
-				throw new HttpError.INVALID_PORT("Port is missing");
-
-			var port_raw = uint64.parse(Configuration.default.get("http", "port"));
-			if(port_raw > 0xFFFF) throw new HttpError.INVALID_PORT("Port number too high");
-
-			this.port = (uint16) port_raw;
-		}
-		else {
-			this.port = port;
-		}
-
-		/* Define listener */
-		listener = new SocketService();
-		listener.add_inet_port(this.port, null);
-		listener.incoming.connect(on_incoming);
-
-		stored_sessions = new HashMap<string, Session>();
-		apply_config(Configuration.default);
-	}
-
-	/**
-	 * Sets certain parameters of this server according to the Configuration-object
-	 */
-	private void apply_config(Configuration? config) throws Error {
-		#if VERBOSE
-			message("apply_config called");
-		#endif
-		if(config == null) return;
-
-		this.timeout = config.get_int("http", "timeout", -1);
-
-		this.session_lifetime = config.get_int("http", "session_lifetime", 3600);
-
-		this.session_max_lifetime = config.get_int("http", "session_max_lifetime", -1);
-
-		this.request_max_size = config.get_int("http", "request_max_size", 1048576);
-	}
-
-	/**
-	 * Start handling connections 
-	 */
-	public void start() {
-		#if VERBOSE
-			message("start called");
-		#endif
-		listener.start();
-	}
-
-	/**
-	 * Stop handling connections 
-	 */
-	public void stop() {
-		#if VERBOSE
-			message("stop called");
-		#endif
-		listener.stop();
 	}
 
 	/**

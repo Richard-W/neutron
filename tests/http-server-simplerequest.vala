@@ -1,32 +1,24 @@
 using Neutron;
 
 int main() {
-	try {
-		var config = new Configuration();
-		config.push_default();
+	var config = new Configuration();
+	config.push_default();
 
-		config.set("http", "port", "8080");
+	var http_server = new Http.Server();
+	http_server.select_entity.connect(on_select_entity);
+	http_server.port = 8080;
 
-		var http_server = new Http.Server();
-		http_server.select_entity.connect(on_select_entity);
-		http_server.start();
+	var loop = new MainLoop();
+	var retval = 1;
+	
+	test.begin((obj, res) => {
+		retval = test.end(res);
+		loop.quit();
+	});
 
-		var loop = new MainLoop();
-		var retval = 1;
-		
-		test.begin((obj, res) => {
-			retval = test.end(res);
-			loop.quit();
-		});
+	loop.run();
 
-		loop.run();
-
-		return retval;
-	}
-	catch(Error e) {
-		stderr.printf("%s\n", e.message);
-		return 1;
-	}
+	return retval;
 }
 
 void on_select_entity(Http.Request req, Http.EntitySelectContainer cont) {
