@@ -44,4 +44,4 @@ over all the files in src/.
 Info
 ----
 
-This project was hosted on github. However as of now github is only used an a mirror. The main repository is https://git.metanoise.net/neutron
+This project was hosted on github. However as of now github is only used as a mirror. The main repository is https://git.metanoise.net/neutron
