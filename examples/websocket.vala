@@ -16,9 +16,13 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+using Neutron;
 
 int main(string[] argv) {
-	var http = new Neutron.Http.Server();
+	var tcontrol = new ThreadController(4);
+	tcontrol.push_default();
+
+	var http = new Http.Server();
 	http.select_entity.connect(on_select_entity);
 	http.port = 8080;
 
@@ -26,13 +30,13 @@ int main(string[] argv) {
 	return 0;
 }
 
-void on_select_entity(Neutron.Http.Request request, Neutron.Http.EntitySelectContainer container) {
+void on_select_entity(Http.Request request, Http.EntitySelectContainer container) {
 	switch(request.path) {
 	case "/":
 		string protocol = null;
 		protocol = "ws";
 
-		container.set_entity(new Neutron.Http.StaticEntity("text/html", """
+		container.set_entity(new Http.StaticEntity("text/html", """
 <!DOCTYPE html>
 <html>
 <head>
@@ -86,14 +90,14 @@ void on_select_entity(Neutron.Http.Request request, Neutron.Http.EntitySelectCon
 """.printf(protocol, request.get_header_var("host"))));
 		break;
 	case "/socket":
-		var entity = new Neutron.Websocket.HttpUpgradeEntity();
+		var entity = new Websocket.HttpUpgradeEntity();
 		entity.incoming.connect(on_incoming_ws);
 		container.set_entity(entity);
 		break;
 	}
 }
 
-void on_incoming_ws(Neutron.Websocket.Connection conn) {
+void on_incoming_ws(Websocket.Connection conn) {
 	conn.ref();
 
 	conn.on_message.connect(on_message);
@@ -102,14 +106,14 @@ void on_incoming_ws(Neutron.Websocket.Connection conn) {
 	conn.start();
 }
 
-void on_message(string message, Neutron.Websocket.Connection conn) {
+void on_message(string message, Websocket.Connection conn) {
 	conn.send.begin("Got line: %s".printf(message));
 }
 
-void on_error(string msg, Neutron.Websocket.Connection conn) {
+void on_error(string msg, Websocket.Connection conn) {
 	message(msg);
 }
 
-void on_close(Neutron.Websocket.Connection conn) {
+void on_close(Websocket.Connection conn) {
 	conn.unref();
 }

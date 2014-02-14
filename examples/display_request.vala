@@ -16,9 +16,13 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+using Neutron;
 
 int main(string[] argv) {
-	var http = new Neutron.Http.Server();
+	var tcontrol = new ThreadController(4);
+	tcontrol.push_default();
+
+	var http = new Http.Server();
 	http.select_entity.connect(on_select_entity);
 	http.port = 8080;
 
@@ -26,7 +30,7 @@ int main(string[] argv) {
 	return 0;
 }
 
-void on_select_entity(Neutron.Http.Request request, Neutron.Http.EntitySelectContainer container) {
+void on_select_entity(Http.Request request, Http.EntitySelectContainer container) {
 	switch(request.path) {
 	case "/":
 		container.set_entity(new DisplayRequestEntity());
@@ -34,13 +38,13 @@ void on_select_entity(Neutron.Http.Request request, Neutron.Http.EntitySelectCon
 	}
 }
 
-class DisplayRequestEntity : Neutron.Http.Entity {
-	protected override async Neutron.Http.ConnectionAction handle_request() {
+class DisplayRequestEntity : Http.Entity {
+	protected override async Http.ConnectionAction handle_request() {
 		try {
 			yield send_status(200);
 			yield send_header("Content-Type", "text/html");
 
-			if(request.session == null) yield set_session(new Neutron.Session());
+			if(request.session == null) yield set_session(new Session());
 
 			yield end_headers();
 
@@ -97,9 +101,9 @@ class DisplayRequestEntity : Neutron.Http.Entity {
 			</html>
 			""");
 			yield end_body();
-			return Neutron.Http.ConnectionAction.KEEP_ALIVE;
+			return Http.ConnectionAction.KEEP_ALIVE;
 		} catch(Error e) {
-			return Neutron.Http.ConnectionAction.CLOSE;
+			return Http.ConnectionAction.CLOSE;
 		}
 	}
 }

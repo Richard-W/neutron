@@ -23,14 +23,22 @@ namespace Neutron {
 	 * which get executed in one of the threads.
 	 */
 	public class ThreadController : Object {
-		private static ThreadController? _default;
+		private static Gee.ArrayList<ThreadController>? default_stack = null;
+		/**
+		 * The top element of the default-stack.
+		 */
 		public static ThreadController? default {
-			get { return _default; }
+			owned get {
+				if(default_stack == null || default_stack.is_empty) return null;
+				return default_stack.last();
+			}
 		}
 
 		public static ThreadController? pop_default() {
-			var result = _default;
-			_default = null;
+			var result = default;
+			if(!default_stack.is_empty) {
+				default_stack.remove_at(default_stack.size - 1);
+			}
 			return result;
 		}
 
@@ -74,14 +82,23 @@ namespace Neutron {
 			return true;
 		}
 
+		/**
+		 * Invoke a source in one of the worker-threads.
+		 */
 		public void invoke(Source isource) {
 			isource.attach(thread_contexts[next]);
 			next++;
 			if(next >= num_threads) next = 0;
 		}
 
+		/**
+		 * Sets this as the application default thread-controller.
+		 */
 		public void push_default() {
-			ThreadController._default = this;
+			if(default_stack == null) {
+				default_stack = new Gee.ArrayList<ThreadController>();
+			}
+			default_stack.add(this);
 		}
 	}
 }
