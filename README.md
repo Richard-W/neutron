@@ -40,3 +40,8 @@ of feedback is therefore appreciated.
 
 I am trying to comment everything that might be relevant in valadoc-format. To get up-to-date documentation just run valadoc
 over all the files in src/.
+
+Info
+----
+
+This project was hosted on github. However as of now github is only used an a mirror. The main repository is https://git.metanoise.net/neutron
