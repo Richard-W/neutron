@@ -135,9 +135,9 @@ public class Neutron.Websocket.Connection : Object {
 		}
 	}
 
-	private async uint8[] read_bytes(uint len) throws WebsocketError {
+	private async uint8[] read_all_async(uint len) throws WebsocketError {
 		#if VERBOSE
-			message("read_bytes called");
+			message("read_all_async called");
 		#endif
 		try {
 			ByteArray result = new ByteArray();
@@ -159,7 +159,7 @@ public class Neutron.Websocket.Connection : Object {
 		#if VERBOSE
 			message("read_frame called");
 		#endif
-		var frame_header = yield read_bytes(2);
+		var frame_header = yield read_all_async(2);
 
 		fin = ((frame_header[0] & 0x80) == 0x80);
 		bool rsv1 = ((frame_header[0] & 0x40) == 0x40);
@@ -189,7 +189,7 @@ public class Neutron.Websocket.Connection : Object {
 		uint8[] mask;
 		uint8 mask_next = 0;
 		if(masked) {
-			mask = yield read_bytes(4);
+			mask = yield read_all_async(4);
 		} else {
 			mask = new uint8[4];
 			mask[0] = 0;
@@ -199,10 +199,10 @@ public class Neutron.Websocket.Connection : Object {
 		}
 
 		if(payload_len == 126) {
-			var payload_len_ext = yield read_bytes(2);
+			var payload_len_ext = yield read_all_async(2);
 			payload_len = Posix.htons(*((uint16*) payload_len_ext));
 		} else if(payload_len == 127) {
-			var payload_len_ext = yield read_bytes(8);
+			var payload_len_ext = yield read_all_async(8);
 			for(int i = 0; i < 4; i++) {
 				if(payload_len_ext[i] != 0)
 					throw new WebsocketError.MAX_FRAME_SIZE_EXCEEDED("uint32 should really be enough to address a single frame");
@@ -215,7 +215,7 @@ public class Neutron.Websocket.Connection : Object {
 		if(payload_len > max_size)
 			throw new WebsocketError.MAX_FRAME_SIZE_EXCEEDED("you need to specify a higher max_size for websocket-messages");
 
-		uint8[] payload = yield read_bytes(payload_len);
+		uint8[] payload = yield read_all_async(payload_len);
 		for(int i = 0; i < payload.length; i++) {
 			payload[i] ^= mask[mask_next];
 			mask_next++;
