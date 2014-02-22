@@ -36,8 +36,8 @@ class TestEntity : Http.Entity {
 int main() {
 	var http_server = new Http.Server();
 	http_server.select_entity.connect(on_select_entity);
-	http_server.session_lifetime = 1;
-	http_server.session_max_lifetime = 2000;
+	Session.lifetime = 1;
+	Session.max_lifetime = 2000;
 	http_server.port = 8080;
 	if(http_server.port == 0) {
 		return 1;
@@ -127,8 +127,8 @@ async int test(Http.Server server) {
 		conn.close();
 		if(failed) return 1;
 
-		server.session_lifetime = 2;
-		server.session_max_lifetime = 3;
+		Session.lifetime = 2;
+		Session.max_lifetime = 3;
 
 		message = "GET / HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n";
 		stdout.printf(message);

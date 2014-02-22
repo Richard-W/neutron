@@ -267,13 +267,16 @@
 	 */
 	protected async void set_session(Session? session) throws Error {
 		if(session != null) {
-			server.store_session(session);
 			yield set_cookie("neutron_session_id", session.session_id, 24*3600, "/");
+			if(request.session != null && request.session.session_id != session.session_id) {
+				Session.delete_by_id(request.session.session_id);
+			}
 		} else {
 			yield set_cookie("neutron_session_id", "deleted", -1);
+			if(request.session != null) {
+				Session.delete_by_id(request.session.session_id);
+			}
 		}
-
-		if(request.session != null) server.delete_session(request.session);
 	}
 
 	/**

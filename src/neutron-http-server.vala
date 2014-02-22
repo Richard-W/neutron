@@ -17,8 +17,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-using Gee;
-
 /**
  * Main class for Http-communication.
  *
@@ -80,25 +78,6 @@ public class Neutron.Http.Server : Object {
 		default = -1;
 	}
 
-	private HashMap<string, Session> stored_sessions = new HashMap<string, Session>();
-	/**
-	 * The time a session is stored when no new request claim it
-	 */
-	public int session_lifetime {
-		get;
-		set;
-		default = 3600;
-	}
-
-	/**
-	 * The time after which a session is deleted unconditionally.
-	 */
-	public int session_max_lifetime {
-		get;
-		set;
-		default = -1;
-	}
-
 	/**
 	 * Maximum size of requests.
 	 */
@@ -137,26 +116,6 @@ public class Neutron.Http.Server : Object {
 	}
 
 	/**
-	 * Stores a session in this server
-	 */
-	public void store_session(Session session) {
-		#if VERBOSE
-			message("store_session called");
-		#endif
-		stored_sessions.set(session.session_id, session);
-	}
-
-	/**
-	 * Deletes a session from this server
-	 */
-	public void delete_session(Session session) {
-		#if VERBOSE
-			message("delete_session called");
-		#endif
-		stored_sessions.unset(session.session_id);
-	}
-
-	/**
 	 * Handle the incoming connection asynchronously 
 	 */
 	private async void handle_connection(IOStream conn) {
@@ -169,20 +128,17 @@ public class Neutron.Http.Server : Object {
 
 		while((req = yield parser.run()) != null) {
 			/* cleanup sessions */
-			cleanup_sessions();
+			Session.cleanup();
 
 			/* Add session to request */
 			string? session_id = req.get_cookie_var("neutron_session_id");
-			if(session_id != null) {
-				if(stored_sessions.has_key(session_id)) {
-					var session = stored_sessions.get(session_id);
+			Session? session = null;
+			if(session_id != null && (session = Session.get_by_id(session_id)) != null) {
+				/* Reset last_request-DateTime so the session does not get cleaned up */
+				session.reset_last_request_time();
 
-					/* Reset last_request-DateTime so the session does not get cleaned up */
-					session.reset_last_request_time();
-
-					/* Add the session to the request-object */
-					req.set_session(session);
-				}
+				/* Add the session to the request-object */
+				req.set_session(session);
 			}
 
 			/* Let the user choose the entity */
@@ -224,30 +180,6 @@ public class Neutron.Http.Server : Object {
 			yield conn.close_async();
 		} catch(Error e) {
 			return;
-		}
-	}
-
-	private void cleanup_sessions() {
-		#if VERBOSE
-			message("cleanup_sessions called");
-		#endif
-		var now = new DateTime.now_local();
-		var to_delete = new HashSet<string>();
-
-		foreach(string key in stored_sessions.keys) {
-			var session = stored_sessions.get(key);
-			var req_diff = now.difference(session.last_request_time) / TimeSpan.SECOND;
-			var creation_diff = now.difference(session.creation_time) / TimeSpan.SECOND;
-
-			if(req_diff > session_lifetime && session_lifetime > 0) {
-				to_delete.add(key);
-			} else if(creation_diff > session_max_lifetime && session_max_lifetime > 0) {
-				to_delete.add(key);
-			}
-		}
-
-		foreach(string key in to_delete) {
-			stored_sessions.unset(key);
 		}
 	}
 }
