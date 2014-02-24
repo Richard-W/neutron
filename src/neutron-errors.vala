@@ -17,11 +17,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-public errordomain Neutron.ConfigurationError {
-	REQUIRED_OPTION_MISSING,
-	INVALID_OPTION
-}
-
 public errordomain Neutron.Http.HttpError {
 	STATUS_ALREADY_SENT,
 	STATUS_NOT_SENT,
