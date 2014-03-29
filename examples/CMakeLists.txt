@@ -1,6 +1,7 @@
 function(add_neutron_example example sources)
 	file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/../neutron.deps" packages)
 
+	include (ValaPrecompile)
 	vala_precompile(c_sources
 		SOURCES
 			${sources}

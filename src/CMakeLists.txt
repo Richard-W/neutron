@@ -5,6 +5,7 @@ else(DEBIAN)
 	list(APPEND VALA_PACKAGES gee-0.8)
 endif(DEBIAN)
 
+include (ValaPrecompile)
 vala_precompile(C_SOURCES
 	SOURCES
 		neutron-errors.vala

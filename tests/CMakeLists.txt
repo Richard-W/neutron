@@ -1,6 +1,7 @@
 function(neutron_test test)
 	file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/../neutron.deps" packages)
 
+	include (ValaPrecompile)
 	vala_precompile(${test}_SOURCES
 		SOURCES
 			${test}.vala
