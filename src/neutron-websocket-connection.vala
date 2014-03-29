@@ -52,9 +52,6 @@ public class Neutron.Websocket.Connection : Object {
 	private Cancellable cancellable;
 
 	public Connection(IOStream stream, Session? session, uint32 message_max_size) {
-		#if VERBOSE
-			message("constructor called");
-		#endif
 		this.stream = stream;
 		this.session = session;
 		this.message_max_size = message_max_size;
@@ -63,36 +60,24 @@ public class Neutron.Websocket.Connection : Object {
 	}
 
 	public void start() {
-		#if VERBOSE
-			message("start called");
-		#endif
 		if(started) return;
 		alive = true;
 		read_message.begin();
 	}
 
 	private void close_internal() {
-		#if VERBOSE
-			message("close_internal called");
-		#endif
 		alive = false;
 		on_close(this);
 		stream.close_async.begin();
 	}
 
 	private void error_internal(string errstr) {
-		#if VERBOSE
-			message("error_internal called");
-		#endif
 		alive = false;
 		on_error(errstr, this);
 		close_internal();
 	}
 
 	public async void close() {
-		#if VERBOSE
-			message("close called");
-		#endif
 		try {
 			yield send_frame(null, true, 0x8);
 			bool fin;
@@ -110,9 +95,6 @@ public class Neutron.Websocket.Connection : Object {
 	}
 
 	public async void send(string msg) {
-		#if VERBOSE
-			message("send called");
-		#endif
 		if(!alive) return;
 		var payload = (uint8[]) msg.to_utf8();
 		try {
@@ -123,9 +105,6 @@ public class Neutron.Websocket.Connection : Object {
 	}
 
 	public async void send_binary(uint8[] msg) {
-		#if VERBOSE
-			message("send_binary called");
-		#endif
 		if(!alive) return;
 		try {
 			yield send_frame(msg, true, 0x2);
@@ -136,9 +115,6 @@ public class Neutron.Websocket.Connection : Object {
 	}
 
 	private async uint8[] read_all_async(uint len) throws WebsocketError {
-		#if VERBOSE
-			message("read_all_async called");
-		#endif
 		try {
 			ByteArray result = new ByteArray();
 
@@ -156,9 +132,6 @@ public class Neutron.Websocket.Connection : Object {
 	}
 
 	private async uint8[]? read_frame(out bool fin, out uint8 opcode, uint max_size = 1048576) throws WebsocketError {
-		#if VERBOSE
-			message("read_frame called");
-		#endif
 		var frame_header = yield read_all_async(2);
 
 		fin = ((frame_header[0] & 0x80) == 0x80);
@@ -227,9 +200,6 @@ public class Neutron.Websocket.Connection : Object {
 	}
 
 	private async void send_frame(uint8[]? payload, bool fin, uint8 opcode) throws WebsocketError {
-		#if VERBOSE
-			message("send_frame called");
-		#endif
 		try {
 			var frame_header = new uint8[2];
 			uint8[]? pl_ext = null;
@@ -272,9 +242,6 @@ public class Neutron.Websocket.Connection : Object {
 	}
 
 	private async void read_message() {
-		#if VERBOSE
-			message("read_message called");
-		#endif
 		try {
 			var _message = new ByteArray();
 			bool fin = false;
@@ -295,9 +262,6 @@ public class Neutron.Websocket.Connection : Object {
 				_message.append(frame);
 			}
 
-			#if VERBOSE
-				message("message opcode: %d".printf(opcode));
-			#endif
 			switch(opcode) {
 			case 0:
 				error_internal("Expected opcode != 0");
@@ -306,15 +270,9 @@ public class Neutron.Websocket.Connection : Object {
 				var sb = new StringBuilder();
 				_message.append({0});
 				sb.append((string) _message.data);
-				#if VERBOSE
-					message("signal on_message emitted");
-				#endif
 				on_message(sb.str, this);
 				break;
 			case 2:
-				#if VERBOSE
-					message("signal on_binary_message emitted");
-				#endif
 				on_binary_message(_message.data, this);
 				break;
 			case 8:

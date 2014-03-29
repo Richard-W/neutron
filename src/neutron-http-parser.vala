@@ -51,9 +51,6 @@ private class Neutron.Http.Parser : Object {
 		}
 
 		var reclen = yield stream.input_stream.read_async(buf, Priority.DEFAULT, timeout_provider);
-		#if VERBOSE
-			message("refill_buffer: %d bytes received".printf((int) reclen));
-		#endif
 		if(reclen == 0) throw new HttpError.CONNECTION_CLOSED("Connection closed");
 
 		buffer.append(buf[0:reclen]);
@@ -63,10 +60,6 @@ private class Neutron.Http.Parser : Object {
 		while(buffer.len == 0) yield refill_buffer();
 		var result = buffer.data[0];
 		buffer.remove_index(0);
-
-		#if VERBOSE
-			message("get_char: %d bytes left in the buffer".printf((int) buffer.len));
-		#endif
 
 		return (char) result;
 	}
@@ -109,17 +102,9 @@ private class Neutron.Http.Parser : Object {
 				}
 				else get_next_char = true;
 
-				#if VERBOSE
-					if(nextchar != '\r' && nextchar != '\n') message("nextchar = %d/%c".printf((int) nextchar, nextchar));
-					else message("nextchar = %d".printf((int) nextchar));
-				#endif
-
 				switch(state) {
 				case -1:
 					if(nextchar != '\r' && nextchar != '\n') {
-						#if VERBOSE
-							message("state -1: switching state, char=%c".printf(nextchar));
-						#endif
 						state = 0;
 						get_next_char = false;
 						continue;
@@ -128,15 +113,9 @@ private class Neutron.Http.Parser : Object {
 				case 0:
 					if(nextchar == ' ') {
 						state = 1;
-						#if VERBOSE
-							message("state 0: setting state 1");
-						#endif
 						continue;
 					}
 					if(nextchar == '\r' || nextchar == '\n') {
-						#if VERBOSE
-							message("state 0: unexpected char: %d".printf((int) nextchar));
-						#endif
 						return null;
 					}
 
@@ -145,15 +124,9 @@ private class Neutron.Http.Parser : Object {
 				case 1:
 					if(nextchar == ' ') {
 						state = 2;
-						#if VERBOSE
-							message("state 1: setting state 2");
-						#endif
 						continue;
 					}
 					if(nextchar == '\r' || nextchar == '\n') {
-						#if VERBOSE
-							message("state 1: unexpected char: %d".printf((int) nextchar));
-						#endif
 						return null;
 					}
 
@@ -162,23 +135,14 @@ private class Neutron.Http.Parser : Object {
 				case 2:
 					if(nextchar == '\r') {
 						state = 3;
-						#if VERBOSE
-							message("state 2: setting state 3");
-						#endif
 						continue;
 					}
 					if(nextchar == '\n') {
 						state = 4;
-						#if VERBOSE
-							message("state 2: setting state 4");
-						#endif
 						header_key = new StringBuilder();
 						continue;
 					}
 					if(nextchar == ' ') {
-						#if VERBOSE
-							message("state 2: unexpected char: %d".printf((int) nextchar));
-						#endif
 						return null;
 					}
 
@@ -186,43 +150,25 @@ private class Neutron.Http.Parser : Object {
 					break;
 				case 3:
 					if(nextchar != '\n') {
-						#if VERBOSE
-							message("state 3: unexpected char: %d".printf((int) nextchar));
-						#endif
 						return null;
 					} else {
 						state = 4;
-						#if VERBOSE
-							message("state 3: setting state 4");
-						#endif
 						header_key = new StringBuilder();
 					}
 					break;
 				case 4:
 					if(nextchar == ':') {
 						state = 5;
-						#if VERBOSE
-							message("state 4: setting state 5");
-						#endif
 						continue;
 					}
 					if(nextchar == ' ') {
-						#if VERBOSE
-							message("state 4: unexpected char: %d".printf((int) nextchar));
-						#endif
 						return null;
 					}
 					if(nextchar == '\r') {
 						state = 8;
-						#if VERBOSE
-							message("state 4: setting state 8");
-						#endif
 						continue;
 					}
 					if(nextchar == '\n') {
-						#if VERBOSE
-							message("state 4: setting state 9");
-						#endif
 						state = 9;
 						continue;
 					}
@@ -232,23 +178,14 @@ private class Neutron.Http.Parser : Object {
 				case 5:
 					if(nextchar == ' ') {
 						state = 6;
-						#if VERBOSE
-							message("state 5: setting state 6");
-						#endif
 						header_val = new StringBuilder();
 						continue;
 					} else {
-						#if VERBOSE
-							message("state 5: unexpected char: %d".printf((int) nextchar));
-						#endif
 						return null;
 					}
 				case 6:
 					if(nextchar == '\r') {
 						state = 7;
-						#if VERBOSE
-							message("state 6: setting state 7");
-						#endif
 						var key_str = header_key.str.down();
 						headers.set(key_str, header_val.str);
 						header_key = new StringBuilder();
@@ -256,9 +193,6 @@ private class Neutron.Http.Parser : Object {
 					}
 					if(nextchar == '\n') {
 						state = 4;
-						#if VERBOSE
-							message("state 6: setting state 4");
-						#endif
 						var key_str = header_key.str.down();
 						headers.set(key_str, header_val.str);
 						header_key = new StringBuilder();
@@ -270,28 +204,16 @@ private class Neutron.Http.Parser : Object {
 				case 7:
 					if(nextchar == '\n') {
 						state = 4;
-						#if VERBOSE
-							message("state 7: setting state 4");
-						#endif
 					}
 					else {
-						#if VERBOSE
-							message("state 7: unexpected char: %d".printf((int) nextchar));
-						#endif
 						return null;
 					}
 					break;
 				case 8:
 					if(nextchar == '\n') {
 						state = 9;
-						#if VERBOSE
-							message("state 8: setting state 9");
-						#endif
 					}
 					else {
-						#if VERBOSE
-							message("state 8: unexpected char: %d".printf((int) nextchar));
-						#endif
 						return null;
 					}
 					break;
@@ -314,9 +236,6 @@ private class Neutron.Http.Parser : Object {
 			}
 
 			if(headers.has_key("content-length") && method.str == "POST") {
-				#if VERBOSE
-					message("content-length > 0");
-				#endif
 				var clen = (uint) uint64.parse(headers.get("content-length"));
 				var bodybuilder = new StringBuilder();
 
@@ -334,9 +253,6 @@ private class Neutron.Http.Parser : Object {
 	}
 
 	private void parse_varstring(HashMap<string, string> map, string varstring) {
-		#if VERBOSE
-			message("parse_varstring called");
-		#endif
 		var reqarr = varstring.split("&");
 		foreach(string reqpair in reqarr) {
 			var reqparr = reqpair.split("=", 2);
@@ -349,9 +265,6 @@ private class Neutron.Http.Parser : Object {
 			if(ue_key == null) return;
 			if(ue_val == null) ue_val = "";
 			map.set(ue_key, ue_val);
-			#if VERBOSE
-				message("map.set(%s, %s)".printf(ue_key, ue_val));
-			#endif
 		}
 	}
 }

@@ -89,18 +89,12 @@ public class Neutron.Http.Server : Object {
 
 
 	public Server() {
-		#if VERBOSE
-			message("constructor called");
-		#endif
 	}
 
 	/**
 	 * Gets the connections from listener 
 	 */
 	private bool on_incoming(SocketConnection conn, Object? source_object) {
-		#if VERBOSE
-			message("on_incoming called");
-		#endif
 		if(thread_controller == null)
 			handle_connection.begin((IOStream) conn);
 		else {
@@ -119,9 +113,6 @@ public class Neutron.Http.Server : Object {
 	 * Handle the incoming connection asynchronously 
 	 */
 	private async void handle_connection(IOStream conn) {
-		#if VERBOSE
-			message("handle_connection called");
-		#endif
 
 		var parser = new Parser(conn, timeout, request_max_size);
 		RequestImpl req;
@@ -159,10 +150,6 @@ public class Neutron.Http.Server : Object {
 				connection_header = connection_header.down();
 
 			if(connection_action == ConnectionAction.CLOSE || connection_header == "close") {
-				#if VERBOSE
-					if(connection_action == ConnectionAction.CLOSE) message("connection_action is CLOSE");
-					else message("connection_header is close");
-				#endif
 				break;
 			}
 			else if(connection_action == ConnectionAction.RELEASE)
@@ -172,10 +159,6 @@ public class Neutron.Http.Server : Object {
 		}
 
 		try {
-			#if VERBOSE
-				if(req == null) message("req is null");
-				message("handle_connection: closed connection");
-			#endif
 			/* Close connection */
 			yield conn.close_async();
 		} catch(Error e) {

@@ -2,9 +2,6 @@ cmake_minimum_required(VERSION 2.6)
 project(neutron)
 
 option(DEBIAN "Compile on debian" OFF)
-option(EXAMPLES "Build examples" OFF)
-option(TESTS "Build tests" OFF)
-option(VERBOSE "Output tracing messages" OFF)
 
 set(VERSION_MAJOR "0")
 set(VERSION_MINOR "1")
@@ -61,10 +58,6 @@ include_directories(${GEE_INCLUDE_DIRS})
 link_directories(${GEE_LIBRARY_DIRS})
 set(LIBRARIES ${LIBRARIES} ${GEE_LIBRARIES})
 
-if(VERBOSE)
-	set(VALA_FLAGS "--define=VERBOSE")
-endif(VERBOSE)
-
 add_subdirectory(src)
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/src)
 
@@ -88,11 +81,7 @@ install(
 		share/vala/vapi/
 )
 
-if(EXAMPLES)
-	add_subdirectory(examples)
-endif(EXAMPLES)
+add_subdirectory(examples)
 
-if(TESTS)
-	enable_testing()
-	add_subdirectory(tests)
-endif(TESTS)
+enable_testing()
+add_subdirectory(tests)
