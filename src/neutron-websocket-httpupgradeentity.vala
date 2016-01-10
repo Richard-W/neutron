@@ -21,7 +21,13 @@
  * Http-Entity which upgrades the connection to the websocket-protocol
  */
 public class Neutron.Websocket.HttpUpgradeEntity : Http.Entity {
+	public bool check_origin { get; construct; }
+
 	public signal void incoming(Websocket.Connection conn);
+
+	public HttpUpgradeEntity (bool check_origin = true) {
+		Object (check_origin : check_origin);
+	}
 
 	/**
 	 * Maximum size of a websocket message
@@ -72,7 +78,7 @@ public class Neutron.Websocket.HttpUpgradeEntity : Http.Entity {
 		} else {
 			allowed_origin = "http://%s".printf(host);
 		}
-		if(allowed_origin != origin) {
+		if(check_origin && allowed_origin != origin) {
 			try {
 				yield send_status(403);
 			} catch(Error e) { }
